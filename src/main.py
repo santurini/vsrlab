@@ -2,7 +2,6 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import logging
-import argparse
 from typing import List
 
 import hydra
@@ -14,6 +13,7 @@ from pytorch_lightning import Callback
 from core import PROJECT_ROOT
 from core.utils import seed_index_everything, build_callbacks
 
+logging.basicConfig(level = logging.INFO)
 pylogger = logging.getLogger(__name__)
 
 def run(cfg: DictConfig) -> str:
