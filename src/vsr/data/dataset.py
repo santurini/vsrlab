@@ -23,10 +23,6 @@ class DatasetSR(Dataset):
                  lr_augmentation: ListConfig = None
                  ):
         super().__init__()
-        print(path)
-        print(Path(path))
-        print(Path(path).glob('*'))
-        print(list(Path(path).glob('*')))
         self.path = list(Path(path).glob('*'))
         self.scale = scale
         self.split = split
@@ -48,7 +44,7 @@ class DatasetSR(Dataset):
 
         if self.hr_augmentation:
             hr_batch = self.hr_augmentation(hr_batch)
-
+            print(hr_batch.shape)
         if self.lr_augmentation:
             lr_batch = self.lr_augmentation(hr_batch)
         else:
