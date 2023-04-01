@@ -152,7 +152,7 @@ module:
         data_range: 1
 
   optimizer:
-    _target_: torch.optim.Adam
+    _target_: deepspeed.ops.adam.DeepSpeedCPUAdam
     lr: 1e-3
     betas: [ 0.9, 0.999 ]
     eps: 1e-08

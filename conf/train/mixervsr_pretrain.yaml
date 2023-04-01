@@ -11,7 +11,7 @@ trainer:
   num_sanity_val_steps: 2
   gradient_clip_val: 10.0
   deterministic: ${train.deterministic}
-  strategy: ddp
+  strategy: deepspeed_stage_3_offload
 
 restore:
   ckpt_or_run_path: null
