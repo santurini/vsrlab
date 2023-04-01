@@ -23,10 +23,9 @@ class DataModuleVSR(pl.LightningDataModule):
         self.batch_size = batch_size
 
     def setup(self, stage: Optional[str] = None):
-        print('Preparing Datasets')
         self.train_ds = hydra.utils.instantiate(self.datasets.train, _recursive_=False)
         self.val_ds = hydra.utils.instantiate(self.datasets.val, _recursive_=False)
-        print('Done')
+
     def train_dataloader(self) -> DataLoader:
         return DataLoader(
             self.train_ds,
