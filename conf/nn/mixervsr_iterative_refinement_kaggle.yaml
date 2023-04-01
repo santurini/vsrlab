@@ -12,21 +12,21 @@ data:
           size: [512, 512]
           pad_if_needed: True
           same_on_batch: False
-          #keepdim: True
+          keepdim: True
 
         - _target_: kornia.augmentation.Resize
           size: [ 256, 256 ]
-          #keepdim: True
+          keepdim: True
 
         - _target_: kornia.augmentation.RandomHorizontalFlip
           p: 0.5
           same_on_batch: False
-          #keepdim: True
+          keepdim: True
 
         - _target_: kornia.augmentation.RandomVerticalFlip
           p: 0.5
           same_on_batch: False
-          #keepdim: True
+          keepdim: True
 
       lr_augmentation:
         - _target_: kornia.augmentation.RandomGaussianBlur
@@ -34,7 +34,7 @@ data:
           sigma: [ 0.2, 3 ]
           same_on_batch: False
           p: 0.8
-          #keepdim: True
+          keepdim: True
 
         - _target_: kornia.augmentation.ColorJitter
           p: 0.7
@@ -43,7 +43,7 @@ data:
           saturation: 0.1
           hue: 0.2
           same_on_batch: False
-          #keepdim: True
+          keepdim: True
 
         - _target_: core.augmentations.RandomJPEGCompression
           quality: [ 30, 90 ]
@@ -52,21 +52,21 @@ data:
           kernel_size: 9
           sigma: [ 0.2, 3 ]
           same_on_batch: False
-          #keepdim: True
+          keepdim: True
           p: 0.8
 
         - _target_: kornia.augmentation.RandomGaussianNoise
           mean: 0.1
           std: 0.5
           same_on_batch: False
-          #keepdim: True
+          keepdim: True
           p: 0.7
 
         - _target_: kornia.augmentation.RandomGaussianBlur
           kernel_size: 5
           sigma: [ 0.2, 3 ]
           same_on_batch: False
-          #keepdim: True
+          keepdim: True
           p: 0.7
 
         - _target_: core.augmentations.RandomJPEGCompression
@@ -82,16 +82,16 @@ data:
           size: [512, 512]
           pad_if_needed: True
           same_on_batch: False
-          #keepdim: True
+          keepdim: True
 
         - _target_: kornia.augmentation.Resize
-          #keepdim: True
+          keepdim: True
           size: [ 256, 256 ]
 
       lr_augmentation:
         - _target_: kornia.augmentation.RandomGaussianBlur
           kernel_size: 5
-          #keepdim: True
+          keepdim: True
           sigma: [ 0.2, 3 ]
           same_on_batch: False
           p: 0.7
