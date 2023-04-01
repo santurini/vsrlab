@@ -4,7 +4,7 @@ data:
   datasets:
     train:
       _target_: vsr.data.dataset.DatasetSR
-      path: "/kaggle/input/pexels-110k-768p-min-jpg/pexels-110k-768p-min-jpg/images"
+      path: "~/hdd/vsr/REDS/000"
       split: "train"
       size: 0.9
       hr_augmentation:
@@ -67,7 +67,7 @@ data:
 
     val:
       _target_: vsr.data.dataset.DatasetSR
-      path: '/kaggle/input/pexels-110k-768p-min-jpg/pexels-110k-768p-min-jpg/images'
+      path: "~/hdd/vsr/REDS/001"
       split: "val"
       size: 0.1
       hr_augmentation:
