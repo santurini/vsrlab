@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import torchvision.transforms.functional as F
+import torch.nn.functional as F
 from core.modules.conv import DeformBlock, ConvSTBlock
 from core.modules.dct_transforms import EncoderDCT, DecoderIDCT
 from core.modules.mlp import MlpMixer
