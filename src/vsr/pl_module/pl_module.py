@@ -109,7 +109,7 @@ class LitSR(pl.LightningModule):
              }
 
     def log_images(self, lr, sr, hr):
-        t_log = lr.shape(0) if lr.shape(0) < 5 else self.hparams.log_k_images
+        t_log = lr.shape[0] if lr.shape[0] < 5 else self.hparams.log_k_images
         lr = lr[:t_log].detach().cpu()
         hr = hr[:t_log].detach().cpu()
         sr = sr[:t_log].clamp(0, 1)
