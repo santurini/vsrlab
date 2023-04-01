@@ -110,8 +110,8 @@ class LitSR(pl.LightningModule):
 
     def log_images(self, lr, sr, hr):
         t_log = 5 if not self.hparams.log_k_images else self.hparams.log_k_images
-        lr = lr[:t_log]
-        hr = hr[:t_log] # b c h w
+        lr = lr[:t_log].detach().cpu().numpy()
+        hr = hr[:t_log].detach().cpu().numpy()
         sr = sr[:t_log].clamp(0, 1)
         psnr = ['PSNR: ' + str(self.val_metric(i, j)['PeakSignalNoiseRatio'].detach().cpu().numpy().round(2)) for i, j in zip(sr, hr)]
         self.logger.log_image(key='Imput Image', images=lr, caption=[f'inp_img_{i + 1}' for i in range(t_log)])
