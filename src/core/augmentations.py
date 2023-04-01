@@ -13,7 +13,7 @@ class RandomJPEGCompression(nn.Module):
         self.q = randint(quality[0], quality[1]) if len(quality) == 2 else quality
 
     def forward(self, in_batch):
-        if x.dim() == 3:
+        if in_batch.dim() == 3:
             return self.torch_add_compression(in_batch.detach().clamp(0, 1), self.q)
         return self.torch_batch_add_compression(in_batch.detach().clamp(0, 1), self.q).type_as(in_batch)
 
