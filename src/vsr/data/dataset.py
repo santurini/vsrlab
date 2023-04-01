@@ -23,8 +23,9 @@ class DatasetSR(Dataset):
                  lr_augmentation: ListConfig = None
                  ):
         super().__init__()
+        print(path)
+        print(Path(path))
         self.path = list(Path(path).glob('*'))
-        print(self.path)
         self.scale = scale
         self.split = split
         self.hr_augmentation = build_transform(hr_augmentation) if hr_augmentation else None
