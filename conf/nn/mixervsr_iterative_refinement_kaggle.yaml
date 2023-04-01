@@ -127,8 +127,6 @@ module:
       - _target_: torchmetrics.PeakSignalNoiseRatio
         data_range: 1
 
-      - _target_: torchmetrics.image.lpip.LearnedPerceptualImagePatchSimilarity
-
   optimizer:
     _target_: torch.optim.Adam
     lr: 1e-3
