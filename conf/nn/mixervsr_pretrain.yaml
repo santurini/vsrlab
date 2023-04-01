@@ -4,7 +4,7 @@ data:
   datasets:
     train:
       _target_: vsr.data.dataset.DatasetVSR
-      path: "/home/hdd/vsr/REDS"
+      path: "/home/aghinassi/hdd/vsr/REDS"
       split: "train"
       seq: 15
       scale: 4
@@ -86,7 +86,7 @@ data:
 
     val:
       _target_: vsr.data.dataset.DatasetVSR
-      path: "/home/hdd/vsr/REDS"
+      path: "/home/aghinassi/hdd/vsr/REDS"
       split: "val"
       seq: 15
       scale: 4
