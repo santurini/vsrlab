@@ -180,7 +180,7 @@ class LitVSR(LitSR):
         lr = lr[0][:t_log]
         hr = hr[0][:t_log]
         sr = sr[0][:t_log].clamp(0, 1)
-        psnr = ['PSNR: ' + str(self.val_metric(i, j).detach().cpu().numpy().round(2)) for i, j in zip(sr, hr)]
+        psnr = ['PSNR: ' + str(self.val_metric(i, j)['PeakSignalNoiseRatio'].detach().cpu().numpy().round(2)) for i, j in zip(sr, hr)]
         self.logger.log_image(key='Input Images', images=[i for i in lr], caption=[f'inp_frame_{i + 1}' for i in range(t_log)])
         self.logger.log_image(key='Ground Truths', images=[i for i in hr], caption=[f'gt_frame_{i+1}' for i in range(t_log)])
         self.logger.log_image(key='Predicted Images', images=[i for i in sr], caption=psnr)
