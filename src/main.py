@@ -11,7 +11,7 @@ import pytorch_lightning as pl
 from omegaconf import DictConfig
 from pytorch_lightning import Callback
 
-from core import PROJECT_ROOT, CONFIG_PATH
+from core import PROJECT_ROOT
 from core.utils import seed_index_everything, build_callbacks
 
 pylogger = logging.getLogger(__name__)
