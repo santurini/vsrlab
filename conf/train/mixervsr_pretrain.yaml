@@ -3,8 +3,8 @@ seed_index: 0
 deterministic: False
 
 trainer:
-  devices: 1
-  accelerator: mps
+  devices: 2
+  accelerator: gpu
   precision: bf16-mixed
   max_epochs: 2
   accumulate_grad_batches: 1
@@ -21,7 +21,7 @@ monitor:
 
 callbacks:
   - _target_: pytorch_lightning.callbacks.EarlyStopping
-    patience: 400
+    patience: 500
     verbose: False
     monitor: ${train.monitor.metric}
     mode: ${train.monitor.mode}

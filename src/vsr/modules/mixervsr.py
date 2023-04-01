@@ -24,34 +24,23 @@ class MixerVSR(nn.Module):
 
     def forward(self, x):
         b, t, c, h, w = x.shape
-        x = self.cleaner(x)
-        x_c = rearrange(x, 'b t c h w -> (b t) c h w')
-        x = self.encoder(x)
+        lq = self.cleaner(x)
+        x_c = rearrange(lq, 'b t c h w -> (b t) c h w')
+        x = self.encoder(lq)
         x = self.mixer(x)
         x = self.decoder(x)
         x = self.upsample(x)
         up = F.interpolate(x_c, scale_factor=self.upscale, mode='bilinear')
-        x = x + rearrange(up, '(b t) c h w -> b t c h w', b=b, t=t)
-        return x
+        sr = x + rearrange(up, '(b t) c h w -> b t c h w', b=b, t=t)
+        return sr, lq
 
 class IterativeRefinement(nn.Module):
-    def __init__(self, steps, pretrain, *args, **kwargs):
+    def __init__(self, steps, *args, **kwargs):
         super().__init__()
         self.dcblock = DeformBlock(*args, **kwargs)
         self.steps = steps
-        self.pretrain = pretrain
+
     def forward(self, x):
-        if self.pretrain:
-            return self.image_cleaning(x)
-        return self.video_cleaning(x)
-    def image_cleaning(self, x):
-        for _ in range(self.steps):
-            res = self.dcblock(x)
-            x = x + res
-            if torch.mean(torch.abs(res)) < 1e-3:
-                break
-        return x
-    def video_cleaning(self, x):
         b, t, c, h, w = x.shape
         for _ in range(self.steps):
             x = x.view(-1, c, h, w)

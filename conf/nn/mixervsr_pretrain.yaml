@@ -3,15 +3,17 @@ data:
 
   datasets:
     train:
-      _target_: vsr.data.dataset.DatasetSR
-      path: "/Users/arturo/Downloads/flickr30k_images/flickr30k_images"
+      _target_: vsr.data.dataset.DatasetVSR
+      path: "/home/hdd/vsr/REDS"
       split: "train"
+      seq: 15
+      scale: 4
       size: 0.9
       hr_augmentation:
         - _target_: kornia.augmentation.RandomCrop
           size: [512, 512]
           pad_if_needed: True
-          same_on_batch: False
+          same_on_batch: True
           keepdim: True
 
         - _target_: kornia.augmentation.Resize
@@ -20,13 +22,15 @@ data:
 
         - _target_: kornia.augmentation.RandomHorizontalFlip
           p: 0.5
-          same_on_batch: False
+          same_on_batch: True
           keepdim: True
 
         - _target_: kornia.augmentation.RandomVerticalFlip
           p: 0.5
-          same_on_batch: False
+          same_on_batch: True
           keepdim: True
+
+        - _target_: core.augmentations.Mirroring
 
       lr_augmentation:
         - _target_: kornia.augmentation.RandomGaussianBlur
@@ -72,16 +76,26 @@ data:
         - _target_: core.augmentations.RandomJPEGCompression
           quality: [ 30, 70 ]
 
+        - _target_: core.augmentations.RandomVideoCompression
+          codec: [ 'libx264', 'h264', 'mpeg4' ]
+          crf: [ 30, 40 ]
+          fps: [ 15, 30 ]
+
+        - _target_: kornia.augmentation.Resize
+          size: [ 64, 64 ]
+
     val:
-      _target_: vsr.data.dataset.DatasetSR
-      path: "/Users/arturo/Downloads/flickr30k_images/flickr30k_images"
+      _target_: vsr.data.dataset.DatasetVSR
+      path: "/home/hdd/vsr/REDS"
       split: "val"
+      seq: 15
+      scale: 4
       size: 0.1
       hr_augmentation:
         - _target_: kornia.augmentation.RandomCrop
           size: [512, 512]
           pad_if_needed: True
-          same_on_batch: False
+          same_on_batch: True
           keepdim: True
 
         - _target_: kornia.augmentation.Resize
@@ -93,29 +107,39 @@ data:
           kernel_size: 5
           keepdim: True
           sigma: [ 0.2, 3 ]
-          same_on_batch: False
+          same_on_batch: True
           p: 0.7
 
-        - _target_: core.augmentations.RandomJPEGCompression
-          quality: [ 30, 60 ]
+        - _target_: core.augmentations.RandomVideoCompression
+          codec: [ 'libx264', 'h264', 'mpeg4' ]
+          crf: [ 30, 40 ]
+          fps: [ 15, 30 ]
+
+        - _target_: kornia.augmentation.Resize
+          size: [ 64, 64 ]
 
   num_workers:
     train: 0
     val: 0
 
   batch_size:
-    train: 32
+    train: 4
     val: 1
 
 module:
-  _target_: vsr.pl_module.pl_module.LitSR
+  _target_: vsr.pl_module.pl_module.LitRealVSR
   model:
-    _target_: vsr.modules.mixervsr.IterativeRefinement
+    _target_: vsr.modules.mixervsr.MixerVSR
+    img_size: [64, 64]
     steps: 3
-    pretrain: True
-    in_channels: 3
-    mid_channels: 64
-    blocks: 20
+    mid_ch: 64
+    it_blocks: 15
+    patch_size: 8
+    time_dim:
+    exp: 2
+    mix_blocks: 20
+    conv_blocks: 20
+    upscale: ${nn.data.datasets.train.scale}
 
   loss:
     _target_: core.losses.WL1Loss

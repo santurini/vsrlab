@@ -6,6 +6,6 @@ core:
 
 defaults:
   - hydra: default.yaml
-  - nn: mixervsr_iterative_refinement_kaggle.yaml
-  - train: mixervsr_iterative_refinement_kaggle.yaml
+  - nn: mixervsr_pretrain.yaml
+  - train: mixervsr_pretrain.yaml
   - _self_
