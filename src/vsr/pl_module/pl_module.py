@@ -114,9 +114,9 @@ class LitSR(pl.LightningModule):
         hr = hr[:t_log].detach().cpu()
         sr = sr[:t_log].clamp(0, 1)
         psnr = ['PSNR: ' + str(self.val_metric(i, j)['PeakSignalNoiseRatio'].detach().cpu().numpy().round(2)) for i, j in zip(sr, hr)]
-        self.logger.log_image(key='Imput Image', images=lr, caption=[f'inp_img_{i + 1}' for i in range(t_log)])
-        self.logger.log_image(key='Ground Truths', images=hr, caption=[f'gt_img_{i+1}' for i in range(t_log)])
-        self.logger.log_image(key='Predicted Images', images=sr, caption=psnr)
+        self.logger.log_image(key='Imput Image', images=[i for i in lr], caption=[f'inp_img_{i + 1}' for i in range(t_log)])
+        self.logger.log_image(key='Ground Truths', images=[i for i in hr], caption=[f'gt_img_{i+1}' for i in range(t_log)])
+        self.logger.log_image(key='Predicted Images', images=[i for i in sr], caption=psnr)
 
     @staticmethod
     def get_log_flag(batch_idx, log_interval):
