@@ -2,6 +2,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import logging
+import argparse
 from typing import List
 
 import hydra
@@ -48,9 +49,11 @@ def run(cfg: DictConfig) -> str:
 
     return logger.run_dir
 
-@hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
+@hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name=CONFIG_PATH, version_base="1.3")
 def main(cfg: omegaconf.DictConfig):
     run(cfg)
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config_path', type=str, required=False, default='default', help='configuration path')
     main()
