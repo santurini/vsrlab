@@ -67,7 +67,7 @@ data:
 
     val:
       _target_: vsr.data.dataset.DatasetSR
-      path: "~/hdd/vsr/REDS/001"
+      path: "~/hdd/vsr/REDS/000"
       split: "val"
       size: 0.1
       hr_augmentation:
