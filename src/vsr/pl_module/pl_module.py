@@ -113,8 +113,7 @@ class LitSR(pl.LightningModule):
         lr = lr[:t_log]
         hr = hr[:t_log] # b c h w
         sr = sr[:t_log].clamp(0, 1)
-        print(self.val_metric(hr[0], sr[0]).keys())
-        psnr = ['PSNR: ' + str(self.val_metric(i, j)['psnr'].detach().cpu().numpy().round(2)) for i, j in zip(sr, hr)]
+        psnr = ['PSNR: ' + str(self.val_metric(i, j)['PeakSignalNoiseRatio'].detach().cpu().numpy().round(2)) for i, j in zip(sr, hr)]
         self.logger.log_image(key='Imput Image', images=lr, caption=[f'inp_img_{i + 1}' for i in range(t_log)])
         self.logger.log_image(key='Ground Truths', images=hr, caption=[f'gt_img_{i+1}' for i in range(t_log)])
         self.logger.log_image(key='Predicted Images', images=sr, caption=psnr)
