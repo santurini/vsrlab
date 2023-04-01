@@ -26,6 +26,7 @@ class DatasetSR(Dataset):
         print(path)
         print(Path(path))
         print(Path(path).glob('*'))
+        print(list(Path(path).glob('*')))
         self.path = list(Path(path).glob('*'))
         self.scale = scale
         self.split = split
