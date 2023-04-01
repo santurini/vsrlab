@@ -35,8 +35,8 @@ class MixerVSR(nn.Module):
         return x
 
 class IterativeRefinement(nn.Module):
-    def __init__(self, steps, pretrain=False, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, steps, pretrain, *args, **kwargs):
+        super().__init__()
         self.dcblock = DeformBlock(*args, **kwargs)
         self.steps = steps
         self.pretrain = pretrain
