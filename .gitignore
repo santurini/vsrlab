@@ -1,12 +1,4 @@
+/.idea/.gitignore
 .DS_Store
 __pycache__/
 *.py[cod]
-/.idea/modules.xml
-/.idea/nn-lab.iml
-/.idea/misc.xml
-/.idea/codeStyles/codeStyleConfig.xml
-/.idea/vsr.iml
-/.idea/.gitignore
-/.idea/vcs.xml
-
-
