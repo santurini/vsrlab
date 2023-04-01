@@ -24,6 +24,7 @@ class DatasetSR(Dataset):
                  ):
         super().__init__()
         self.path = list(Path(path).glob('*'))
+        print(self.path)
         self.scale = scale
         self.split = split
         self.hr_augmentation = build_transform(hr_augmentation) if hr_augmentation else None
