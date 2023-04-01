@@ -135,7 +135,7 @@ module:
     mid_ch: 64
     it_blocks: 15
     patch_size: 8
-    time_dim:
+    time_dim: ${nn.data.datasets.train.seq}
     exp: 2
     mix_blocks: 20
     conv_blocks: 20
