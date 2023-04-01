@@ -1,6 +1,6 @@
 from pathlib import Path
 from random import randint
-from typing import Optional
+from typing import Any
 
 import hydra
 import omegaconf
