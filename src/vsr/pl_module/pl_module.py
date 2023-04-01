@@ -63,7 +63,8 @@ class LitSR(pl.LightningModule):
     def validation_step(self, batch: Any, batch_idx: int):
         lr, hr = batch
         step_out = self.step(lr, hr)
-
+        print(step_out["sr"].shape)
+        print(hr.shape)
         self.log_dict(
             {"loss/val": step_out["loss"].cpu().detach()},
             on_step=True,

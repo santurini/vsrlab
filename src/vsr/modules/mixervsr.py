@@ -46,7 +46,6 @@ class IterativeRefinement(nn.Module):
         return self.video_cleaning(x)
     def image_cleaning(self, x):
         for _ in range(self.steps):
-            print(x.shape)
             res = self.dcblock(x)
             x = x + res
             if torch.mean(torch.abs(res)) < 1e-3:
