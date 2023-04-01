@@ -41,10 +41,8 @@ class DatasetSR(Dataset):
 
     def __getitem__(self, index: int):
         hr_batch = self.load_img(self.path[index])
-        print(hr_batch.shape)
         if self.hr_augmentation:
             hr_batch = self.hr_augmentation(hr_batch)
-            print(hr_batch.shape)
         if self.lr_augmentation:
             lr_batch = self.lr_augmentation(hr_batch)
         else:
