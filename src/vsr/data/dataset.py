@@ -18,7 +18,7 @@ class DatasetSR(Dataset):
                  path: str,
                  split: str,
                  size: int,
-                 scale: Optional[int],
+                 scale: Any = None,
                  hr_augmentation: ListConfig = None,
                  lr_augmentation: ListConfig = None
                  ):
