@@ -87,7 +87,7 @@ class LitSR(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = hydra.utils.instantiate(
             self.hparams.optimizer,
-            params=self.parameters(),
+            self.parameters(),
             _recursive_=False
         )
         scheduler: Optional[Any] = hydra.utils.instantiate(
