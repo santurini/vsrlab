@@ -18,7 +18,7 @@ class DataModuleVSR(pl.LightningDataModule):
             batch_size: DictConfig,
     ):
         super().__init__()
-        self.datasetsss = datasets
+        self.datasets = datasets
         self.num_workers = num_workers
         self.batch_size = batch_size
 
