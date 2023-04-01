@@ -18,9 +18,19 @@ class MixerBlock(nn.Module):
         self.channels_mlp = Mlp(channels_dim, exp * channels_dim)
 
     def forward(self, x):
-        x = (self.channels_mlp(x) + x).permute(0, 1, 3, 2)
-        x = (self.patches_mlp(x) + x).permute(0, 2, 3, 1)
-        x = (self.time_mlp(x) + x).permute(0, 3, 2, 1)
+        print('MIXER INPUT SHAPE:', x.shape)
+        x = self.channels_mlp(x) + x
+        print('AFTER CHANNEL MIX:', x.shape)
+        x = x.permute(0, 1, 3, 2)
+        print('AFTER PERMUTATION:', x.shape)
+        x = self.patches_mlp(x) + x
+        print('AFTER PATCHES MIX:', x.shape)
+        x = x.permute(0, 2, 3, 1)
+        print('AFTER PERMUTATION:', x.shape)
+        x = self.time_mlp(x) + x
+        print('AFTER TIME MIX:', x.shape)
+        x = x.permute(0, 3, 2, 1)
+        print('AFTER PERMUTATION:', x.shape)
         return x
 
 class MlpMixer(nn.Module):

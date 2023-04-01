@@ -24,13 +24,20 @@ class MixerVSR(nn.Module):
 
     def forward(self, x):
         b, t, c, h, w = x.shape
+        print('INPUT SHAPE:', x.shape)
         lq = self.cleaner(x)
+        print('CLEANER OUTPUT SHAPE:', lq.shape)
         x_c = rearrange(lq, 'b t c h w -> (b t) c h w')
         x = self.encoder(lq)
+        print('ENCODER OUTPUT SHAPE:', x.shape)
         x = self.mixer(x)
+        print('MIXER OUTPUT SHAPE:', x.shape)
         x = self.decoder(x)
+        print('DECODER OUTPUT SHAPE:', x.shape)
         x = self.upsample(x)
+        print('UPSAMPLER OUTPUT SHAPE:', x.shape)
         up = F.interpolate(x_c, scale_factor=self.upscale, mode='bilinear')
+        print('BILINEAR OUTPUT SHAPE:', x.shape)
         sr = x + rearrange(up, '(b t) c h w -> b t c h w', b=b, t=t)
         return sr, lq
 
