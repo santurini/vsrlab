@@ -13,7 +13,7 @@ data:
           pad_if_needed: True
           same_on_batch: False
 
-        - _target_: kornia.augmentations.Resize
+        - _target_: kornia.augmentation.Resize
           size: [ 256, 256 ]
 
         - _target_: kornia.augmentation.RandomHorizontalFlip
@@ -76,7 +76,7 @@ data:
           pad_if_needed: True
           same_on_batch: False
 
-        - _target_: kornia.augmentations.Resize
+        - _target_: kornia.augmentation.Resize
           size: [ 256, 256 ]
 
       lr_augmentation:
