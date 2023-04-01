@@ -1,0 +1,13 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+/.idea/vsr.iml
+/.idea/.gitignore
+/.idea/vcs.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/modules.xml
+/.idea/nn-lab.iml
+/.idea/misc.xml
+/.idea/codeStyles/codeStyleConfig.xml
+

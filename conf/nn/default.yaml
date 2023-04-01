@@ -1,0 +1,41 @@
+data:
+  _target_: vsr.data.datamodule.VSRDataModule
+
+  datasets:
+    train:
+      _target_: vsr.data.dataset.VSRDataset
+
+    val:
+      _target_: vsr.data.dataset.VSRDataset
+
+  num_workers:
+    train: 0
+    val: 0
+
+  batch_size:
+    train: 4
+    val: 1
+
+module:
+  _target_: vsr.pl_module.pl_module.VSRModule
+
+  model:
+    _target_: vsr.modules.modules.CNN
+
+  loss:
+    _target_: core.losses.WL1Loss
+
+  metric:
+    _target_: torchmetrics.MetricCollection
+
+  optimizer:
+    _target_: torch.optim.Adam
+
+  lr_scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingWarmRestarts
+
+model:
+  _target_: torch.nn.Conv2d
+  in_channels: 3
+  out_channels: 3
+  kernel_size: 3

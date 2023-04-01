@@ -1,0 +1,138 @@
+data:
+  _target_: vsr.data.datamodule.DataModuleVSR
+
+  datasets:
+    train:
+      _target_: vsr.data.dataset.DatasetVSR
+      path: "~/hdd/vsr/REDS"
+      seq: 15
+      scale: 4
+      split: "train"
+      size: 0.9
+      hr_augmentation:
+        - _target_: kornia.augmentation.RandomCrop
+          size: [ 256, 256 ]
+          same_on_batch: True
+
+        - _target_: kornia.augmentation.RandomHorizontalFlip
+          p: 0.5
+          same_on_batch: True
+
+        - _target_: kornia.augmentation.RandomVerticalFlip
+          p: 0.5
+          same_on_batch: True
+
+        - _target_: core.augmentations.Mirroring
+
+      lr_augmentation:
+        - _target_: kornia.augmentation.RandomGaussianBlur
+          kernel_size: 7
+          sigma: [ 0.2, 3 ]
+          same_on_batch: False
+          p: 0.8
+
+        - _target_: kornia.augmentation.ColorJitter
+          p: 0.7
+          brightness: 0.1
+          contrast: 0.2
+          saturation: 0.1
+          hue: 0.2
+          same_on_batch: False
+
+        - _target_: core.augmentations.RandomJPEGCompression
+          quality: [ 30, 90 ]
+
+        - _target_: kornia.augmentation.RandomGaussianBlur
+          kernel_size: 9
+          sigma: [ 0.2, 3 ]
+          same_on_batch: False
+          p: 0.8
+
+        - _target_: kornia.augmentation.RandomGaussianNoise
+          mean: 0.1
+          std: 0.5
+          same_on_batch: False
+          p: 0.7
+
+        - _target_: kornia.augmentation.RandomGaussianBlur
+          kernel_size: 5
+          sigma: [ 0.2, 3 ]
+          same_on_batch: False
+          p: 0.7
+
+        - _target_: core.augmentations.RandomVideoCompression
+          codec: [ 'libx264', 'h264', 'mpeg4' ]
+          crf: [ 30, 40 ]
+          fps: [ 15, 30 ]
+
+        - _target_: kornia.augmentation.Resize
+          size: [ 64, 64 ]
+
+    val:
+      _target_: vsr.data.dataset.DatasetVSR
+      path: '~/hdd/vsr/REDS'
+      seq: 15
+      scale: 4
+      split: "val"
+      size: 0.1
+      hr_augmentation:
+        - _target_: kornia.augmentation.RandomCrop
+          size: [ 256, 256 ]
+          same_on_batch: True
+
+        - _target_: core.augmentations.Mirroring
+
+      lr_augmentation:
+        - _target_: core.augmentations.RandomVideoCompression
+          codec: [ 'libx264', 'h264', 'mpeg4' ]
+          crf: [ 30, 40 ]
+          fps: [ 15, 30 ]
+
+        - _target_: kornia.augmentation.Resize
+          size: [ 64, 64 ]
+
+  num_workers:
+    train: 0
+    val: 0
+
+  batch_size:
+    train: 4
+    val: 1
+
+module:
+  _target_: vsr.pl_module.pl_module.LitRealVSR
+  model:
+    _target_: vsr.modules.realbasicvsr.RealBasicVSR
+    cleaning_blocks: 1
+    mid_channels: 1
+    upscale: ${nn.data.datasets.train.scale}
+    is_mirror: True
+    res_blocks: 1
+
+  loss:
+    _target_: core.losses.WL1Loss
+    weight: 1.0
+
+  metric:
+    _target_: torchmetrics.MetricCollection
+    metrics:
+      - _target_: torchmetrics.PeakSignalNoiseRatio
+        data_range: 1
+
+      - _target_: torchmetrics.image.lpip.LearnedPerceptualImagePatchSimilarity
+
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: 1e-4
+    betas: [ 0.9, 0.999 ]
+    eps: 1e-08
+    weight_decay: 0
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingWarmRestarts
+    T_0: 10
+    T_mult: 2
+    eta_min: 0
+    last_epoch: -1
+    verbose: False
+

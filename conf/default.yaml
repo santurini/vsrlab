@@ -1,0 +1,11 @@
+core:
+  project_name: 'video-super-resolution'
+  storage_dir: ${oc.env:PROJECT_ROOT}/core
+  version: 0.0.1
+  tags: null
+
+defaults:
+  - hydra: default.yaml
+  - nn: default.yaml
+  - train: default.yaml
+  - _self_
