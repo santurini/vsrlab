@@ -51,10 +51,6 @@ def run(cfg: DictConfig) -> str:
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), version_base="1.3")
 def main(cfg: omegaconf.DictConfig):
-    parser = argparse.ArgumentParser()
-    parser.add_argument("CONFIG", help="Config file")
-    args = parser.parse_args()
-    config_path = args.CONFIG
     run(cfg)
 
 if __name__ == "__main__":
