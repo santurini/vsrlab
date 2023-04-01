@@ -3,26 +3,28 @@ data:
 
   datasets:
     train:
-      _target_: vsr.data.dataset.DatasetVSR
-      path: "~/hdd/vsr/REDS"
-      seq: 15
-      scale: 4
+      _target_: vsr.data.dataset.DatasetSR
+      path: "/kaggle/input/pexels-110k-768p-min-jpg/pexels-110k-768p-min-jpg/images"
       split: "train"
       size: 0.9
       hr_augmentation:
         - _target_: kornia.augmentation.RandomCrop
+          size: [512, 512]
+          pad_if_needed: True
+          same_on_batch: False
+
+        - _target_: kornia.augmentations.Resize
           size: [ 256, 256 ]
-          same_on_batch: True
 
         - _target_: kornia.augmentation.RandomHorizontalFlip
           p: 0.5
-          same_on_batch: True
+          same_on_batch: False
 
         - _target_: kornia.augmentation.RandomVerticalFlip
           p: 0.5
-          same_on_batch: True
+          same_on_batch: False
 
-        - _target_: core.augmentations.Mirroring
+
 
       lr_augmentation:
         - _target_: kornia.augmentation.RandomGaussianBlur
@@ -60,54 +62,50 @@ data:
           same_on_batch: False
           p: 0.7
 
-        - _target_: core.augmentations.RandomVideoCompression
-          codec: [ 'libx264', 'h264', 'mpeg4' ]
-          crf: [ 30, 40 ]
-          fps: [ 15, 30 ]
-
-        - _target_: kornia.augmentation.Resize
-          size: [ 64, 64 ]
+        - _target_: core.augmentations.RandomJPEGCompression
+          quality: [ 30, 70 ]
 
     val:
-      _target_: vsr.data.dataset.DatasetVSR
-      path: '~/hdd/vsr/REDS'
-      seq: 15
-      scale: 4
+      _target_: vsr.data.dataset.DatasetSR
+      path: '/kaggle/input/pexels-110k-768p-min-jpg/pexels-110k-768p-min-jpg/images'
       split: "val"
       size: 0.1
       hr_augmentation:
         - _target_: kornia.augmentation.RandomCrop
-          size: [ 256, 256 ]
-          same_on_batch: True
+          size: [512, 512]
+          pad_if_needed: True
+          same_on_batch: False
 
-        - _target_: core.augmentations.Mirroring
+        - _target_: kornia.augmentations.Resize
+          size: [ 256, 256 ]
 
       lr_augmentation:
-        - _target_: core.augmentations.RandomVideoCompression
-          codec: [ 'libx264', 'h264', 'mpeg4' ]
-          crf: [ 30, 40 ]
-          fps: [ 15, 30 ]
+        - _target_: kornia.augmentation.RandomGaussianBlur
+          kernel_size: 5
+          sigma: [ 0.2, 3 ]
+          same_on_batch: False
+          p: 0.7
 
-        - _target_: kornia.augmentation.Resize
-          size: [ 64, 64 ]
+        - _target_: core.augmentations.RandomJPEGCompression
+          quality: [ 30, 60 ]
 
   num_workers:
     train: 0
     val: 0
 
   batch_size:
-    train: 4
+    train: 32
     val: 1
 
 module:
-  _target_: vsr.pl_module.pl_module.LitRealVSR
+  _target_: vsr.pl_module.pl_module.LitSR
   model:
-    _target_: vsr.modules.realbasicvsr.RealBasicVSR
-    cleaning_blocks: 1
-    mid_channels: 1
-    upscale: ${nn.data.datasets.train.scale}
-    is_mirror: True
-    res_blocks: 1
+    _target_: vsr.modules.mixervsr.IterativeRefinement
+    steps: 3
+    pretrain: True
+    in_channels: 3
+    mid_channels: 64
+    blocks: 20
 
   loss:
     _target_: core.losses.WL1Loss
@@ -123,16 +121,18 @@ module:
 
   optimizer:
     _target_: torch.optim.Adam
-    lr: 1e-4
+    lr: 1e-3
     betas: [ 0.9, 0.999 ]
     eps: 1e-08
     weight_decay: 0
 
   scheduler:
-    _target_: torch.optim.lr_scheduler.CosineAnnealingWarmRestarts
-    T_0: 10
-    T_mult: 2
-    eta_min: 0
-    last_epoch: -1
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    T_max: ${train.trainer.max_epochs}
+    eta_min: 1e-5
     verbose: False
+
+  log_interval: 250
+  log_k_images: 5
+
 

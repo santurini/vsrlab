@@ -10,4 +10,5 @@ __pycache__/
 /.idea/nn-lab.iml
 /.idea/misc.xml
 /.idea/codeStyles/codeStyleConfig.xml
+/.idea/*
 

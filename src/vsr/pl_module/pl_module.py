@@ -12,7 +12,7 @@ from omegaconf import DictConfig
 
 pylogger = logging.getLogger(__name__)
 
-class LitVSR(pl.LightningModule):
+class LitSR(pl.LightningModule):
     def __init__(self,
                  model: DictConfig,
                  loss: DictConfig,
@@ -36,7 +36,98 @@ class LitVSR(pl.LightningModule):
     def step(self, lr, hr):
         sr = self(lr)
         loss = self.loss(sr, hr)
-        return {"sr": sr.detach(), "loss": loss}
+        return {"sr": sr.detach(), "lr": lr, "loss": loss}
+
+    def training_step(self, batch: Any, batch_idx: int):
+        lr, hr = batch
+        step_out = self.step(lr, hr)
+
+        self.log_dict(
+            {"loss/train": step_out["loss"].cpu().detach()},
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+        )
+
+        self.train_metric(
+            step_out["sr"].clamp(0, 1),
+            hr
+        )
+        self.log_dict(
+            self.train_metric,
+            on_epoch=True,
+        )
+
+        return step_out
+
+    def validation_step(self, batch: Any, batch_idx: int):
+        lr, hr = batch
+        step_out = self.step(lr, hr)
+
+        self.log_dict(
+            {"loss/val": step_out["loss"].cpu().detach()},
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+        )
+
+        self.val_metric(
+            step_out["sr"].clamp(0, 1),
+            hr
+        )
+        self.log_dict(
+            self.val_metric,
+            on_epoch=True,
+        )
+
+        if self.get_log_flag(batch_idx, self.hparams.log_interval):
+            self.log_images(step_out["lr"], step_out["sr"], hr)
+
+        return step_out
+
+    def configure_optimizers(self):
+        optimizer = hydra.utils.instantiate(
+            self.hparams.optimizer,
+            params=self.parameters(),
+            _recursive_=False
+        )
+        scheduler: Optional[Any] = hydra.utils.instantiate(
+            self.hparams.scheduler,
+            optimizer,
+            _recursive_=False,
+        )
+        if scheduler is None:
+            return optimizer
+
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "interval": "step",
+                "frequency": 1},
+             }
+
+    def log_images(self, lr, sr, hr):
+        t_log = 5 if not self.hparams.log_k_images else self.hparams.log_k_images
+        lr = lr[:t_log]
+        hr = hr[:t_log] # b c h w
+        sr = sr[:t_log].clamp(0, 1)
+        psnr = ['PSNR: ' + str(self.psnr(i, j).detach().cpu().numpy().round(2)) for i, j in zip(sr, hr)]
+        self.logger.log_image(key='Imput Image', images=lr, caption=[f'inp_img_{i + 1}' for i in range(t_log)])
+        self.logger.log_image(key='Ground Truths', images=hr, caption=[f'gt_img_{i+1}' for i in range(t_log)])
+        self.logger.log_image(key='Predicted Images', images=sr, caption=psnr)
+
+    @staticmethod
+    def get_log_flag(batch_idx, log_interval):
+        flag = batch_idx%log_interval==0
+        return flag
+
+
+class LitVSR(LitSR):
+    def __init__(self,
+                 *args,
+                 **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
     def training_step(self, batch: Any, batch_idx: int):
         lr, hr = batch
@@ -80,29 +171,20 @@ class LitVSR(pl.LightningModule):
             on_epoch=True,
         )
 
+        if self.get_log_flag(batch_idx, self.hparams.log_interval):
+            self.log_images(step_out["lr"], step_out["sr"], hr)
+
         return step_out
 
-    def configure_optimizers(self):
-        optimizer = hydra.utils.instantiate(
-            self.hparams.optimizer,
-            params=self.parameters(),
-            _recursive_=False
-        )
-        scheduler: Optional[Any] = hydra.utils.instantiate(
-            self.hparams.scheduler,
-            optimizer,
-            _recursive_=False,
-        )
-        if scheduler is None:
-            return optimizer
-
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "interval": "step",
-                "frequency": 1},
-             }
+    def log_images(self, lr, sr, hr):
+        t_log = 5 if not self.hparams.log_k_images else self.hparams.log_k_images
+        lr = lr[0][:t_log]
+        hr = hr[0][:t_log]
+        sr = sr[0][:t_log].clamp(0, 1)
+        psnr = ['PSNR: ' + str(self.psnr(i, j).detach().cpu().numpy().round(2)) for i, j in zip(sr, hr)]
+        self.logger.log_image(key='Input Images', images=[i for i in lr], caption=[f'inp_frame_{i + 1}' for i in range(t_log)])
+        self.logger.log_image(key='Ground Truths', images=[i for i in hr], caption=[f'gt_frame_{i+1}' for i in range(t_log)])
+        self.logger.log_image(key='Predicted Images', images=[i for i in sr], caption=psnr)
 
 
 class LitRealVSR(LitVSR):
@@ -114,15 +196,6 @@ class LitRealVSR(LitVSR):
         sr, lq = self(lr)
         loss = self.loss(sr, hr) + self.loss(lq, resize(hr, (h, w)))
         return {"sr": sr.detach(), "lq": lq.detach(), "loss": loss}
-
-    def log_images(self, sr, hr):
-        t_log = 5 if not self.hparams.log_k_images else self.hparams.log_k_images
-        hr = hr[0][:t_log]
-        sr = sr[0][:t_log].clamp(0, 1)
-        psnr = ['PSNR: ' + str(self.psnr(i, j).detach().cpu().numpy().round(2)) for i, j in zip(sr, hr)]
-        self.logger.log_image(key='Ground Truths', images=[i for i in hr], caption=[f'gt_frame_{i+1}' for i in range(t_log)])
-        self.logger.log_image(key='Predicted Images', images=[i for i in sr], caption=psnr)
-
 
 class LitRealGanVSR(LitRealVSR):
     def __init__(self,

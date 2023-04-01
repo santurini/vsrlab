@@ -1,5 +1,6 @@
 from pathlib import Path
 from random import randint
+from typing import Optional
 
 import hydra
 import omegaconf
@@ -15,9 +16,9 @@ from torchvision.transforms.functional import to_tensor
 class DatasetSR(Dataset):
     def __init__(self,
                  path: str,
-                 scale: int,
                  split: str,
                  size: int,
+                 scale: Optional[int],
                  hr_augmentation: ListConfig = None,
                  lr_augmentation: ListConfig = None
                  ):

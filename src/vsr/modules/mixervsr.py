@@ -35,12 +35,23 @@ class MixerVSR(nn.Module):
         return x
 
 class IterativeRefinement(nn.Module):
-    def __init__(self, steps, *args, **kwargs):
+    def __init__(self, steps, pretrain=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.dcblock = DeformBlock(*args, **kwargs)
         self.steps = steps
-
+        self.pretrain = pretrain
     def forward(self, x):
+        if self.pretrain:
+            return self.image_cleaning(x)
+        return self.video_cleaning(x)
+    def image_cleaning(self, x):
+        for _ in range(self.steps):
+            res = self.dcblock(x)
+            x = x + res
+            if torch.mean(torch.abs(res)) < 1e-3:
+                break
+        return x
+    def video_cleaning(self, x):
         b, t, c, h, w = x.shape
         for _ in range(self.steps):
             x = x.view(-1, c, h, w)
