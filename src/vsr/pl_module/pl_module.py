@@ -36,7 +36,7 @@ class LitSR(pl.LightningModule):
     def step(self, lr, hr):
         sr = self(lr)
         loss = self.loss(sr, hr)
-        return {"sr": sr.detach(), "lq": lr, "loss": loss}
+        return {"sr": sr.detach(), "lr": lr, "loss": loss}
 
     def training_step(self, batch: Any, batch_idx: int):
         lr, hr = batch
@@ -83,11 +83,13 @@ class LitSR(pl.LightningModule):
             self.parameters(),
             _recursive_=False
         )
+
         scheduler: Optional[Any] = hydra.utils.instantiate(
             self.hparams.scheduler,
             optimizer,
             _recursive_=False,
         )
+
         if scheduler is None:
             return optimizer
 
@@ -109,6 +111,7 @@ class LitSR(pl.LightningModule):
             self.val_metric(i.unsqueeze(0), j.unsqueeze(0))
             for i, j in zip(sr, hr)
         ]
+
         metrics = [
             {
                 k: v.detach().cpu().numpy()
@@ -116,6 +119,7 @@ class LitSR(pl.LightningModule):
             }
             for m in metrics
         ]
+
         captions = [
             f"PSNR: {m['val/PSNR']:.2f}, SSIM: {m['val/SSIM']:.3f}"
             for m in metrics
@@ -186,6 +190,7 @@ class LitVSR(LitSR):
             self.val_metric(i.unsqueeze(0), j.unsqueeze(0))
             for i, j in zip(sr, hr)
         ]
+
         metrics = [
             {
                 k: v.detach().cpu().numpy()
@@ -193,6 +198,7 @@ class LitVSR(LitSR):
             }
             for m in metrics
         ]
+
         captions = [
             f"PSNR: {m['val/PSNR']:.2f}, SSIM: {m['val/SSIM']:.3f}"
             for m in metrics
@@ -211,7 +217,7 @@ class LitRealVSR(LitVSR):
         b, t, c, h, w = lr.shape
         sr, lq = self(lr)
         loss = self.loss(sr, hr) + self.loss(lq, resize(hr, (h, w)))
-        return {"sr": sr.detach(), "lq": lq.detach(), "loss": loss}
+        return {"sr": sr.detach(), "lr": lq.detach(), "loss": loss}
 
 class LitRealGanVSR(LitRealVSR):
     def __init__(self,

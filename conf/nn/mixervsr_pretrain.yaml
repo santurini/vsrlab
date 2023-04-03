@@ -41,11 +41,11 @@ data:
           keepdim: True
 
         - _target_: kornia.augmentation.ColorJitter
-          p: 0.7
-          brightness: 0.1
-          contrast: 0.2
-          saturation: 0.1
-          hue: 0.2
+          p: 0.5
+          brightness: 0.05
+          contrast: 0.05
+          saturation: 0.05
+          hue: 0.05
           same_on_batch: False
           keepdim: True
 
@@ -60,8 +60,8 @@ data:
           p: 0.8
 
         - _target_: kornia.augmentation.RandomGaussianNoise
-          mean: 0.1
-          std: 0.5
+          mean: 0
+          std: 0.03
           same_on_batch: False
           keepdim: True
           p: 0.7
@@ -157,7 +157,7 @@ module:
 
   optimizer:
     _target_: deepspeed.ops.adam.DeepSpeedCPUAdam
-    lr: 1e-3
+    lr: 1e-4
     betas: [ 0.9, 0.999 ]
     eps: 1e-08
     weight_decay: 0
@@ -165,7 +165,7 @@ module:
   scheduler:
     _target_: torch.optim.lr_scheduler.CosineAnnealingLR
     T_max: ${train.trainer.max_epochs}
-    eta_min: 1e-5
+    eta_min: 1e-6
     verbose: False
 
   log_interval: 250
