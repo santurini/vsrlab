@@ -193,7 +193,7 @@ class LitVSR(LitSR):
 
         metrics = [
             {
-                k: v.detach().cpu().numpy()
+                k: v.cpu().numpy()
                 for k, v in m.items()
             }
             for m in metrics
