@@ -102,6 +102,8 @@ data:
           keepdim: True
           size: [ 256, 256 ]
 
+        - _target_: core.augmentations.Mirroring
+
       lr_augmentation:
         - _target_: kornia.augmentation.RandomGaussianBlur
           kernel_size: 5
