@@ -117,7 +117,7 @@ class LitSR(pl.LightningModule):
             for m in metrics
         ]
         captions = [
-            f"PSNR: {m['PSNR']:.2f}, SSIM: {m['SSIM']:.3f}"
+            f"PSNR: {m['val_PSNR']:.2f}, SSIM: {m['val_SSIM']:.3f}"
             for m in metrics
         ]
 
@@ -194,7 +194,7 @@ class LitVSR(LitSR):
             for m in metrics
         ]
         captions = [
-            f"PSNR: {m['PSNR']:.2f}, SSIM: {m['SSIM']:.3f}"
+            f"PSNR: {m['val_PSNR']:.2f}, SSIM: {m['val_SSIM']:.3f}"
             for m in metrics
         ]
 
