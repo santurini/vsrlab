@@ -6,6 +6,6 @@ core:
 
 defaults:
   - hydra: default.yaml
-  - nn: mixervsr_pretrain.yaml
-  - train: mixervsr_pretrain.yaml
+  - nn: mixervsr_pretrain_ws.yaml
+  - train: mixervsr_pretrain_ws.yaml
   - _self_
