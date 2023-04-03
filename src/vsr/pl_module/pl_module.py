@@ -138,6 +138,9 @@ class LitVSR(LitSR):
             rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
             rearrange(hr, 'b t c h w -> (b t) c h w')
         )
+
+        print(metric_dict)
+
         self.log_dict(
             metric_dict,
         )
@@ -158,6 +161,9 @@ class LitVSR(LitSR):
             rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
             rearrange(hr, 'b t c h w -> (b t) c h w')
         )
+
+        print(metric_dict)
+
         self.log_dict(
             metric_dict,
         )
