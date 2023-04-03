@@ -176,7 +176,7 @@ class LitVSR(LitSR):
         )
 
         if self.get_log_flag(batch_idx, self.hparams.log_interval):
-            self.log_images(step_out["lq"], step_out["sr"], hr)
+            self.log_images(step_out["lr"], step_out["sr"], hr)
 
         return step_out
 
