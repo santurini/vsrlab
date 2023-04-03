@@ -48,12 +48,12 @@ class LitSR(pl.LightningModule):
             prog_bar=True,
         )
 
-        self.train_metric(
+        metric_dict = self.train_metric(
             step_out["sr"].clamp(0, 1),
             hr
         )
         self.log_dict(
-            self.train_metric,
+            metric_dict,
             prog_bar=True,
         )
 
@@ -68,12 +68,12 @@ class LitSR(pl.LightningModule):
             prog_bar=True,
         )
 
-        self.val_metric(
+        metric_dict = self.val_metric(
             step_out["sr"].clamp(0, 1),
             hr
         )
         self.log_dict(
-            self.val_metric,
+            metric_dict,
             prog_bar=True,
         )
 
@@ -136,12 +136,12 @@ class LitVSR(LitSR):
             prog_bar=True,
         )
 
-        self.train_metric(
+        metric_dict = self.train_metric(
             rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
             rearrange(hr, 'b t c h w -> (b t) c h w')
         )
         self.log_dict(
-            self.train_metric,
+            metric_dict,
             prog_bar=True,
         )
 
@@ -157,14 +157,16 @@ class LitVSR(LitSR):
             prog_bar=True,
         )
 
-        self.val_metric(
+        metric_dict = self.val_metric(
             rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
             rearrange(hr, 'b t c h w -> (b t) c h w')
         )
         self.log_dict(
-            self.val_metric,
+            metric_dict,
             prog_bar=True,
         )
+
+        print(metric_dict)
 
         if self.get_log_flag(batch_idx, self.hparams.log_interval):
             self.log_images(step_out["lq"], step_out["sr"], hr)
