@@ -112,14 +112,6 @@ class LitSR(pl.LightningModule):
             for i, j in zip(sr, hr)
         ]
 
-        metrics = [
-            {
-                k: v.cpu().numpy()
-                for k, v in m.items()
-            }
-            for m in metrics
-        ]
-
         captions = [
             f"PSNR: {m['val/PSNR']:.2f}, SSIM: {m['val/SSIM']:.3f}"
             for m in metrics
@@ -189,14 +181,6 @@ class LitVSR(LitSR):
         metrics = [
             self.val_metric(i.unsqueeze(0), j.unsqueeze(0))
             for i, j in zip(sr, hr)
-        ]
-
-        metrics = [
-            {
-                k: v.cpu().numpy()
-                for k, v in m.items()
-            }
-            for m in metrics
         ]
 
         captions = [
