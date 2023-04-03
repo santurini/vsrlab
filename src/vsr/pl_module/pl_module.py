@@ -48,12 +48,14 @@ class LitSR(pl.LightningModule):
             prog_bar=True,
         )
 
-        metric_dict = self.train_metric(
+        self.train_metric(
             step_out["sr"].clamp(0, 1),
             hr
         )
-        self.log_dict(
-            metric_dict,
+
+        self.log(
+            self.train_metric,
+            prog_bar=True
         )
 
         return step_out
@@ -67,12 +69,13 @@ class LitSR(pl.LightningModule):
             prog_bar=True,
         )
 
-        metric_dict = self.val_metric(
+        self.val_metric(
             step_out["sr"].clamp(0, 1),
             hr
         )
-        self.log_dict(
-            metric_dict,
+        self.log(
+            self.val_metric,
+            prog_bar=True
         )
 
         if self.get_log_flag(batch_idx, self.hparams.log_interval):
@@ -134,15 +137,14 @@ class LitVSR(LitSR):
             prog_bar=True,
         )
 
-        metric_dict = self.train_metric(
+        self.train_metric(
             rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
             rearrange(hr, 'b t c h w -> (b t) c h w')
         )
 
-        print(metric_dict)
-
-        self.log_dict(
-            metric_dict,
+        self.log(
+            self.train_metric,
+            prog_bar=True
         )
 
         return step_out
@@ -151,24 +153,21 @@ class LitVSR(LitSR):
         lr, hr = batch
         step_out = self.step(lr, hr)
 
-        self.log_dict(
+        self.log(
             "loss/val",
             step_out["loss"].cpu().detach(),
             prog_bar=True,
         )
 
-        metric_dict = self.val_metric(
+        self.val_metric(
             rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
             rearrange(hr, 'b t c h w -> (b t) c h w')
         )
 
-        print(metric_dict)
-
-        self.log_dict(
-            metric_dict,
+        self.log(
+            self.val_metric,
+            prog_bar=True
         )
-
-        print(metric_dict)
 
         if self.get_log_flag(batch_idx, self.hparams.log_interval):
             self.log_images(step_out["lq"], step_out["sr"], hr)
@@ -234,7 +233,7 @@ class LitRealGanVSR(LitRealVSR):
             rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
             rearrange(hr, 'b t c h w -> (b t) c h w')
         )
-        self.log_dict(
+        self.log(
             self.train_metric,
         )
 
