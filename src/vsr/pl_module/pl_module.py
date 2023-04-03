@@ -42,10 +42,9 @@ class LitSR(pl.LightningModule):
         lr, hr = batch
         step_out = self.step(lr, hr)
 
-        self.log_dict(
-            {"loss/train": step_out["loss"].cpu().detach()},
-            on_step=True,
-            on_epoch=True,
+        self.log(
+            "loss/train",
+            step_out["loss"].cpu().detach(),
             prog_bar=True,
         )
 
@@ -55,7 +54,7 @@ class LitSR(pl.LightningModule):
         )
         self.log_dict(
             self.train_metric,
-            on_epoch=True,
+            prog_bar=True,
         )
 
         return step_out
@@ -63,10 +62,9 @@ class LitSR(pl.LightningModule):
     def validation_step(self, batch: Any, batch_idx: int):
         lr, hr = batch
         step_out = self.step(lr, hr)
-        self.log_dict(
-            {"loss/val": step_out["loss"].cpu().detach()},
-            on_step=True,
-            on_epoch=True,
+        self.log(
+            "loss/val",
+            step_out["loss"].cpu().detach(),
             prog_bar=True,
         )
 
@@ -76,7 +74,7 @@ class LitSR(pl.LightningModule):
         )
         self.log_dict(
             self.val_metric,
-            on_epoch=True,
+            prog_bar=True,
         )
 
         if self.get_log_flag(batch_idx, self.hparams.log_interval):
@@ -132,10 +130,9 @@ class LitVSR(LitSR):
         lr, hr = batch
         step_out = self.step(lr, hr)
 
-        self.log_dict(
-            {"loss/train": step_out["loss"].cpu().detach()},
-            on_step=True,
-            on_epoch=True,
+        self.log(
+            "loss/train",
+            step_out["loss"].cpu().detach(),
             prog_bar=True,
         )
 
@@ -145,7 +142,7 @@ class LitVSR(LitSR):
         )
         self.log_dict(
             self.train_metric,
-            on_epoch=True,
+            prog_bar=True,
         )
 
         return step_out
@@ -155,9 +152,8 @@ class LitVSR(LitSR):
         step_out = self.step(lr, hr)
 
         self.log_dict(
-            {"loss/val": step_out["loss"].cpu().detach()},
-            on_step=True,
-            on_epoch=True,
+            "loss/val",
+            step_out["loss"].cpu().detach(),
             prog_bar=True,
         )
 
@@ -167,7 +163,7 @@ class LitVSR(LitSR):
         )
         self.log_dict(
             self.val_metric,
-            on_epoch=True,
+            prog_bar=True,
         )
 
         if self.get_log_flag(batch_idx, self.hparams.log_interval):
@@ -229,8 +225,6 @@ class LitRealGanVSR(LitRealVSR):
              "loss/train/generator_pixel": loss.cpu().detach(),
              "loss/train/generator_perceptual": perceptual_loss.cpu().detach(),
              "loss/train/generator_fake": disc_fake_loss.cpu().detach(),},
-            on_step=True,
-            on_epoch=True,
             prog_bar=True,
         )
         self.train_metric(
@@ -239,7 +233,7 @@ class LitRealGanVSR(LitRealVSR):
         )
         self.log_dict(
             self.train_metric,
-            on_epoch=True,
+            prog_bar=True,
         )
 
         return step_out
@@ -258,8 +252,6 @@ class LitRealGanVSR(LitRealVSR):
             {"loss/train/discriminator": loss.cpu().detach(),
              "loss/train/discriminator_fake": disc_fake_loss.cpu().detach(),
              "loss/train/discriminator_true": disc_true_loss.cpu().detach()},
-            on_step=True,
-            on_epoch=True,
             prog_bar=True,
         )
 
