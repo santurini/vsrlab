@@ -8,7 +8,9 @@ trainer:
   precision: 16-mixed
   max_epochs: 1500
   max_steps: 100000
+  accumulate_grad_batches: 4
   num_sanity_val_steps: 2
+  log_every_n_steps: 27
   deterministic: ${train.deterministic}
   strategy: deepspeed_stage_3_offload
 
