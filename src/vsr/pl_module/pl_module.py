@@ -152,8 +152,8 @@ class LitVSR(LitSR):
 
         self.log_dict(
             self.train_metric(
-                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> b c t h w'),
-                rearrange(hr, 'b t c h w -> b c t h w')
+                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
+                rearrange(hr, 'b t c h w -> (b t) c h w')
             )
         )
 
@@ -170,8 +170,8 @@ class LitVSR(LitSR):
 
         self.log_dict(
             self.val_metric(
-                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> b c t h w'),
-                rearrange(hr, 'b t c h w -> b c t h w')
+                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
+                rearrange(hr, 'b t c h w -> (b t) c h w')
             )
         )
 
