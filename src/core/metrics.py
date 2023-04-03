@@ -24,3 +24,7 @@ class MetricCollection(nn.ModuleDict):
             else:
                 for k, v in metric.items():
                     self[k] = v
+
+    def clone(self):
+        return deepcopy(self)
+
