@@ -1,4 +1,5 @@
 import torch.nn as nn
+from copy import deepcopy
 
 class MetricCollection(nn.ModuleDict):
     def __init__(self, metrics, prefix=None, postfix=None):
