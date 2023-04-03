@@ -59,7 +59,9 @@ class Spynet(nn.Module):
                            flow_warp(supp[level],
                                      flow_up.permute(0, 2, 3, 1),
                                      padding_mode='border'),  # 3 channels
-                           flow_up], 1))  # 2 channels
+                           flow_up], 1 # 2 channels
+                          )
+            )
             flow = flow_up + flow_residue
         return flow
 
