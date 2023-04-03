@@ -23,8 +23,8 @@ class LitSR(pl.LightningModule):
         self.save_hyperparameters(logger=False)
 
         metric = hydra.utils.instantiate(self.hparams.metric, _recursive_=True)
-        self.train_metric = metric.clone()
-        self.val_metric = metric.clone()
+        self.train_metric = metric.clone(prefix='train_')
+        self.val_metric = metric.clone(prefix='val_')
 
         self.model = hydra.utils.instantiate(model, _recursive_=False)
 
@@ -42,20 +42,16 @@ class LitSR(pl.LightningModule):
         lr, hr = batch
         step_out = self.step(lr, hr)
 
-        self.log(
-            "loss/train",
-            step_out["loss"].cpu().detach(),
+        self.log_dict(
+            {"loss/train": step_out["loss"].cpu().detach()},
             prog_bar=True,
         )
 
-        self.train_metric(
-            step_out["sr"].clamp(0, 1),
-            hr
-        )
-
-        self.log(
-            self.train_metric,
-            prog_bar=True
+        self.log_dict(
+            self.train_metric(
+                step_out["sr"].clamp(0, 1),
+                hr
+            )
         )
 
         return step_out
@@ -63,19 +59,17 @@ class LitSR(pl.LightningModule):
     def validation_step(self, batch: Any, batch_idx: int):
         lr, hr = batch
         step_out = self.step(lr, hr)
-        self.log(
-            "loss/val",
-            step_out["loss"].cpu().detach(),
-            prog_bar=True,
+
+        self.log_dict(
+            {"loss/val": step_out["loss"].cpu().detach()},
+             prog_bar=True
         )
 
-        self.val_metric(
-            step_out["sr"].clamp(0, 1),
-            hr
-        )
-        self.log(
-            self.val_metric,
-            prog_bar=True
+        self.log_dict(
+            self.val_metric(
+                step_out["sr"].clamp(0, 1),
+                hr
+            )
         )
 
         if self.get_log_flag(batch_idx, self.hparams.log_interval):
@@ -131,20 +125,18 @@ class LitVSR(LitSR):
         lr, hr = batch
         step_out = self.step(lr, hr)
 
-        self.log(
-            "loss/train",
-            step_out["loss"].cpu().detach(),
+        self.log_dict(
+            {"loss/train": step_out["loss"].cpu().detach()},
             prog_bar=True,
         )
 
-        self.train_metric(
-            rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
-            rearrange(hr, 'b t c h w -> (b t) c h w')
-        )
 
-        self.log(
-            self.train_metric,
-            prog_bar=True
+
+        self.log_dict(
+            self.train_metric(
+                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
+                rearrange(hr, 'b t c h w -> (b t) c h w')
+            )
         )
 
         return step_out
@@ -153,20 +145,16 @@ class LitVSR(LitSR):
         lr, hr = batch
         step_out = self.step(lr, hr)
 
-        self.log(
-            "loss/val",
-            step_out["loss"].cpu().detach(),
+        self.log_dict(
+            {"loss/val": step_out["loss"].cpu().detach()},
             prog_bar=True,
         )
 
-        self.val_metric(
-            rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
-            rearrange(hr, 'b t c h w -> (b t) c h w')
-        )
-
-        self.log(
-            self.val_metric,
-            prog_bar=True
+        self.log_dict(
+            self.val_metric(
+                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
+                rearrange(hr, 'b t c h w -> (b t) c h w')
+            )
         )
 
         if self.get_log_flag(batch_idx, self.hparams.log_interval):
@@ -229,12 +217,12 @@ class LitRealGanVSR(LitRealVSR):
              "loss/train/generator_perceptual": perceptual_loss.cpu().detach(),
              "loss/train/generator_fake": disc_fake_loss.cpu().detach(),},
         )
-        self.train_metric(
-            rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
-            rearrange(hr, 'b t c h w -> (b t) c h w')
-        )
-        self.log(
-            self.train_metric,
+
+        self.log_dict(
+            self.train_metric(
+                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
+                rearrange(hr, 'b t c h w -> (b t) c h w')
+            ),
         )
 
         return step_out
