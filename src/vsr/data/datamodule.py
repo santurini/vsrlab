@@ -15,7 +15,7 @@ class DataModuleVSR(pl.LightningDataModule):
             self,
             datasets: DictConfig,
             num_workers: int,
-            batch_size: DictConfig,
+            batch_size: int,
             prefetch_factor: int
     ):
         super().__init__()
@@ -32,7 +32,7 @@ class DataModuleVSR(pl.LightningDataModule):
         return DataLoader(
             self.train_ds,
             shuffle=True,
-            batch_size=self.batch_size.train,
+            batch_size=self.batch_size,
             num_workers=self.num_workers,
             prefetch_factor=self.prefetch_factor
         )
@@ -41,7 +41,7 @@ class DataModuleVSR(pl.LightningDataModule):
         return DataLoader(
             self.val_ds,
             shuffle=False,
-            batch_size=self.batch_size.val,
+            batch_size=self.batch_size,
             num_workers=self.num_workers,
             prefetch_factor=self.prefetch_factor
         )

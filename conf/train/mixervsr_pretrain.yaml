@@ -6,8 +6,8 @@ trainer:
   devices: 2
   accelerator: gpu
   precision: 16-mixed
-  max_epochs: 2
-  accumulate_grad_batches: 1
+  max_epochs: 1500
+  accumulate_grad_batches: 4
   num_sanity_val_steps: 2
   gradient_clip_val: 10.0
   deterministic: ${train.deterministic}
