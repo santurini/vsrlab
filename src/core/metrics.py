@@ -28,7 +28,7 @@ class MetricCollection(nn.ModuleDict):
                 for k, v in metric.items():
                     self[k] = v
 
-    def clone(self, prefix: Optional[str] = None, postfix: Optional[str] = None):
+    def clone(self, prefix=None, postfix=None):
         mc = deepcopy(self)
         if prefix:
             mc.prefix = prefix
