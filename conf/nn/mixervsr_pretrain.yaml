@@ -120,9 +120,7 @@ data:
         - _target_: kornia.augmentation.Resize
           size: [ 64, 64 ]
 
-  num_workers:
-    train: 0
-    val: 0
+  num_workers: 0
 
   batch_size:
     train: 4
