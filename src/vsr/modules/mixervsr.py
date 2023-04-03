@@ -17,27 +17,19 @@ class MixerVSR(nn.Module):
         patches_dim = (height // patch_size) * (width // patch_size)
         self.cleaner = IterativeRefinement(steps, 3, mid_ch, it_blocks)  # b t c h w
         self.encoder = EncoderDCT(patch_size)  # b t (h/p)*(w/p) (c*p*p)
-        self.mixer = MlpMixer(patch_size, patches_dim, channels_dim, time_dim, exp,
-                              mix_blocks)  # b t (h/p)*(w/p) (c*p*p)
+        self.mixer = MlpMixer(patches_dim, channels_dim, time_dim, exp, mix_blocks)  # b t (h/p)*(w/p) (c*p*p)
         self.decoder = DecoderIDCT(mid_ch, patch_size, height, width)  # b t c h w
         self.upsample = SuperResolver(mid_ch, mid_ch, conv_blocks, upscale)  # b t c u*h u*w
 
     def forward(self, x):
         b, t, c, h, w = x.shape
-        print('INPUT SHAPE:', x.shape)
         lq = self.cleaner(x)
-        print('CLEANER OUTPUT SHAPE:', lq.shape)
         x_c = rearrange(lq, 'b t c h w -> (b t) c h w')
         x = self.encoder(lq)
-        print('ENCODER OUTPUT SHAPE:', x.shape)
         x = self.mixer(x)
-        print('MIXER OUTPUT SHAPE:', x.shape)
         x = self.decoder(x)
-        print('DECODER OUTPUT SHAPE:', x.shape)
         x = self.upsample(x)
-        print('UPSAMPLER OUTPUT SHAPE:', x.shape)
         up = F.interpolate(x_c, scale_factor=self.upscale, mode='bilinear')
-        print('BILINEAR OUTPUT SHAPE:', x.shape)
         sr = x + rearrange(up, '(b t) c h w -> b t c h w', b=b, t=t)
         return sr, lq
 
