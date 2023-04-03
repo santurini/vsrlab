@@ -148,7 +148,11 @@ module:
   metric:
     _target_: torchmetrics.MetricCollection
     metrics:
-      - _target_: torchmetrics.PeakSignalNoiseRatio
+      PSNR:
+        _target_: torchmetrics.PeakSignalNoiseRatio
+        data_range: 1
+      SSIM:
+        _target_: torchmetrics.StructuralSimilarityIndexMeasure
         data_range: 1
 
   optimizer:
