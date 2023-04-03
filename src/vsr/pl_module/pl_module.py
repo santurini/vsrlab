@@ -23,8 +23,8 @@ class LitSR(pl.LightningModule):
         self.save_hyperparameters(logger=False)
 
         metric = hydra.utils.instantiate(self.hparams.metric, _recursive_=True, _convert_="partial")
-        self.train_metric = metric.clone(prefix='train_')
-        self.val_metric = metric.clone(prefix='val_')
+        self.train_metric = metric.clone(prefix='train/')
+        self.val_metric = metric.clone(prefix='val/')
 
         self.model = hydra.utils.instantiate(model, _recursive_=False)
 
@@ -117,7 +117,7 @@ class LitSR(pl.LightningModule):
             for m in metrics
         ]
         captions = [
-            f"PSNR: {m['val_PSNR']:.2f}, SSIM: {m['val_SSIM']:.3f}"
+            f"PSNR: {m['val/PSNR']:.2f}, SSIM: {m['val/SSIM']:.3f}"
             for m in metrics
         ]
 
@@ -194,7 +194,7 @@ class LitVSR(LitSR):
             for m in metrics
         ]
         captions = [
-            f"PSNR: {m['val_PSNR']:.2f}, SSIM: {m['val_SSIM']:.3f}"
+            f"PSNR: {m['val/PSNR']:.2f}, SSIM: {m['val/SSIM']:.3f}"
             for m in metrics
         ]
 
