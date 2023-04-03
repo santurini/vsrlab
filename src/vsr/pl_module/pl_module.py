@@ -54,7 +54,6 @@ class LitSR(pl.LightningModule):
         )
         self.log_dict(
             metric_dict,
-            prog_bar=True,
         )
 
         return step_out
@@ -74,7 +73,6 @@ class LitSR(pl.LightningModule):
         )
         self.log_dict(
             metric_dict,
-            prog_bar=True,
         )
 
         if self.get_log_flag(batch_idx, self.hparams.log_interval):
@@ -142,7 +140,6 @@ class LitVSR(LitSR):
         )
         self.log_dict(
             metric_dict,
-            prog_bar=True,
         )
 
         return step_out
@@ -163,7 +160,6 @@ class LitVSR(LitSR):
         )
         self.log_dict(
             metric_dict,
-            prog_bar=True,
         )
 
         print(metric_dict)
@@ -227,7 +223,6 @@ class LitRealGanVSR(LitRealVSR):
              "loss/train/generator_pixel": loss.cpu().detach(),
              "loss/train/generator_perceptual": perceptual_loss.cpu().detach(),
              "loss/train/generator_fake": disc_fake_loss.cpu().detach(),},
-            prog_bar=True,
         )
         self.train_metric(
             rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
@@ -235,7 +230,6 @@ class LitRealGanVSR(LitRealVSR):
         )
         self.log_dict(
             self.train_metric,
-            prog_bar=True,
         )
 
         return step_out
@@ -254,7 +248,6 @@ class LitRealGanVSR(LitRealVSR):
             {"loss/train/discriminator": loss.cpu().detach(),
              "loss/train/discriminator_fake": disc_fake_loss.cpu().detach(),
              "loss/train/discriminator_true": disc_true_loss.cpu().detach()},
-            prog_bar=True,
         )
 
         return step_out
