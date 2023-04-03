@@ -16,11 +16,13 @@ class DataModuleVSR(pl.LightningDataModule):
             datasets: DictConfig,
             num_workers: DictConfig,
             batch_size: DictConfig,
+            prefetch_factor: int
     ):
         super().__init__()
         self.datasets = datasets
         self.num_workers = num_workers
         self.batch_size = batch_size
+        self.prefetch_factor = prefetch_factor
 
     def setup(self, stage: Optional[str] = None):
         self.train_ds = hydra.utils.instantiate(self.datasets.train, _recursive_=False)
@@ -32,6 +34,7 @@ class DataModuleVSR(pl.LightningDataModule):
             shuffle=True,
             batch_size=self.batch_size.train,
             num_workers=self.num_workers.train,
+            prefetch_factor=self.prefetch_factor
         )
 
     def val_dataloader(self) -> Sequence[DataLoader]:
@@ -40,6 +43,7 @@ class DataModuleVSR(pl.LightningDataModule):
             shuffle=False,
             batch_size=self.batch_size.val,
             num_workers=self.num_workers.val,
+            prefetch_factor=self.prefetch_factor
         )
 
     def __repr__(self) -> str:

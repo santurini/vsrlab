@@ -128,6 +128,8 @@ data:
     train: 4
     val: 1
 
+  prefetch_factor: 4
+
 module:
   _target_: vsr.pl_module.pl_module.LitRealVSR
   model:
@@ -135,12 +137,12 @@ module:
     img_size: [64, 64]
     steps: 3
     mid_ch: 64
-    it_blocks: 15
-    patch_size: 8
+    it_blocks: 12
+    patch_size: 4
     time_dim: 30
     exp: 2
-    mix_blocks: 15
-    conv_blocks: 10
+    mix_blocks: 12
+    conv_blocks: 12
     upscale: ${nn.data.datasets.train.scale}
 
   loss:
