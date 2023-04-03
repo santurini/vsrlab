@@ -146,7 +146,7 @@ module:
     weight: 1.0
 
   metric:
-    _target_: torchmetrics.MetricCollection
+    _target_: core.metrics.MetricCollection
     metrics:
       PSNR:
         _target_: piqa.PSNR
