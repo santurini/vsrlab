@@ -126,14 +126,14 @@ module:
   _target_: vsr.pl_module.pl_module.LitRealVSR
   model:
     _target_: vsr.modules.mixervsr.MixerVSR
-    img_size: [64, 64]
+    img_size: [ 64, 64 ]
     steps: 3
     mid_ch: 64
     it_blocks: 20
     patch_size: 8
     time_dim: 15
     exp: 2
-    mix_blocks: 10
+    mix_blocks: 20
     conv_blocks: 20
     upscale: ${nn.data.datasets.train.scale}
 
