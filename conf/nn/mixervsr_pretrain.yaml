@@ -149,10 +149,10 @@ module:
     _target_: torchmetrics.MetricCollection
     metrics:
       PSNR:
-        _target_: torchmetrics.PeakSignalNoiseRatio
+        _target_: piqa.PSNR
         data_range: 1
       SSIM:
-        _target_: torchmetrics.StructuralSimilarityIndexMeasure
+        _target_: piqa.SSIM
         data_range: 1
 
   optimizer:
