@@ -30,8 +30,6 @@ data:
           same_on_batch: True
           keepdim: True
 
-        - _target_: core.augmentations.Mirroring
-
       lr_augmentation:
         - _target_: kornia.augmentation.RandomGaussianBlur
           kernel_size: 7
@@ -102,8 +100,6 @@ data:
           keepdim: True
           size: [ 256, 256 ]
 
-        - _target_: core.augmentations.Mirroring
-
       lr_augmentation:
         - _target_: kornia.augmentation.RandomGaussianBlur
           kernel_size: 5
@@ -133,12 +129,12 @@ module:
     img_size: [64, 64]
     steps: 3
     mid_ch: 64
-    it_blocks: 12
+    it_blocks: 20
     patch_size: 8
-    time_dim: 30
+    time_dim: 15
     exp: 2
-    mix_blocks: 12
-    conv_blocks: 12
+    mix_blocks: 10
+    conv_blocks: 20
     upscale: ${nn.data.datasets.train.scale}
 
   loss:
