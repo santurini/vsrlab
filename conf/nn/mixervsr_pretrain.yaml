@@ -138,7 +138,7 @@ module:
     steps: 3
     mid_ch: 64
     it_blocks: 12
-    patch_size: 4
+    patch_size: 8
     time_dim: 30
     exp: 2
     mix_blocks: 12
