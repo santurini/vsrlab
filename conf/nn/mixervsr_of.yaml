@@ -118,7 +118,7 @@ data:
 
   num_workers: 16
 
-  batch_size: 6
+  batch_size: 4
 
   prefetch_factor: 4
 
