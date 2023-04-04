@@ -23,8 +23,8 @@ class LitSR(pl.LightningModule):
         self.save_hyperparameters(logger=False)
 
         metric = hydra.utils.instantiate(self.hparams.metric, _recursive_=True, _convert_="partial")
-        self.train_metric = metric.clone(prefix='train/')
-        self.val_metric = metric.clone(prefix='val/')
+        self.train_metric = metric.clone(postfix='/train')
+        self.val_metric = metric.clone(prefix='/val')
 
         self.model = hydra.utils.instantiate(model, _recursive_=False)
 
@@ -42,9 +42,9 @@ class LitSR(pl.LightningModule):
         lr, hr = batch
         step_out = self.step(lr, hr)
 
-        self.log_dict(
-            {"loss/train": step_out["loss"].cpu().detach()},
-            prog_bar=True,
+        self.log_losses(
+            step_out,
+            "train"
         )
 
         self.log_dict(
@@ -60,9 +60,9 @@ class LitSR(pl.LightningModule):
         lr, hr = batch
         step_out = self.step(lr, hr)
 
-        self.log_dict(
-            {"loss/val": step_out["loss"].cpu().detach()},
-            prog_bar=True
+        self.log_losses(
+            step_out,
+            "val"
         )
 
         self.log_dict(
@@ -101,6 +101,18 @@ class LitSR(pl.LightningModule):
                 "frequency": 1},
         }
 
+    def log_losses(self, out, stage):
+        out_dict = {}
+        for key in out.keys():
+            if 'loss' in key:
+                new_key = '/'.join([key, stage])
+                out_dict[new_key] = out[key].cpu().detach()
+
+        self.log_dict(
+            out_dict,
+            prog_bar=True
+        )
+
     def log_images(self, lr, sr, hr):
         t_log = lr.shape[0] if lr.shape[0] < 5 else self.hparams.log_k_images
         lr = lr[:t_log].detach().cpu()
@@ -136,9 +148,9 @@ class LitVSR(LitSR):
         lr, hr = batch
         step_out = self.step(lr, hr)
 
-        self.log_dict(
-            {"loss/train": step_out["loss"].cpu().detach()},
-            prog_bar=True,
+        self.log_losses(
+            step_out,
+            "train"
         )
 
         self.log_dict(
@@ -154,9 +166,9 @@ class LitVSR(LitSR):
         lr, hr = batch
         step_out = self.step(lr, hr)
 
-        self.log_dict(
-            {"loss/val": step_out["loss"].cpu().detach()},
-            prog_bar=True,
+        self.log_losses(
+            step_out,
+            "val"
         )
 
         self.log_dict(
@@ -183,7 +195,7 @@ class LitVSR(LitSR):
         ]
 
         captions = [
-            f"PSNR: {m['val/PSNR']:.2f}, SSIM: {m['val/SSIM']:.3f}"
+            f"PSNR: {m['PSNR/val']:.2f}, SSIM: {m['SSIM/val']:.3f}"
             for m in metrics
         ]
 
