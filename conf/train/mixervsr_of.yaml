@@ -34,6 +34,9 @@ callbacks:
     mode: ${train.monitor.mode}
     save_last: True
 
+  - _target_: pytorch_lightning.callbacks.ModelSummary
+    max_depth: 4
+
 logger:
   _target_: pytorch_lightning.loggers.WandbLogger
   project: ${core.project_name}

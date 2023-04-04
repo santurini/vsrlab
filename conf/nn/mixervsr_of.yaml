@@ -144,6 +144,10 @@ module:
   of_loss:
     _target_: core.losses.OpticalFlowConsistency
     weight: 1.0
+    model:
+      _target_: optical_flow.modules.pwcnet.PWCNet
+      md: 4
+      pretrained: ${oc.env:PROJECT_ROOT}/src/optical_flow/weights/pwc_net.pth.tar
 
   metric:
     _target_: core.metrics.MetricCollection

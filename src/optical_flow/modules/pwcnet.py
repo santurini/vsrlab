@@ -110,6 +110,7 @@ class PWCNet(nn.Module):
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
             ckpt = torch.load(pretrained, map_location=torch.device(device))
             self.load_state_dict(ckpt)
+            print('LOADED PWCNET PRETRAINED WEIGHTS')
 
         else:
             for m in self.modules():

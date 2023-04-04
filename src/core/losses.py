@@ -80,22 +80,22 @@ class AdversarialLoss(nn.Module):
         return loss if is_disc else loss * self.weight
 
 class OpticalFlowConsistency(nn.Module):
-    def __init__(self, weight=1.0):
+    def __init__(self, model, weight=1.0):
         super().__init__()
-        self.pwcnet = PWCNet()
+        self.model = model
         self.loss = nn.L1Loss()
         self.weight = weight
 
-        self.pwcnet.requires_grad_(False)
+        self.model.requires_grad_(False)
 
     def forward(self, sr, hr):
         b, t, c, h, w = sr.shape
         img1 = sr[:, :-1, :, :, :].reshape(-1, c, h, w)
         img2 = sr[:, 1:, :, :, :].reshape(-1, c, h, w)
-        flow_sr = self.pwcnet(img2, img1)
+        flow_sr = self.model(img2, img1)
 
         img1 = hr[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
         img2 = hr[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
-        flow_hr = self.pwcnet(img2, img1)
+        flow_hr = self.model(img2, img1)
 
         return self.loss(flow_sr, flow_hr) * self.weight
