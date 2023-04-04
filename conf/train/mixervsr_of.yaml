@@ -14,7 +14,7 @@ trainer:
   strategy: deepspeed_stage_3_offload
 
 restore:
-  ckpt_or_run_path: null
+  ckpt_path: null
 
 monitor:
   metric: 'loss/val'
