@@ -11,7 +11,7 @@ data:
       size: 0.9
       hr_augmentation:
         - _target_: kornia.augmentation.RandomCrop
-          size: [512, 512]
+          size: [ 512, 512 ]
           pad_if_needed: True
           same_on_batch: True
           keepdim: True
@@ -91,7 +91,7 @@ data:
       size: 0.1
       hr_augmentation:
         - _target_: kornia.augmentation.RandomCrop
-          size: [512, 512]
+          size: [ 512, 512 ]
           pad_if_needed: True
           same_on_batch: True
           keepdim: True

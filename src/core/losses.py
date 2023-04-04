@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
+from optical_flow.modules.pwcnet import PWCNet
+
 LAYER_WEIGHTS = {'2': 0.1, '7': 0.1, '16': 1.0, '25': 1.0, '34': 1.0}
 
 class WL1Loss(nn.L1Loss):
@@ -72,11 +74,28 @@ class AdversarialLoss(nn.Module):
         self.weight = weight
         self.loss = nn.BCEWithLogitsLoss()
 
-    def get_target_label(self, input, target):
-        target_val = (self.real if target else self.fake)
-        return input.new_ones(input.size()) * target_val
-
     def forward(self, x, target, is_disc=False):
         target = x.new_ones(x.size()) * target
         loss = self.loss(input, target)
         return loss if is_disc else loss * self.weight
+
+class OpticalFLowConsistency(nn.Module):
+    def __init__(self, weight=1.0):
+        super().__init__()
+        self.pwcnet = PWCNet()
+        self.loss = nn.L1Loss()
+        self.weight = weight
+
+        self.pwcnet.requires_grad_(False)
+
+    def forward(self, sr, hr):
+        b, t, c, h, w = x.shape
+        img1 = sr[:, :-1, :, :, :].reshape(-1, c, h, w)
+        img2 = sr[:, 1:, :, :, :].reshape(-1, c, h, w)
+        flow_sr = self.pwcnet(igm2, img1)
+
+        img1 = hr[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
+        img2 = hr[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
+        flow_hr = self.pwcnet(igm2, img1)
+
+        return self.loss(flow_sr, flow_hr) * self.weight

@@ -1,4 +1,5 @@
 import warnings
+
 warnings.filterwarnings("ignore")
 
 from typing import List
@@ -43,7 +44,7 @@ def run(cfg: DictConfig) -> str:
     if logger is not None:
         logger.experiment.finish()
 
-    return logger.run_dir
+    return logger.save_dir
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
 def main(cfg: omegaconf.DictConfig):

@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Sequence, Tuple, Union, Optional
+from typing import Any, Optional
 
 import hydra
 import omegaconf
@@ -62,7 +62,7 @@ class LitSR(pl.LightningModule):
 
         self.log_dict(
             {"loss/val": step_out["loss"].cpu().detach()},
-             prog_bar=True
+            prog_bar=True
         )
 
         self.log_dict(
@@ -99,7 +99,7 @@ class LitSR(pl.LightningModule):
                 "scheduler": scheduler,
                 "interval": "step",
                 "frequency": 1},
-             }
+        }
 
     def log_images(self, lr, sr, hr):
         t_log = lr.shape[0] if lr.shape[0] < 5 else self.hparams.log_k_images
@@ -117,20 +117,19 @@ class LitSR(pl.LightningModule):
             for m in metrics
         ]
 
-        self.logger.log_image(key='Imput Image', images=[i for i in lr], caption=[f'inp_img_{i + 1}' for i in range(t_log)])
-        self.logger.log_image(key='Ground Truths', images=[i for i in hr], caption=[f'gt_img_{i+1}' for i in range(t_log)])
+        self.logger.log_image(key='Imput Image', images=[i for i in lr],
+                              caption=[f'inp_img_{i + 1}' for i in range(t_log)])
+        self.logger.log_image(key='Ground Truths', images=[i for i in hr],
+                              caption=[f'gt_img_{i + 1}' for i in range(t_log)])
         self.logger.log_image(key='Predicted Images', images=[i for i in sr], caption=captions)
 
     @staticmethod
     def get_log_flag(batch_idx, log_interval):
-        flag = batch_idx%log_interval==0
+        flag = batch_idx % log_interval == 0
         return flag
 
-
 class LitVSR(LitSR):
-    def __init__(self,
-                 *args,
-                 **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
     def training_step(self, batch: Any, batch_idx: int):
@@ -188,10 +187,11 @@ class LitVSR(LitSR):
             for m in metrics
         ]
 
-        self.logger.log_image(key='Input Images', images=[i for i in lr], caption=[f'inp_frame_{i + 1}' for i in range(t_log)])
-        self.logger.log_image(key='Ground Truths', images=[i for i in hr], caption=[f'gt_frame_{i+1}' for i in range(t_log)])
+        self.logger.log_image(key='Input Images', images=[i for i in lr],
+                              caption=[f'inp_frame_{i + 1}' for i in range(t_log)])
+        self.logger.log_image(key='Ground Truths', images=[i for i in hr],
+                              caption=[f'gt_frame_{i + 1}' for i in range(t_log)])
         self.logger.log_image(key='Predicted Images', images=[i for i in sr], caption=captions)
-
 
 class LitRealVSR(LitVSR):
     def __init__(self, *args, **kwargs) -> None:
@@ -203,6 +203,37 @@ class LitRealVSR(LitVSR):
         loss = self.loss(sr, hr) + self.loss(lq, resize(hr, (h, w)))
         return {"sr": sr.detach(), "lr": lq.detach(), "loss": loss}
 
+class LitRealVSR(LitVSR):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if self.hparams.of_loss:
+            self.of_loss = hydra.utils.instantiate(self.hparams.of_loss, _recursive_=False)
+
+    def step(self, lr, hr):
+        b, t, c, h, w = lr.shape
+        sr, lq = self(lr)
+
+        pixel_loss = self.loss(sr, hr) + self.loss(lq, resize(hr, (h, w)))
+
+        if self.of_loss:
+            of_loss = self.of_loss(sr, hr) + self.of_loss(lq, resize(hr, (h, w)))
+            loss = pixel_loss + of_loss
+            return {
+                "sr": sr.detach(),
+                "lr": lq.detach(),
+                "loss": loss,
+                "pixel_loss": pixel_loss,
+                "of_loss": of_loss
+            }
+
+        else:
+            loss = pixel_loss
+            return {
+                "sr": sr.detach(),
+                "lr": lq.detach(),
+                "loss": loss
+            }
+
 class LitRealGanVSR(LitRealVSR):
     def __init__(self,
                  discriminator: DictConfig,
@@ -213,7 +244,10 @@ class LitRealGanVSR(LitRealVSR):
 
         self.discriminator = hydra.utils.instantiate(discriminator, _recursive_=False)
 
-        self.perceptual_loss: Optional[Any] = hydra.utils.instantiate(self.hparams.perceptual_loss, _recursive_=False)
+        if self.hparams.perceptual_loss:
+            self.perceptual_loss: Optional[Any] = hydra.utils.instantiate(self.hparams.perceptual_loss,
+                                                                          _recursive_=False)
+
         self.adversarial_loss = hydra.utils.instantiate(adversarial_loss, _recursive_=False)
 
     def training_step(self, batch, batch_idx, optimizer_idx):
@@ -235,7 +269,7 @@ class LitRealGanVSR(LitRealVSR):
             {"loss/train/generator": step_out['loss'].cpu().detach(),
              "loss/train/generator_pixel": loss.cpu().detach(),
              "loss/train/generator_perceptual": perceptual_loss.cpu().detach(),
-             "loss/train/generator_fake": disc_fake_loss.cpu().detach(),},
+             "loss/train/generator_fake": disc_fake_loss.cpu().detach(), },
         )
 
         self.log_dict(

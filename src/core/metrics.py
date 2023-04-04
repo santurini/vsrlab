@@ -1,5 +1,6 @@
-import torch.nn as nn
 from copy import deepcopy
+
+import torch.nn as nn
 
 class MetricCollection(nn.ModuleDict):
     def __init__(self, metrics, prefix=None, postfix=None):
@@ -41,4 +42,3 @@ class MetricCollection(nn.ModuleDict):
         name = base if self.prefix is None else self.prefix + base
         name = name if self.postfix is None else name + self.postfix
         return name
-

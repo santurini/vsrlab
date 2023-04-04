@@ -4,22 +4,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from core import PROJECT_ROOT
-
-class SpynetConv(nn.Module):
-    def __init__(self, in_ch, out_ch):
-        super().__init__()
-        self.conv = nn.Sequential(nn.Conv2d(in_ch, out_ch, 7, 1, 3),
-                                  nn.ReLU())
-
-    def forward(self, x):
-        return self.conv(x)
+from core.modules.conv import ConvReLU
+from optical_flow import flow_warp
+from torch.nn.functional import grid_sample
 
 class SpynetModule(nn.Module):
     def __init__(self):
         super().__init__()
-        self.basic_module = nn.Sequential(SpynetConv(8, 32), SpynetConv(32, 64),
-                                          SpynetConv(64, 32), SpynetConv(32, 16),
-                                          SpynetConv(16, 2))
+        self.basic_module = nn.Sequential(ConvReLU(8, 32, 7, 1, 3), ConvReLU(32, 64, 7, 1, 3),
+                                          ConvReLU(64, 32, 7, 1, 3), ConvReLU(32, 16, 7, 1, 3),
+                                          ConvReLU(16, 2, 7, 1, 3))
 
     def forward(self, x):
         return self.basic_module(x)
@@ -59,7 +53,7 @@ class Spynet(nn.Module):
                            flow_warp(supp[level],
                                      flow_up.permute(0, 2, 3, 1),
                                      padding_mode='border'),  # 3 channels
-                           flow_up], 1 # 2 channels
+                           flow_up], 1  # 2 channels
                           )
             )
             flow = flow_up + flow_residue
@@ -78,5 +72,5 @@ def flow_warp(x, flow, interpolation='bilinear', padding_mode='zeros', align_cor
     grid_flow_y = 2.0 * grid_flow[:, :, :, 1] / max(h - 1, 1) - 1.0  # min-max normalize in [-1, 1]
     grid_flow = torch.stack((grid_flow_x, grid_flow_y), dim=3)  # (t, h, w, 2)
     # given input and flow grid computes output using input values and pixel locations from grid
-    output = F.grid_sample(x, grid_flow, mode=interpolation, padding_mode=padding_mode, align_corners=align_corners)
+    output = grid_sample(x, grid_flow, mode=interpolation, padding_mode=padding_mode, align_corners=align_corners)
     return output  # 3-channel frames of same spatial resolution as x

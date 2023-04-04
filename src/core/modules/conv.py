@@ -4,6 +4,24 @@ import torch.nn as nn
 from einops import rearrange
 from torchvision.ops import DeformConv2d
 
+class ConvReLU(nn.Module):
+    def __init__(self, in_ch, out_ch):
+        super().__init__()
+        self.conv = nn.Sequential(nn.Conv2d(in_ch, out_ch, *args, **kwargs),
+                                  nn.ReLU())
+
+    def forward(self, x):
+        return self.conv(x)
+
+class ConvLeaky(nn.Module):
+    def __init__(self, in_ch, out_ch):
+        super().__init__()
+        self.conv = nn.Sequential(nn.Conv2d(in_ch, out_ch, *args, **kwargs),
+                                  nn.LeakyReLU(0.1))
+
+    def forward(self, x):
+        return self.conv(x)
+
 class DeformConv(DeformConv2d):
     def __init__(self, in_ch, out_ch, kernel_size=3, deformable_groups=1):
         super().__init__(in_ch, out_ch, kernel_size)
