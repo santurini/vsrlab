@@ -79,7 +79,7 @@ class AdversarialLoss(nn.Module):
         loss = self.loss(input, target)
         return loss if is_disc else loss * self.weight
 
-class OpticalFLowConsistency(nn.Module):
+class OpticalFlowConsistency(nn.Module):
     def __init__(self, weight=1.0):
         super().__init__()
         self.pwcnet = PWCNet()
