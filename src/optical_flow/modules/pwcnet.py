@@ -107,7 +107,7 @@ class PWCNet(nn.Module):
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
 
         if isinstance(pretrained, str):
-            device = 'gpu' if torch.cuda.is_available() else 'cpu'
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
             ckpt = torch.load(pretrained, map_location=torch.device(device))
             self.load_state_dict(ckpt)
 
