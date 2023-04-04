@@ -59,7 +59,7 @@ class SpatialCorrelationSampler(nn.Module):
             dilation: Union[int, Tuple[int, int]] = 1,
             dilation_patch: Union[int, Tuple[int, int]] = 1
     ) -> None:
-        super(IterSpatialCorrelationSampler, self).__init__()
+        super().__init__()
         self.kernel_size = kernel_size
         self.patch_size = patch_size
         self.stride = stride
