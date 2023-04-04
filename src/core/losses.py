@@ -92,10 +92,10 @@ class OpticalFlowConsistency(nn.Module):
         b, t, c, h, w = sr.shape
         img1 = sr[:, :-1, :, :, :].reshape(-1, c, h, w)
         img2 = sr[:, 1:, :, :, :].reshape(-1, c, h, w)
-        flow_sr = self.pwcnet(igm2, img1)
+        flow_sr = self.pwcnet(img2, img1)
 
         img1 = hr[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
         img2 = hr[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
-        flow_hr = self.pwcnet(igm2, img1)
+        flow_hr = self.pwcnet(img2, img1)
 
         return self.loss(flow_sr, flow_hr) * self.weight
