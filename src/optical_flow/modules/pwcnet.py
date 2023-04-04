@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 import torch.nn as nn
 from core import PROJECT_ROOT
 from core.modules.correlation import SpatialCorrelationSampler
