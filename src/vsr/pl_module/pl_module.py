@@ -24,7 +24,7 @@ class LitSR(pl.LightningModule):
 
         metric = hydra.utils.instantiate(self.hparams.metric, _recursive_=True, _convert_="partial")
         self.train_metric = metric.clone(postfix='/train')
-        self.val_metric = metric.clone(prefix='/val')
+        self.val_metric = metric.clone(postfix='/val')
 
         self.model = hydra.utils.instantiate(model, _recursive_=False)
 
