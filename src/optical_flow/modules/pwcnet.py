@@ -19,7 +19,7 @@ def deconv(in_planes, out_planes, kernel_size=4, stride=2, padding=1):
     return nn.ConvTranspose2d(in_planes, out_planes, kernel_size, stride, padding, bias=True)
 
 class PWCNet(nn.Module):
-    def __init__(self, md=4, pretrained=f'{PROJECT_ROOT}/src/optical_flow/weights/pretrained_spynet.pth'):
+    def __init__(self, md=4, pretrained=f'{PROJECT_ROOT}/src/optical_flow/weights/pwc_net.pth.tar'):
         super().__init__()
 
         self.conv1a = conv(3, 16, kernel_size=3, stride=2)
