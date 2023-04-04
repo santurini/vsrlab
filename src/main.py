@@ -39,7 +39,7 @@ def run(cfg: DictConfig) -> str:
     )
 
     print("Starting training!")
-    trainer.fit(model=model, datamodule=datamodule, ckpt_path=cfg.train.restore.ckpt_or_run_path)
+    trainer.fit(model=model, datamodule=datamodule)
 
     # Logger closing to release resources/avoid multi-run conflicts
     if logger is not None:
