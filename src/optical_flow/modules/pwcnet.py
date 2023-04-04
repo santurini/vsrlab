@@ -135,8 +135,8 @@ class PWCNet(nn.Module):
         vgrid[:, 1, :, :] = 2.0 * vgrid[:, 1, :, :].clone() / max(H - 1, 1) - 1.0
 
         vgrid = vgrid.permute(0, 2, 3, 1)
-        output = grid_sample(x, vgrid, align_corners=True)
-        mask = Variable(torch.ones(x.size()))
+        output = grid_sample(x, vgrid, align_corners=True).type_as(vgrid)
+        mask = Variable(torch.ones(x.size())).type_as(vgrid)
         mask = grid_sample(mask, vgrid, align_corners=True)
 
         mask[mask < 0.9999] = 0
