@@ -89,7 +89,7 @@ class OpticalFlowConsistency(nn.Module):
         self.pwcnet.requires_grad_(False)
 
     def forward(self, sr, hr):
-        b, t, c, h, w = x.shape
+        b, t, c, h, w = sr.shape
         img1 = sr[:, :-1, :, :, :].reshape(-1, c, h, w)
         img2 = sr[:, 1:, :, :, :].reshape(-1, c, h, w)
         flow_sr = self.pwcnet(igm2, img1)
