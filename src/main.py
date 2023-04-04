@@ -23,7 +23,6 @@ def run(cfg: DictConfig) -> str:
     # Instantiate model
     print(f"Instantiating <{cfg.nn.module['_target_']}>")
     model: pl.LightningModule = hydra.utils.instantiate(cfg.nn.module, _recursive_=False)
-    model = model.load_from_checkpoint(cfg.train.restore.ckpt_or_run_path, strict=False)
 
     callbacks: List[Callback] = build_callbacks(cfg.train.callbacks)
 
@@ -39,7 +38,7 @@ def run(cfg: DictConfig) -> str:
     )
 
     print("Starting training!")
-    trainer.fit(model=model, datamodule=datamodule)
+    trainer.fit(model=model, datamodule=datamodule, ckpt_path=cfg.train.restore.ckpt_path)
 
     # Logger closing to release resources/avoid multi-run conflicts
     if logger is not None:
