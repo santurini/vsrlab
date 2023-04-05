@@ -38,29 +38,41 @@ class BasicVSR(nn.Module):
         outputs = []  # backward-propagation
         feat_prop = lrs.new_zeros(n, self.mid_channels, h, w)
         for i in range(t - 1, -1, -1):
-            if i < t - 1:  # no warping required for the last timestep
-                flow = flows_backward[:, i, :, :, :]  # b c h w
-                feat_prop = flow_warp(feat_prop, flow.permute(0, 2, 3, 1))  # propagated frame
-
-            feat_prop = torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1)  # mid_ch + 3
-            feat_prop = self.backward_resblocks(feat_prop)  # (b mid_ch h w)
-            outputs.append(feat_prop)  # t -> b mid_ch h w
+            # no warping required for the last timestep
+            if i < t - 1:
+                # (b c h w)
+                flow = flows_backward[:, i, :, :, :]
+                # propagated frame
+                feat_prop = flow_warp(feat_prop, flow.permute(0, 2, 3, 1))
+            # mid_ch + 3
+            feat_prop = torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1)
+            # (b mid_ch h w)
+            feat_prop = self.backward_resblocks(feat_prop)
+            # t -> (b mid_ch h w)
+            outputs.append(feat_prop)
 
         outputs = outputs[::-1]  # forward-propagation
         feat_prop = torch.zeros_like(feat_prop)
         for i in range(0, t):
-            if i > 0:  # no warping required for the first timestep
+            # no warping required for the first timestep
+            if i > 0:
                 if self.is_mirror:
                     flow = flows_backward[:, -i, :, :, :]
                 else:
-                    flow = flows_forward[:, i - 1, :, :, :]  # flow at previous frame (?)
+                    # flow at previous frame (?)
+                    flow = flows_forward[:, i - 1, :, :, :]
                 feat_prop = flow_warp(feat_prop, flow.permute(0, 2, 3, 1))
-
-            feat_prop = torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1)  # mid_ch + 3
-            feat_prop = self.forward_resblocks(feat_prop)  # b mid_ch h w
-            out = torch.cat([outputs[i], feat_prop], dim=1)  # b mid_ch*2 h w
-            out = self.point_conv(out)  # b mid_ch h w
-            out = self.upsample(out)  # b mid_ch h*u w*u
-            out = self.conv_last(out)  # b 3 h w
+            # mid_ch + 3
+            feat_prop = torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1)
+            # (b mid_ch h w)
+            feat_prop = self.forward_resblocks(feat_prop)
+            # (b mid_ch*2 h w)
+            out = torch.cat([outputs[i], feat_prop], dim=1)
+            # (b mid_ch h w)
+            out = self.point_conv(out)
+            # (b mid_ch h*u w*u)
+            out = self.upsample(out)
+            # (b 3 h w)
+            out = self.conv_last(out)
             outputs[i] = out + self.upscale(lrs[:, i, :, :, :])
         return torch.stack(outputs, dim=1)

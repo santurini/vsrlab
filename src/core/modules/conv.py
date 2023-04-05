@@ -2,7 +2,7 @@ import math
 
 import torch.nn as nn
 from einops import rearrange
-from torchvision.ops import DeformConv2d
+from torchvision.ops import DeformConv2d, deform_conv2d
 
 class ConvReLU(nn.Module):
     def __init__(self, in_ch, out_ch):
@@ -23,22 +23,43 @@ class ConvLeaky(nn.Module):
         return self.conv(x)
 
 class DeformConv(DeformConv2d):
-    def __init__(self, in_ch, out_ch, kernel_size=3, deformable_groups=1):
-        super().__init__(in_ch, out_ch, kernel_size)
-        if in_ch % deformable_groups != 0: deformable_groups = math.gcd(in_ch, deformable_groups)
-        self.offset_conv = nn.Conv2d(in_ch, 2 * deformable_groups * kernel_size ** 2, kernel_size, 1, 1)
-        self.dconv = DeformConv2d(in_ch, out_ch, kernel_size, 1, 1, bias=False)
+    '''
+    torch based Deformable Convolution Pack
+    '''
+    def __init__(self, deformable_groups, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.conv_offset = nn.Conv2d(
+            self.in_channels,
+            deformable_groups * 2 * self.kernel_size[0] * self.kernel_size[1],
+            self.stride,
+            self.padding,
+            self.dilation,
+            self.groups,
+            self.bias
+        )
+        self.init_offset()
+
+    def init_offset(self):
+        self.conv_offset.weight.data.zero_()
+        self.conv_offset.bias.data.zero_()
 
     def forward(self, x):
-        offset = self.offset_conv(x)
-        out = self.dconv(x, offset)
-        return out
+        offset = self.conv_offset(x)
+        return deform_conv2d(
+            x,
+            offset,
+            self.weight,
+            self.bias,
+            stride=self.stride,
+            padding=self.padding,
+            dilation=self.dilation
+        )
 
 class DeformBlock(nn.Module):
     def __init__(self, in_channels, mid_channels, blocks):
         super().__init__()
         self.conv_in = nn.Conv2d(in_channels, mid_channels, 3, 1, 1)
-        self.dcblock = nn.Sequential(*[DeformConv(mid_channels, mid_channels) for _ in range(blocks)])
+        self.dcblock = nn.Sequential(*[DeformConv(1, mid_channels, mid_channels, 3) for _ in range(blocks)])
         self.conv_out = nn.Conv2d(mid_channels, in_channels, 3, 1, 1)
 
     def forward(self, x):
