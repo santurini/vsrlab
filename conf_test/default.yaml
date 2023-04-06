@@ -5,4 +5,4 @@ core:
   tags: null
 
 defaults:
-  - config: default
+  - cfg: default
