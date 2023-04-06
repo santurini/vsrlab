@@ -5,7 +5,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from core import PROJECT_ROOT
 from core.modules.conv import ConvReLU
-from optical_flow import flow_warp
 from torch.nn.functional import grid_sample
 
 class SpynetModule(nn.Module):
