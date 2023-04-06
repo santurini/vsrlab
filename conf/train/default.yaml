@@ -2,7 +2,8 @@
 seed_index: 0
 deterministic: False
 
-trainer:
+defaults:
+  trainer: distributed
   devices: 1
   accelerator: cpu
   precision: bf16-mixed

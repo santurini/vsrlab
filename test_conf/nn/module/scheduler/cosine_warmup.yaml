@@ -1,0 +1,7 @@
+_target_: core.schedulers.CosineAnnealingWarmupRestarts
+first_cycle_steps: 2000
+cycle_mult: 1.0
+max_lr: 1e-4
+min_lr: 1e-6
+warmup_steps: 500
+gamma: 0.8

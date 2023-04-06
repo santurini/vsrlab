@@ -1,6 +1,5 @@
 data:
   _target_: vsr.data.datamodule.DataModuleVSR
-
   datasets:
     train:
       _target_: vsr.data.dataset.DatasetVSR
@@ -135,7 +134,7 @@ module:
     exp: 2
     mix_blocks: 15
     conv_blocks: 15
-    upscale: ${nn.data.datasets.train.scale}
+    upscale: ${nn.data.data.train.scale}
 
   loss:
     _target_: core.losses.WL1Loss

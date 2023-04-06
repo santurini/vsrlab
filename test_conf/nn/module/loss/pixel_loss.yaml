@@ -1,0 +1,2 @@
+_target_: core.losses.WL1Loss
+weight: 1.0

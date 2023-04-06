@@ -1,0 +1,109 @@
+_target_: vsr.data.datamodule.DataModuleVSR
+num_workers: 16
+batch_size: 4
+prefetch_factor: 4
+datasets:
+  train:
+    _target_: vsr.data.dataset.DatasetVSR
+    path: "/mnt/hdd/dataset/REDS"
+    split: "train"
+    seq: 15
+    scale: 4
+    size: 0.9
+    hr_augmentation:
+      - _target_: kornia.augmentation.RandomCrop
+        size: [ 512, 512 ]
+        pad_if_needed: True
+        same_on_batch: True
+        keepdim: True
+
+      - _target_: kornia.augmentation.Resize
+        size: [ 256, 256 ]
+        keepdim: True
+
+      - _target_: kornia.augmentation.RandomHorizontalFlip
+        p: 0.5
+        same_on_batch: True
+        keepdim: True
+
+      - _target_: kornia.augmentation.RandomVerticalFlip
+        p: 0.5
+        same_on_batch: True
+        keepdim: True
+
+    lr_augmentation:
+      - _target_: kornia.augmentation.RandomGaussianBlur
+        kernel_size: 7
+        sigma: [ 0.2, 3 ]
+        same_on_batch: False
+        p: 0.8
+        keepdim: True
+
+      - _target_: core.augmentations.RandomJPEGCompression
+        quality: [ 30, 90 ]
+
+      - _target_: kornia.augmentation.RandomGaussianBlur
+        kernel_size: 9
+        sigma: [ 0.2, 3 ]
+        same_on_batch: False
+        keepdim: True
+        p: 0.8
+
+      - _target_: kornia.augmentation.RandomGaussianNoise
+        mean: 0
+        std: 0.03
+        same_on_batch: False
+        keepdim: True
+        p: 0.7
+
+      - _target_: kornia.augmentation.RandomGaussianBlur
+        kernel_size: 5
+        sigma: [ 0.2, 3 ]
+        same_on_batch: False
+        keepdim: True
+        p: 0.7
+
+      - _target_: core.augmentations.RandomJPEGCompression
+        quality: [ 30, 70 ]
+
+      - _target_: core.augmentations.RandomVideoCompression
+        codec: [ 'libx264', 'h264', 'mpeg4' ]
+        crf: [ 30, 40 ]
+        fps: [ 15, 30 ]
+
+      - _target_: kornia.augmentation.Resize
+        size: [ 64, 64 ]
+
+  val:
+    _target_: ${.data.train._target_}
+    path: ${.data.train.path}
+    split: "val"
+    seq: ${.data.train.seq}
+    scale: ${.data.train.scale}
+    size: 0.1
+    hr_augmentation:
+      - _target_: kornia.augmentation.RandomCrop
+        size: [ 512, 512 ]
+        pad_if_needed: True
+        same_on_batch: True
+        keepdim: True
+
+      - _target_: kornia.augmentation.Resize
+        keepdim: True
+        size: [ 256, 256 ]
+
+    lr_augmentation:
+      - _target_: kornia.augmentation.RandomGaussianBlur
+        kernel_size: 5
+        keepdim: True
+        sigma: [ 0.2, 3 ]
+        same_on_batch: True
+        p: 0.7
+
+      - _target_: core.augmentations.RandomVideoCompression
+        codec: [ 'libx264', 'h264', 'mpeg4' ]
+        crf: [ 30, 40 ]
+        fps: [ 15, 30 ]
+
+      - _target_: kornia.augmentation.Resize
+        size: [ 64, 64 ]

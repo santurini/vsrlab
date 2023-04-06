@@ -105,7 +105,7 @@ module:
     _target_: vsr.modules.realbasicvsr.RealBasicVSR
     cleaning_blocks: 1
     mid_channels: 1
-    upscale: ${nn.data.datasets.train.scale}
+    upscale: ${nn.data.data.train.scale}
     is_mirror: True
     res_blocks: 1
 

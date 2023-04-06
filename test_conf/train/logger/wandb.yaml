@@ -1,0 +1,4 @@
+_target_: pytorch_lightning.loggers.WandbLogger
+project: ${core.project_name}
+save_dir: ${oc.env:LOGGING_DIR}
+tags: ${core.tags}

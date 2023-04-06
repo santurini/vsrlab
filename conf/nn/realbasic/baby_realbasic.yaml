@@ -74,11 +74,11 @@ data:
           size: [ 64, 64 ]
 
     val:
-      _target_: ${nn.data.datasets.train._target_}
-      path: ${nn.data.datasets.train.path}
+      _target_: ${nn.data.data.train._target_}
+      path: ${nn.data.data.train.path}
       split: "val"
-      seq: ${nn.data.datasets.train.seq}
-      scale: ${nn.data.datasets.train.scale}
+      seq: ${nn.data.data.train.seq}
+      scale: ${nn.data.data.train.scale}
       size: 0.1
       hr_augmentation:
         - _target_: kornia.augmentation.RandomCrop
@@ -119,7 +119,7 @@ module:
     _target_: vsr.modules.realbasicvsr.RealBasicVSR
     cleaning_blocks: 5
     mid_channels: 64
-    upscale: ${nn.data.datasets.train.scale}
+    upscale: ${nn.data.data.train.scale}
     is_mirror: False
     res_blocks: 5
 

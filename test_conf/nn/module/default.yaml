@@ -1,0 +1,18 @@
+_target_: vsr.pl_module.pl_module.LitRealVSR
+log_interval: 250
+log_k_images: 5
+
+metric:
+  _target_: core.metrics.MetricCollection
+  metrics:
+    PSNR:
+      _target_: piqa.PSNR
+
+    SSIM:
+      _target_: piqa.SSIM
+
+defaults:
+  model: baby_realbasic
+  loss: pixel_loss
+  optimizer: deepspeed
+  scheduler: cosine_warmup

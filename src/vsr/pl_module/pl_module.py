@@ -236,7 +236,7 @@ class LitRealVSR(LitVSR):
                 "sr": sr.detach(),
                 "lr": lq.detach(),
                 "loss": loss,
-                "pixel_loss": pixel_loss,
+                "pixel_loss.yaml": pixel_loss,
                 "of_loss": of_loss
             }
 

@@ -135,7 +135,7 @@ module:
     exp: 2
     mix_blocks: 20
     conv_blocks: 20
-    upscale: ${nn.data.datasets.train.scale}
+    upscale: ${nn.data.data.train.scale}
 
   loss:
     _target_: core.losses.WL1Loss
