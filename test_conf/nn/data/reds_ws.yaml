@@ -75,11 +75,11 @@ datasets:
         size: [ 64, 64 ]
 
   val:
-    _target_: vsr.data.dataset.DatasetVSR
+    _target_: ${nn.data.datasets.train._target_}
     path: ${nn.data.datasets.train.path}
     split: "val"
-    seq: ${datasets.train.seq}
-    scale: ${.datasets.train.scale}
+    seq: ${nn.data.datasets.train.seq}
+    scale: ${nn.data.datasets.train.scale}
     size: 0.1
     hr_augmentation:
       - _target_: kornia.augmentation.RandomCrop
