@@ -35,3 +35,6 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
         pylogger.info(f"Adding augmentation <{aug['_target_'].split('.')[-1]}>")
         augmentation.append(hydra.utils.instantiate(aug, _recursive_=False))
     return Sequential(*augmentation)
+
+
+

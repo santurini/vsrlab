@@ -10,7 +10,7 @@ class BasicVSR(nn.Module):
         self.name = 'BasicVSR'
         self.is_mirror = is_mirror
         self.mid_channels = mid_channels
-        self.spynet = Spynet().requires_grad_(False)
+        self.spynet = Spynet()
         self.backward_resblocks = ResidualBlock(mid_channels + 3, mid_channels, res_blocks)
         self.forward_resblocks = ResidualBlock(mid_channels + 3, mid_channels, res_blocks)
         self.point_conv = nn.Sequential(nn.Conv2d(mid_channels * 2, mid_channels, 1, 1), nn.LeakyReLU(0.1))
@@ -23,12 +23,13 @@ class BasicVSR(nn.Module):
         n, t, c, h, w = lrs.size()
         lrs_1 = lrs[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
         lrs_2 = lrs[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
-        flows_backward = self.spynet(lrs_1, lrs_2).view(n, t - 1, 2, h, w)
+        flow_backward = self.spynet(lrs_1, lrs_2).view(n, t - 1, 2, h, w)
         if self.is_mirror:
-            flows_forward = None
+            flow_forward = None
         else:
-            flows_forward = self.spynet(lrs_2, lrs_1).view(n, t - 1, 2, h, w)
-        return flows_forward, flows_backward
+            flow_forward = self.spynet(lrs_2, lrs_1).view(n, t - 1, 2, h, w)
+
+        return flow_forward, flow_backward
 
     def forward(self, lrs):
         n, t, c, h, w = lrs.size()
@@ -41,7 +42,7 @@ class BasicVSR(nn.Module):
             # no warping required for the last timestep
             if i < t - 1:
                 # (b c h w)
-                flow = flows_backward[:, i, :, :, :]
+                flow = flows_backward[-1][:, i, :, :, :]
                 # propagated frame
                 feat_prop = flow_warp(feat_prop, flow.permute(0, 2, 3, 1))
             # mid_ch + 3
@@ -57,10 +58,10 @@ class BasicVSR(nn.Module):
             # no warping required for the first timestep
             if i > 0:
                 if self.is_mirror:
-                    flow = flows_backward[:, -i, :, :, :]
+                    flow = flows_backward[-1][:, -i, :, :, :]
                 else:
                     # flow at previous frame (?)
-                    flow = flows_forward[:, i - 1, :, :, :]
+                    flow = flows_forward[-1][:, i - 1, :, :, :]
                 feat_prop = flow_warp(feat_prop, flow.permute(0, 2, 3, 1))
             # mid_ch + 3
             feat_prop = torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1)
@@ -75,4 +76,4 @@ class BasicVSR(nn.Module):
             # (b 3 h w)
             out = self.conv_last(out)
             outputs[i] = out + self.upscale(lrs[:, i, :, :, :])
-        return torch.stack(outputs, dim=1)
+        return torch.stack(outputs, dim=1), flows_forward, flows_backward

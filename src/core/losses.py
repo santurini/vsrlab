@@ -2,7 +2,9 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
-from optical_flow.modules.pwcnet import PWCNet
+from optical_flow.modules.spynet import Spynet
+from kornia.geometry.transform import resize
+
 
 LAYER_WEIGHTS = {'2': 0.1, '7': 0.1, '16': 1.0, '25': 1.0, '34': 1.0}
 
@@ -79,23 +81,31 @@ class AdversarialLoss(nn.Module):
         loss = self.loss(input, target)
         return loss if is_disc else loss * self.weight
 
-class OpticalFlowConsistency(nn.Module):
-    def __init__(self, model, weight=1.0):
-        super().__init__()
-        self.model = model
-        self.loss = nn.L1Loss()
-        self.weight = weight
+def epe_loss(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    dist = (target - pred).pow(2).sum().sqrt()
+    return dist.mean()
 
-        self.model.requires_grad_(False)
+class EPELoss(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+    @staticmethod
+    def forward(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        return epe_loss(pred, target)
+
+class OpticalFlowConsistency(nn.Module):
+    def __init__(self, weight=1.0):
+        super().__init__()
+        self.spynet = Spynet().requires_grad_(False)
+        self.weight = weight
 
     def forward(self, sr, hr):
         b, t, c, h, w = sr.shape
-        img1 = sr[:, :-1, :, :, :].reshape(-1, c, h, w)
-        img2 = sr[:, 1:, :, :, :].reshape(-1, c, h, w)
-        flow_sr = self.model(img2, img1)
+        img1 = sr[:, :-1, :, :, :].reshape(-1, c, hl, wl)
+        img2 = sr[:, 1:, :, :, :].reshape(-1, c, hl, wl)
+        flow_sr = self.spynet(img2, img1)[-1]
 
         img1 = hr[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
         img2 = hr[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
-        flow_hr = self.model(img2, img1)
+        flow_hr = self.model(img2, img1)[-1]
 
-        return self.loss(flow_sr, flow_hr) * self.weight
+        return epe_loss(flow_sr, flow_hr) * self.weight
