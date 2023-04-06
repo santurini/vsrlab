@@ -75,11 +75,11 @@ datasets:
         size: [ 64, 64 ]
 
   val:
-    _target_: ${.data.train._target_}
-    path: ${.data.train.path}
+    _target_: ${.datasets.train._target_}
+    path: ${.datasets.train.path}
     split: "val"
-    seq: ${.data.train.seq}
-    scale: ${.data.train.scale}
+    seq: ${.datasets.train.seq}
+    scale: ${.datasets.train.scale}
     size: 0.1
     hr_augmentation:
       - _target_: kornia.augmentation.RandomCrop
