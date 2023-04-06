@@ -1,7 +1,7 @@
 _target_: vsr.data.datamodule.DataModuleVSR
 num_workers: 0
 batch_size: 4
-prefetch_factor: 1
+prefetch_factor: null
 datasets:
   train:
     _target_: vsr.data.dataset.DatasetVSR
