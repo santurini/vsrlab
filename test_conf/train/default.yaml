@@ -10,6 +10,6 @@ monitor:
   mode: 'min'
 
 defaults:
-  trainer: default
-  callbacks: default
-  logger: wandb
+  - trainer: default
+  - callbacks: default
+  - logger: wandb

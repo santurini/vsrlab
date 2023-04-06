@@ -12,7 +12,7 @@ metric:
       _target_: piqa.SSIM
 
 defaults:
-  model: baby_realbasic
-  loss: pixel_loss
-  optimizer: deepspeed
-  scheduler: cosine_warmup
+  - model: baby_realbasic
+  - loss: pixel_loss
+  - optimizer: deepspeed
+  - scheduler: cosine_warmup
