@@ -12,4 +12,4 @@
   save_last: True
 
 - _target_: pytorch_lightning.callbacks.ModelSummary
-  max_depth: 4
+  max_depth: 2
