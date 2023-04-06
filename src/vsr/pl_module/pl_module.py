@@ -218,9 +218,10 @@ class LitRealVSR(LitVSR):
 class LitRealVSR(LitVSR):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        print(self.hparams)
-        if self.hparams.of_loss:
+        if "of_loss" in self.hparams.keys():
             self.of_loss = hydra.utils.instantiate(self.hparams.of_loss, _recursive_=True)
+        else:
+            self.of_loss = None
 
     def step(self, lr, hr):
         b, t, c, h, w = lr.shape
