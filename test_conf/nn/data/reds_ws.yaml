@@ -76,9 +76,9 @@ datasets:
 
   val:
     _target_: vsr.data.dataset.DatasetVSR
-    path: ${.datasets.train.path}
+    path: ${datasets.train.path}
     split: "val"
-    seq: ${.datasets.train.seq}
+    seq: ${datasets.train.seq}
     scale: ${.datasets.train.scale}
     size: 0.1
     hr_augmentation:
