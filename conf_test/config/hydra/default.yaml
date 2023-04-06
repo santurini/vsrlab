@@ -12,8 +12,8 @@ job:
     WANDB_DIR: ${oc.env:LOGGING_DIR}
 
 defaults:
-  - override job_logging: disabled
-  - override hydra_logging: disabled
+  - override hydra/job_logging: disabled
+  - override hydra/hydra_logging: disabled
 
 runtime:
   version: "1.3"
