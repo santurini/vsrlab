@@ -5,7 +5,7 @@ from einops import rearrange
 from torchvision.ops import DeformConv2d, deform_conv2d
 
 class ConvReLU(nn.Module):
-    def __init__(self, in_ch, out_ch):
+    def __init__(self, in_ch, out_ch, *args, **kwargs):
         super().__init__()
         self.conv = nn.Sequential(nn.Conv2d(in_ch, out_ch, *args, **kwargs),
                                   nn.ReLU())
