@@ -4,4 +4,4 @@ precision: 16
 max_epochs: 1500
 accumulate_grad_batches: 1
 num_sanity_val_steps: 2
-deterministic: ${train.deterministic}
+deterministic: ${cfg.train.deterministic}
