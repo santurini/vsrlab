@@ -48,7 +48,7 @@ def run(cfg: DictConfig) -> str:
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf_test"), config_name="default", version_base="1.3")
 def main(cfg: omegaconf.DictConfig):
-    run(cfg)
+    run(cfg.config)
 
 if __name__ == "__main__":
     main()
