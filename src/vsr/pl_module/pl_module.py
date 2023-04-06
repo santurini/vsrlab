@@ -218,6 +218,7 @@ class LitRealVSR(LitVSR):
 class LitRealVSR(LitVSR):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        print(self.hparams)
         if self.hparams.of_loss:
             self.of_loss = hydra.utils.instantiate(self.hparams.of_loss, _recursive_=True)
 
