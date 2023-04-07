@@ -30,7 +30,7 @@ def run(cfg: DictConfig) -> str:
     logger: pl.loggers.Logger = hydra.utils.instantiate(cfg.train.logger)
 
     try:
-        strategy = hydra.utils.instantiate(cfg.train.strategy)
+        strategy = hydra.utils.instantiate(cfg.train.strategy, _convert_="partial")
     except:
         strategy = cfg.train.strategy
 
