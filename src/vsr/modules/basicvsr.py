@@ -23,18 +23,20 @@ class BasicVSR(nn.Module):
         n, t, c, h, w = lrs.size()
         lrs_1 = lrs[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
         lrs_2 = lrs[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
-        flow_backward = self.spynet(lrs_1, lrs_2).view(n, t - 1, 2, h, w)
+        flow_backward = self.spynet(lrs_1, lrs_2)
         if self.is_mirror:
             flow_forward = None
         else:
-            flow_forward = self.spynet(lrs_2, lrs_1).view(n, t - 1, 2, h, w)
+            flow_forward = self.spynet(lrs_2, lrs_1)
 
         return flow_forward, flow_backward
 
     def forward(self, lrs):
         n, t, c, h, w = lrs.size()
 
-        flows_forward, flows_backward = self.compute_flow(lrs)
+        flow_forward, flow_backward = self.compute_flow(lrs)
+        flows_forward = flow_forward[-1].view(n, t - 1, 2, h, w)
+        flows_backward = flow_backward[-1].view(n, t - 1, 2, h, w)
 
         outputs = []  # backward-propagation
         feat_prop = lrs.new_zeros(n, self.mid_channels, h, w)
@@ -42,7 +44,7 @@ class BasicVSR(nn.Module):
             # no warping required for the last timestep
             if i < t - 1:
                 # (b c h w)
-                flow = flows_backward[-1][:, i, :, :, :]
+                flow = flows_backward[:, i, :, :, :]
                 # propagated frame
                 feat_prop = flow_warp(feat_prop, flow.permute(0, 2, 3, 1))
             # mid_ch + 3
@@ -58,10 +60,10 @@ class BasicVSR(nn.Module):
             # no warping required for the first timestep
             if i > 0:
                 if self.is_mirror:
-                    flow = flows_backward[-1][:, -i, :, :, :]
+                    flow = flows_backward[:, -i, :, :, :]
                 else:
                     # flow at previous frame (?)
-                    flow = flows_forward[-1][:, i - 1, :, :, :]
+                    flow = flows_forward[:, i - 1, :, :, :]
                 feat_prop = flow_warp(feat_prop, flow.permute(0, 2, 3, 1))
             # mid_ch + 3
             feat_prop = torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1)
@@ -76,4 +78,4 @@ class BasicVSR(nn.Module):
             # (b 3 h w)
             out = self.conv_last(out)
             outputs[i] = out + self.upscale(lrs[:, i, :, :, :])
-        return torch.stack(outputs, dim=1), flows_forward, flows_backward
+        return torch.stack(outputs, dim=1), flow_forward, flow_backward
