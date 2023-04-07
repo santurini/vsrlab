@@ -14,4 +14,4 @@ _target_: core.utils.build_callbacks
     save_last: True
 
   - _target_: pytorch_lightning.callbacks.ModelSummary
-    max_depth: 2
+    max_depth: 3
