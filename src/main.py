@@ -10,6 +10,8 @@ import pytorch_lightning as pl
 from omegaconf import DictConfig
 from pytorch_lightning import Callback
 
+from deepspeed.utils.zero_to_fp32 import get_fp32_state_dict_from_zero_checkpoint
+
 from core import PROJECT_ROOT
 from core.utils import seed_index_everything, build_callbacks
 
@@ -42,6 +44,8 @@ def run(cfg: DictConfig) -> str:
         strategy=strategy,
         **cfg.train.trainer,
     )
+
+    print(get_fp32_state_dict_from_zero_checkpoint('(home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/ltkflmx0/checkpoints/best.ckpt', 'checkpoint'))
 
     print("Starting training!")
     trainer.fit(model=model, datamodule=datamodule, ckpt_path=cfg.train.restore.ckpt_path)
