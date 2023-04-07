@@ -15,12 +15,14 @@ from torchvision.utils import make_grid
 pylogger = logging.getLogger(__name__)
 
 class LitVSR(pl.LightningModule):
-    def __init__(self,
-                 model: DictConfig,
-                 loss: DictConfig,
-                 metric: DictConfig,
-                 *args,
-                 **kwargs) -> None:
+    def __init__(
+            self,
+            model: DictConfig,
+            loss: DictConfig,
+            metric: DictConfig,
+            *args,
+            **kwargs
+                 ) -> None:
         super().__init__()
         self.save_hyperparameters(logger=False)
 
@@ -143,7 +145,7 @@ class LitFlowVSR(LitVSR):
                  flow_loss: nn.Module,
                  *args,
                  distillation=False
-                 ** kwargs):
+                 **kwargs):
         super().__init__(*args, **kwargs)
 
         self.flow_loss = hydra.utils.instantiate(flow_loss, _recursive_=False)
