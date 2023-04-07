@@ -31,12 +31,7 @@ def run(cfg: DictConfig) -> str:
     logger: pl.loggers.Logger = hydra.utils.instantiate(cfg.train.logger)
 
     print("Instantiating the <Trainer>")
-    trainer = pl.Trainer(
-        default_root_dir=storage_dir,
-        logger=logger,
-        callbacks=callbacks,
-        **cfg.train.trainer,
-    )
+    trainer = hydra.utils.instantiate(cfg.train.trainer)
 
     print("Starting training!")
     trainer.fit(model=model, datamodule=datamodule, ckpt_path=cfg.train.restore.ckpt_path)
