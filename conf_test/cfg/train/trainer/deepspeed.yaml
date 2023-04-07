@@ -1,4 +1,3 @@
-_target_: pytorch_lightning.Trainer
 devices: 2
 accelerator: gpu
 precision: 16-mixed
