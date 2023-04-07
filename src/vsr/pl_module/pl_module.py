@@ -5,6 +5,7 @@ import hydra
 import omegaconf
 import pytorch_lightning as pl
 import torch
+import torch.nn as nn
 from core import PROJECT_ROOT
 from core.losses import epe_loss
 from einops import rearrange
