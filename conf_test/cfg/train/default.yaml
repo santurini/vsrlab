@@ -3,7 +3,7 @@ seed_index: 0
 deterministic: False
 
 restore:
-  ckpt_path: null
+  ckpt_path: "cd Desktop/nn-lab/storage/video-super-resolution/zx3b62ya/checkpoints/last.ckpt/checkpoint/zero_pp_rank_1_mp_rank_00_model_states.pt"
 
 monitor:
   metric: 'loss/val'
