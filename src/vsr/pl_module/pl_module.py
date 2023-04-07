@@ -37,7 +37,7 @@ class LitVSR(pl.LightningModule):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
 
-    def step(self):
+    def step(self, lr, hr):
         b, t, c, h, w = lr.shape
         sr, lq, _, _ = self(lr)
 
@@ -156,7 +156,7 @@ class LitFlowVSR(LitVSR):
             self.distillation = distillation
             self.spynet = Spynet().requires_grad_(False)
 
-    def step(self):
+    def step(self, lr, hr):
         b, t, c, h, w = lr.shape
         sr, lq, flow_f, flow_b = self(lr)
 
