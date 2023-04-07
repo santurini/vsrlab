@@ -48,7 +48,7 @@ class LitVSR(pl.LightningModule):
             "loss": loss
         }
 
-    def training_step(self, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
+    def training_step(self, *args: Any, **kwargs: Any):
         lr, hr = batch
         step_out = self.step(lr, hr)
 
@@ -66,7 +66,7 @@ class LitVSR(pl.LightningModule):
 
         return step_out
 
-    def validation_step(self, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
+    def validation_step(self, *args: Any, **kwargs: Any):
         lr, hr = batch
         step_out = self.step(lr, hr)
 
