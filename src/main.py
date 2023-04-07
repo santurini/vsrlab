@@ -24,8 +24,24 @@ def run(cfg: DictConfig) -> str:
     print(f"Instantiating <{cfg.nn.module['_target_']}>")
     model: pl.LightningModule = hydra.utils.instantiate(cfg.nn.module, _recursive_=False)
 
+    callbacks: List[Callback] = build_callbacks(cfg.train.callbacks)
+
+    storage_dir: str = cfg.core.storage_dir
+    logger: pl.loggers.Logger = hydra.utils.instantiate(cfg.train.logger)
+
+    try:
+        strategy = hydra.utils.instantiate(cfg.train.strategy)
+    except:
+        strategy = cfg.train.strategy
+
     print("Instantiating the <Trainer>")
-    trainer = hydra.utils.instantiate(cfg.train.trainer)
+    trainer = pl.Trainer(
+        default_root_dir=storage_dir,
+        logger=logger,
+        callbacks=callbacks,
+        strategy=strategy
+        **cfg.train.trainer,
+    )
 
     print("Starting training!")
     trainer.fit(model=model, datamodule=datamodule, ckpt_path=cfg.train.restore.ckpt_path)

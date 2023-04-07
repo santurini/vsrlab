@@ -1,0 +1,16 @@
+- _target_: pytorch_lightning.callbacks.EarlyStopping
+  patience: 1000
+  verbose: False
+  monitor: ${cfg.train.monitor.metric}
+  mode: ${cfg.train.monitor.mode}
+
+- _target_: pytorch_lightning.callbacks.ModelCheckpoint
+  save_top_k: 1
+  filename: "best"
+  verbose: False
+  monitor: ${cfg.train.monitor.metric}
+  mode: ${cfg.train.monitor.mode}
+  save_last: True
+
+- _target_: pytorch_lightning.callbacks.ModelSummary
+  max_depth: 3

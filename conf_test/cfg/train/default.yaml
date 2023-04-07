@@ -9,5 +9,12 @@ monitor:
   metric: 'loss/val'
   mode: 'min'
 
+strategy:
+  _target_: pytorch_lightning.strategies.DeepSpeedStrategy
+  stage: 3
+  load_full_weights: True
+
 defaults:
   - trainer: default
+  - callbacks: default
+  - logger: default
