@@ -1,3 +1,4 @@
+_target_: pytorch_lightning.Trainer
 devices: 2
 accelerator: gpu
 precision: 16-mixed
@@ -6,4 +7,20 @@ max_steps: 100000
 accumulate_grad_batches: 2
 num_sanity_val_steps: 2
 deterministic: ${cfg.train.deterministic}
-strategy: deepspeed_stage_3_offload
+default_root_dir: ${cfg.core.storage_dir}
+
+strategy:
+  _target_: pytorch_lightning.strategies.DeepSpeedStrategy
+  stage: 3
+  load_full_weights: True
+
+logger:
+  _target_: pytorch_lightning.loggers.WandbLogger
+  project: ${core.project_name}
+  save_dir: ${oc.env:LOGGING_DIR}
+  log_model: True
+  name: ${core.run_name}
+  tags: ${core.tags}
+
+defaults:
+  - callbacks: default

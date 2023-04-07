@@ -11,5 +11,3 @@ monitor:
 
 defaults:
   - trainer: default
-  - callbacks: default
-  - logger: wandb
