@@ -51,7 +51,7 @@ def run(cfg: DictConfig) -> str:
     # Logger closing to release resources/avoid multi-run conflicts
     if logger is not None:
         logger.experiment.finish()
-    print(callbacks[1].best_model_path)
+
     return logger.save_dir
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf_test"), config_name="default", version_base="1.3")
