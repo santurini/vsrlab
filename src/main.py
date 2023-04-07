@@ -45,7 +45,7 @@ def run(cfg: DictConfig) -> str:
         **cfg.train.trainer,
     )
 
-    print(get_fp32_state_dict_from_zero_checkpoint('(home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/ltkflmx0/checkpoints/best.ckpt', 'checkpoint'))
+    print(get_fp32_state_dict_from_zero_checkpoint('/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/ltkflmx0/checkpoints/best.ckpt', 'checkpoint'))
 
     print("Starting training!")
     trainer.fit(model=model, datamodule=datamodule, ckpt_path=cfg.train.restore.ckpt_path)
