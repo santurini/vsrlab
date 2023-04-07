@@ -50,7 +50,7 @@ def run(cfg: DictConfig) -> str:
     if logger is not None:
         logger.experiment.finish()
 
-    return logger.save_dir
+    return trainer.best_model_path
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf_test"), config_name="default", version_base="1.3")
 def main(cfg: omegaconf.DictConfig):
