@@ -15,6 +15,9 @@ strategy:
   load_full_weights: True
   offload_optimizer: cpu
 
+plugins:
+  - _target_: pytorch_lightning.plugins.io.TorchCheckpointIO
+
 defaults:
   - trainer: default
   - callbacks: default
