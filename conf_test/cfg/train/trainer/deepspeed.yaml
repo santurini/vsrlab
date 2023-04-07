@@ -1,7 +1,7 @@
 devices: 2
 accelerator: gpu
 precision: 16-mixed
-max_epochs: 2
+max_epochs: 3
 max_steps: 100000
 accumulate_grad_batches: 2
 num_sanity_val_steps: 2
