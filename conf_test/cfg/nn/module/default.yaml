@@ -1,4 +1,4 @@
-_target_: vsr.pl_module.pl_module.LitRealVSR
+_target_: vsr.pl_module.pl_module.LitVSR
 log_interval: 250
 log_k_images: 5
 
