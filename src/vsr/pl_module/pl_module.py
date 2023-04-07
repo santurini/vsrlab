@@ -141,6 +141,11 @@ class LitVSR(pl.LightningModule):
         flag = batch_idx % log_interval == 0
         return flag
 
+    def on_load_checkpoint(self, checkpoint):
+        state_dict = checkpoint['module']
+        state_dict = {k.partition('module.')[2]: state_dict[k] for k in state_dict.keys()}
+        checkpoint['state_dict'] = state_dict
+
 class LitFlowVSR(LitVSR):
     def __init__(
             self,

@@ -25,6 +25,7 @@ def run(cfg: DictConfig) -> str:
     # Instantiate model
     print(f"Instantiating <{cfg.nn.module['_target_']}>")
     model: pl.LightningModule = hydra.utils.instantiate(cfg.nn.module, _recursive_=False)
+    model.load_from_checkpoint('/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/ltkflmx0/checkpoints/best.ckpt/checkpoint/zero_pp_rank_1_mp_rank_00_model_states.pt')
 
     callbacks: List[Callback] = build_callbacks(cfg.train.callbacks)
 
@@ -44,8 +45,6 @@ def run(cfg: DictConfig) -> str:
         strategy=strategy,
         **cfg.train.trainer,
     )
-
-    print(get_fp32_state_dict_from_zero_checkpoint('/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/ltkflmx0/checkpoints/best.ckpt', 'checkpoint'))
 
     print("Starting training!")
     trainer.fit(model=model, datamodule=datamodule, ckpt_path=cfg.train.restore.ckpt_path)
