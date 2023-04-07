@@ -3,7 +3,7 @@ seed_index: 0
 deterministic: False
 
 restore:
-  ckpt_path: '/home/Desktop/nn-lab/storage/video-super-resolution/zx3b62ya/checkpoints/last.ckpt'
+  ckpt_path: "/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/mixervsr_pretrain/checkpoints/last.ckpt/"
 
 monitor:
   metric: 'loss/val'
