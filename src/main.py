@@ -24,6 +24,7 @@ def run(cfg: DictConfig) -> str:
     print(f"Instantiating <{cfg.nn.module['_target_']}>")
     model: pl.LightningModule = hydra.utils.instantiate(cfg.nn.module, _recursive_=False)
 
+
     callbacks: List[Callback] = build_callbacks(cfg.train.callbacks)
 
     storage_dir: str = cfg.core.storage_dir

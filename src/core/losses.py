@@ -109,3 +109,69 @@ class OpticalFlowConsistency(nn.Module):
         flow_hr = self.model(img2, img1)[-1]
 
         return epe_loss(flow_sr, flow_hr) * self.weight
+
+class LossPipeline(nn.ModuleDict):
+    def __init__(self, losses, prefix=None, postfix=None):
+        super().__init__()
+        self.prefix = prefix
+        self.postfix = postfix
+        self.add_losses(losses)
+
+    def forward(self, args: dict):
+        for k, l in self.items():
+            pred, gt = self.get_inputs(args, l)
+            args[self._set_name(k)] = l['fn'](pred, gt)
+
+        res = {k: m(*args).item() for k, m in self.items()}
+        return {self._set_name(k): v for k, v in res.items()}
+
+    def add_losses(self, losses: dict):
+        for name in sorted(losses.keys()):
+            loss = losses[name]
+            if not isinstance(loss, nn.Module):
+                raise ValueError(
+                    f"Value {loss} belonging to key {name} is not an instance of `nn.Module`"
+                )
+            if isinstance(loss, nn.Module):
+                name = loss.__class__.__name__
+                if name in self:
+                    raise ValueError(f"Encountered two losses both named {name}")
+                self[name] = loss
+            else:
+                for k, v in loss.items():
+                    self[k] = v
+
+    def clone(self, prefix=None, postfix=None):
+        ls = deepcopy(self)
+        if prefix:
+            ls.prefix = prefix
+        if postfix:
+            ls.postfix = postfix
+        return ls
+
+    def _set_name(self, base: str) -> str:
+        name = base if self.prefix is None else self.prefix + base
+        name = name if self.postfix is None else name + self.postfix
+        return name
+
+    def get_inputs(self, args, l_cfg):
+        pred_key = l_cfg['x']
+        gt_key = l_cfg['y']
+
+        if "match" in pred_key:
+            pred, gt = self.match_shapes(args[pred_key], args[gt_key])
+
+        elif "match" in gt_key:
+            gt, pred = self.match_shapes(args[gt_key], args[pred_key])
+
+        else:
+            pred = args[pred_key]
+            gt = args[gt_key]
+
+        return pred, gt
+
+    @staticmethod
+    def match_shapes(matching, target):
+        h, w = target.shape[-2:]
+        matching = resize(matching, (h, w))
+        return matching, target
