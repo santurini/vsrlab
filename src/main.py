@@ -30,7 +30,7 @@ def run(cfg: DictConfig) -> str:
     logger: pl.loggers.Logger = hydra.utils.instantiate(cfg.train.logger)
 
     try:
-        strategy = hydra.utils.instantiate(cfg.train.strategy, _recursive_=False, _convert_="partial")
+        strategy = hydra.utils.instantiate(cfg.train.strategy)
     except:
         strategy = cfg.train.strategy
 
@@ -39,7 +39,7 @@ def run(cfg: DictConfig) -> str:
         default_root_dir=storage_dir,
         logger=logger,
         callbacks=callbacks,
-        strategy=strategy
+        strategy=strategy,
         **cfg.train.trainer,
     )
 
