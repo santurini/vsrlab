@@ -141,11 +141,12 @@ class LitVSR(pl.LightningModule):
         return flag
 
 class LitFlowVSR(LitVSR):
-    def __init__(self,
-                 flow_loss: nn.Module,
-                 *args,
-                 distillation=False
-                 **kwargs):
+    def __init__(
+            self,
+            flow_loss: nn.Module,
+            distillation = False,
+            *args,
+            **kwargs):
         super().__init__(*args, **kwargs)
 
         self.flow_loss = hydra.utils.instantiate(flow_loss, _recursive_=False)
