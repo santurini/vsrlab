@@ -85,9 +85,6 @@ class AdversarialLoss(nn.Module):
 def rmse_loss(yhat,y):
     return torch.sqrt(torch.mean((yhat-y)**2))
 
-criterion = RMSELoss
-loss = criterion(yhat,y)
-
 class OpticalFlowConsistency(nn.Module):
     def __init__(self, weight=1.0):
         super().__init__()
