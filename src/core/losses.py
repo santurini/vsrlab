@@ -124,7 +124,7 @@ class LossPipeline(nn.ModuleDict):
         for cfg in self.pipeline:
             loss, k = self.get_loss(args, cfg)
             args[self._set_name(k)] += loss
-            args[self._set_name("Loss")] += loss
+            args[self._set_name("loss")] += loss
 
         return args
 
