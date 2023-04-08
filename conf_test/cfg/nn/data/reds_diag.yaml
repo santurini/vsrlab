@@ -107,4 +107,4 @@ datasets:
 
 num_workers: 16
 batch_size: 6
-prefetch_factor: 4
+prefetch_factor: 8
