@@ -5,4 +5,4 @@ max_epochs: 2
 max_steps: 100000
 accumulate_grad_batches: 2
 num_sanity_val_steps: 2
-deterministic: ${cfg.train.deterministic}
+deterministic: ${master.cfg.train.deterministic}
