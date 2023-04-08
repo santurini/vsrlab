@@ -2,8 +2,8 @@ _target_: core.schedulers.CosineAnnealingWarmupRestarts
 first_cycle_steps: 2000
 cycle_mult: 1.0
 max_lrs:
-  - ${master.cfg.nn.module.group_lr.lr[0]}
-  - ${master.cfg.nn.module.group_lr.lr[1]}
+  - ${cfg.nn.module.group_lr.lr[0]}
+  - ${cfg.nn.module.group_lr.lr[1]}
 min_lrs:
   - 1e-7
   - 1e-6

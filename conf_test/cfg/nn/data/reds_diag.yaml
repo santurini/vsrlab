@@ -72,11 +72,11 @@ datasets:
         size: [ 64, 64 ]
 
   val:
-    _target_: ${master.cfg.nn.data.datasets.train._target_}
-    path: ${master.cfg.nn.data.datasets.train.path}
+    _target_: ${cfg.nn.data.datasets.train._target_}
+    path: ${cfg.nn.data.datasets.train.path}
     split: "val"
-    seq: ${master.cfg.nn.data.datasets.train.seq}
-    scale: ${master.cfg.nn.data.datasets.train.scale}
+    seq: ${cfg.nn.data.datasets.train.seq}
+    scale: ${cfg.nn.data.datasets.train.scale}
     size: 0.1
     hr_augmentation:
       - _target_: kornia.augmentation.RandomCrop
