@@ -81,16 +81,12 @@ class AdversarialLoss(nn.Module):
         loss = self.loss(input, target)
         return loss if is_disc else loss * self.weight
 
-def epe_loss(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-    dist = (target - pred).pow(2).sum().sqrt()
-    return dist.mean()
+# create a function (this my favorite choice)
+def rmse_loss(yhat,y):
+    return torch.sqrt(torch.mean((yhat-y)**2))
 
-class EPELoss(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-    @staticmethod
-    def forward(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        return epe_loss(pred, target)
+criterion = RMSELoss
+loss = criterion(yhat,y)
 
 class OpticalFlowConsistency(nn.Module):
     def __init__(self, weight=1.0):
@@ -108,7 +104,7 @@ class OpticalFlowConsistency(nn.Module):
         img2 = hr[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
         flow_hr = self.spynet(img2, img1)[-1]
 
-        return epe_loss(flow_sr, flow_hr) * self.weight
+        return rmse_loss(flow_sr, flow_hr) * self.weight
 
 class LossPipeline(nn.ModuleDict):
     def __init__(self, losses, pipeline, prefix=None, postfix=None):
