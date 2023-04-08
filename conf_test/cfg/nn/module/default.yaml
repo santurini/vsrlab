@@ -4,7 +4,9 @@ log_k_images: 5
 
 group_lr:
   group: "spynet"
-  lr: [1e-5, 1e-4]
+  lr:
+    - 1e-5
+    - 1e-4
 
 metric:
   _target_: core.metrics.MetricCollection
