@@ -31,25 +31,26 @@ class LitVSR(pl.LightningModule):
         self.train_metric = metric.clone(postfix='/train')
         self.val_metric = metric.clone(postfix='/val')
 
+        self.loss = hydra.utils.instantiate(loss, _recursive_=True, _convert_="partial")
+
         self.model = hydra.utils.instantiate(model, _recursive_=False)
-        self.loss = hydra.utils.instantiate(loss, _recursive_=False)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
 
     def step(self, lr, hr):
-        b, t, c, h, w = lr.shape
         sr, lq, _, _ = self(lr)
 
-        loss = self.loss(sr, hr) + self.loss(lq, resize(hr, (h, w)))
-
-        return {
-            "lr": lr.detach(),
-            "sr": sr.detach(),
-            "hr": hr.detach(),
-            "lq": lq.detach(),
-            "loss": loss
+        args = {
+            "lr": lr,
+            "sr": sr,
+            "hr": hr,
+            "lq": lq
         }
+
+        args = self.loss(args)
+
+        return args
 
     def training_step(self, batch, batch_idx):
         lr, hr = batch
@@ -57,13 +58,13 @@ class LitVSR(pl.LightningModule):
 
         self.log_losses(
             step_out,
-            "train"
+            "train",
         )
 
         self.log_dict(
             self.train_metric(
-                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
-                rearrange(hr, 'b t c h w -> (b t) c h w')
+                rearrange(step_out["sr"].detach().clamp(0, 1), 'b t c h w -> (b t) c h w'),
+                rearrange(hr.detach(), 'b t c h w -> (b t) c h w')
             )
         )
 
@@ -80,8 +81,8 @@ class LitVSR(pl.LightningModule):
 
         self.log_dict(
             self.val_metric(
-                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
-                rearrange(hr, 'b t c h w -> (b t) c h w')
+                rearrange(step_out["sr"].detach().clamp(0, 1), 'b t c h w -> (b t) c h w'),
+                rearrange(hr.detach(), 'b t c h w -> (b t) c h w')
             )
         )
 
@@ -93,7 +94,7 @@ class LitVSR(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = hydra.utils.instantiate(
             self.hparams.optimizer,
-            self.parameters(),
+            self.filter_params(self.hparams.group_lr),
             _recursive_=False
         )
 
@@ -114,6 +115,22 @@ class LitVSR(pl.LightningModule):
                 "frequency": 1},
         }
 
+    def filter_params(
+            self,
+            group: DictConfig
+    ):
+        group_0 = list(map(lambda x: x[1], list(
+            filter(lambda kv: group.group in kv[0], self.model.named_parameters()))))
+        group_1 = list(map(lambda x: x[1], list(
+            filter(lambda kv: not group.group in kv[0], self.model.named_parameters()))))
+
+        params = [
+            {"params": group_0, "lr": group.lr[0]},
+            {"params": group_1, "lr": group.lr[1]}
+        ]
+
+        return params
+
     def log_losses(self, out, stage):
         out_dict = {}
         for key in out.keys():
@@ -123,15 +140,16 @@ class LitVSR(pl.LightningModule):
 
         self.log_dict(
             out_dict,
-            prog_bar=True
+            on_epoch=True,
+            prog_bar=False
         )
 
     def log_images(self, out):
         b, t, c, h, w = out["sr"].shape
-        lr = resize(out["lr"][0][-1], (h, w))
-        lq = resize(out["lq"][0][-1], (h, w))
-        hr = out["hr"][0][-1]
-        sr = out["sr"][0][-1].clamp(0, 1)
+        lr = resize(out["lr"][0][-1], (h, w)).detach()
+        lq = resize(out["lq"][0][-1], (h, w)).detach()
+        hr = out["hr"][0][-1].detach()
+        sr = out["sr"][0][-1].detach().clamp(0, 1)
 
         grid = make_grid([lr, hr, lq, sr], nrow=2, ncol=2)
         self.logger.log_image(key='Input Images', images=[grid], caption=[f'Model Output: step {self.global_step}'])
@@ -144,40 +162,54 @@ class LitVSR(pl.LightningModule):
 class LitFlowVSR(LitVSR):
     def __init__(
             self,
-            flow_loss: nn.Module,
             distillation = False,
             *args,
             **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.flow_loss = hydra.utils.instantiate(flow_loss, _recursive_=False)
 
         if distillation:
             self.distillation = distillation
             self.spynet = Spynet().requires_grad_(False)
 
     def step(self, lr, hr):
-        b, t, c, h, w = lr.shape
         sr, lq, flow_f, flow_b = self(lr)
 
-        pixel_loss = self.loss(sr, hr) + self.loss(lq, resize(hr, (h, w)))
-        flow_loss = self.flow_loss(sr, hr)
-        loss = pixel_loss + flow_loss
+        args = {
+            "lr": lr,
+            "sr": sr,
+            "hr": hr,
+            "lq": lq,
+            "flow_f": flow_f,
+            "flow_b": flow_b
+        }
+
+        args = self.loss(args)
+
+        return args
+
+    def training_step(self, batch, batch_idx):
+        lr, hr = batch
+        step_out = self.step(lr, hr)
 
         if self.distillation:
-            distillation_loss = self.flow_distillation(flow_f, hr) + self.flow_distillation(flow_b, hr, reverse=True)
-            loss += distillation_loss
+            distillation_loss = self.flow_distillation(step_out["flow_f"], step_out["hr"]) + \
+                                self.flow_distillation(step_out["flow_b"], step_out["hr"], reverse=True)
+            step_out["distillation_loss"] = distillation_loss
+            step_out["loss"] += distillation_loss
 
-        return {
-            "lr": lr.detach(),
-            "sr": sr.detach(),
-            "hr": hr.detach(),
-            "lq": lq.detach(),
-            "loss": loss,
-            "pixel_loss": pixel_loss,
-            "distillation_loss": distillation_loss,
-            "flow_loss": flow_loss
-        }
+        self.log_losses(
+            step_out,
+            "train",
+        )
+
+        self.log_dict(
+            self.train_metric(
+                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
+                rearrange(hr, 'b t c h w -> (b t) c h w')
+            )
+        )
+
+        return step_out
 
     def flow_distillation(self, flow, hr, reverse=False):
         img1 = hr[:, :-1, :, :, :].reshape(-1, c, hl, wl)

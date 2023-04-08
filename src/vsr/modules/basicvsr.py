@@ -79,3 +79,13 @@ class BasicVSR(nn.Module):
             out = self.conv_last(out)
             outputs[i] = out + self.upscale(lrs[:, i, :, :, :])
         return torch.stack(outputs, dim=1), flow_forward, flow_backward
+
+def main() -> None:
+    model = BasicVSR(4, 1)
+    spy_params = list(filter(lambda kv: "spynet" in kv[0], model.named_parameters()))
+    base_params = list(filter(lambda kv: not "spynet" in kv[0], model.named_parameters()))
+    print([i[0] for i in spy_params])
+    print([i[0] for i in base_params])
+
+if __name__ == "__main__":
+    main()

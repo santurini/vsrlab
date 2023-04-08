@@ -31,10 +31,7 @@ def run(cfg: DictConfig) -> str:
     storage_dir: str = cfg.core.storage_dir
     logger: pl.loggers.Logger = hydra.utils.instantiate(cfg.train.logger)
 
-    try:
-        strategy = hydra.utils.instantiate(cfg.train.strategy)
-    except:
-        strategy = cfg.train.strategy
+    strategy = hydra.utils.instantiate(cfg.train.strategy)
 
     print("Instantiating the <Trainer>")
     trainer = pl.Trainer(

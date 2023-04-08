@@ -1,4 +1,5 @@
 from copy import deepcopy
+from collections import defaultdict
 import torch.nn as nn
 
 class MetricCollection(nn.ModuleDict):
@@ -20,14 +21,12 @@ class MetricCollection(nn.ModuleDict):
                     f"Value {metric} belonging to key {name} is not an instance of"
                     " `nn.Module` or `torchmetrics.Metric`"
                 )
-            if isinstance(metric, nn.Module):
-                name = metric.__class__.__name__
-                if name in self:
-                    raise ValueError(f"Encountered two metrics both named {name}")
-                self[name] = metric
-            else:
-                for k, v in metric.items():
-                    self[k] = v
+
+            if name in self:
+                raise ValueError(f"Encountered two metrics both named {name}")
+
+            self[name] = metric
+
 
     def clone(self, prefix=None, postfix=None):
         mc = deepcopy(self)

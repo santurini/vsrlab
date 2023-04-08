@@ -4,6 +4,10 @@ losses:
     _target_: core.losses.WL1Loss
     weight: 1.0
 
+  OFLoss:
+    _target_: core.losses.OpticalFlowConsistency
+    weight: 1.0
+
 pipeline:
   - L1Loss:
       x: "sr"
@@ -11,3 +15,7 @@ pipeline:
   - L1Loss:
       x: "lq"
       y: "match_hr"
+  - OFLoss:
+      x: "sr"
+      y: "hr"
+

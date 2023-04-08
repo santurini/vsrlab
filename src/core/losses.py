@@ -111,19 +111,22 @@ class OpticalFlowConsistency(nn.Module):
         return epe_loss(flow_sr, flow_hr) * self.weight
 
 class LossPipeline(nn.ModuleDict):
-    def __init__(self, losses, prefix=None, postfix=None):
+    def __init__(self, losses, pipeline, prefix=None, postfix=None):
         super().__init__()
         self.prefix = prefix
         self.postfix = postfix
+        self.pipeline = pipeline
+        self.losses = losses
         self.add_losses(losses)
 
     def forward(self, args: dict):
-        for k, l in self.items():
-            pred, gt = self.get_inputs(args, l)
-            args[self._set_name(k)] = l['fn'](pred, gt)
+        args = self.set_keys(args)
+        for cfg in self.pipeline:
+            loss, k = self.get_loss(args, cfg)
+            args[self._set_name(k)] += loss
+            args[self._set_name("loss")] += loss
 
-        res = {k: m(*args).item() for k, m in self.items()}
-        return {self._set_name(k): v for k, v in res.items()}
+        return args
 
     def add_losses(self, losses: dict):
         for name in sorted(losses.keys()):
@@ -132,14 +135,18 @@ class LossPipeline(nn.ModuleDict):
                 raise ValueError(
                     f"Value {loss} belonging to key {name} is not an instance of `nn.Module`"
                 )
-            if isinstance(loss, nn.Module):
-                name = loss.__class__.__name__
-                if name in self:
-                    raise ValueError(f"Encountered two losses both named {name}")
-                self[name] = loss
-            else:
-                for k, v in loss.items():
-                    self[k] = v
+
+            if name in self:
+                raise ValueError(f"Encountered two losses both named {name}")
+
+            self[name] = loss
+
+    def set_keys(self, args):
+        for key in self.losses.keys():
+            args[self._set_name(key)] = 0
+
+        args[self._set_name("loss")] = 0
+        return args
 
     def clone(self, prefix=None, postfix=None):
         ls = deepcopy(self)
@@ -154,21 +161,23 @@ class LossPipeline(nn.ModuleDict):
         name = name if self.postfix is None else name + self.postfix
         return name
 
-    def get_inputs(self, args, l_cfg):
-        pred_key = l_cfg['x']
-        gt_key = l_cfg['y']
+    def get_loss(self, args, cfg):
+        for k, v in cfg.items():
+          loss_fn = self[k]
+          pred_key = v['x']
+          gt_key = v['y']
 
         if "match" in pred_key:
-            pred, gt = self.match_shapes(args[pred_key], args[gt_key])
+            pred, gt = self.match_shapes(args[pred_key.removeprefix('match_')], args[gt_key])
 
         elif "match" in gt_key:
-            gt, pred = self.match_shapes(args[gt_key], args[pred_key])
+            gt, pred = self.match_shapes(args[gt_key.removeprefix('match_')], args[pred_key])
 
         else:
             pred = args[pred_key]
             gt = args[gt_key]
 
-        return pred, gt
+        return loss_fn(pred, gt), k
 
     @staticmethod
     def match_shapes(matching, target):

@@ -1,9 +1,10 @@
 core:
   project_name: 'video-super-resolution'
-  run_name: 'default'
+  run_id: 'default'
   storage_dir: ${oc.env:LOGGING_DIR}
   version: 0.0.1
   tags: null
+  strategy: deepspeed
 
 defaults:
   - cfg: default

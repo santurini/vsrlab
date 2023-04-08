@@ -17,6 +17,6 @@ metric:
 
 defaults:
   - model: baby_realbasic
-  - loss: pixel_loss
+  - loss: distillation_loss
   - optimizer: adam
   - scheduler: cosine_warmup

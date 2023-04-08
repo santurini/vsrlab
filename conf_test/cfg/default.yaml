@@ -1,9 +1,3 @@
-core:
-  project_name: 'video-super-resolution'
-  storage_dir: ${oc.env:LOGGING_DIR}
-  version: 0.0.1
-  tags: null
-
 defaults:
   - hydra: default
   - nn: default

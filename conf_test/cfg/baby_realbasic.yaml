@@ -1,17 +1,11 @@
-core:
-  project_name: 'video-super-resolution'
-  storage_dir: ${oc.env:LOGGING_DIR}
-  run_id: 'default'
-  version: 0.0.1
-  tags: null
-
 defaults:
   - hydra: default
   - nn: default
   - train: default
   - override nn/module/model: baby_realbasic
-  - override nn/module/optimizer: deepspeed
+  - override nn/module/optimizer: ${core.strategy}
   - override nn/module/scheduler: cosine_warmup
-  - override train/trainer: deepspeed
+  - override train/trainer: ${core.strategy}
+  - override train/strategy: ${core.strategy}
   - override nn/data: reds_diag
   - _self_

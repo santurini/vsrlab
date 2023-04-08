@@ -1,0 +1,3 @@
+_target_: pytorch_lightning.strategies.DeepSpeedStrategy
+stage: 3
+offload_optimizer: cpu
