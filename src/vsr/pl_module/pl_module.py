@@ -49,7 +49,7 @@ class LitVSR(pl.LightningModule):
         }
 
         args = self.loss(args)
-
+        print(args["OFLoss"])
         return args
 
     def training_step(self, batch, batch_idx):

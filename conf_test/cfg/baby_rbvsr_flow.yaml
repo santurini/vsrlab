@@ -9,9 +9,8 @@ defaults:
   - hydra: default
   - nn: default
   - train: default
-  - override nn/module/model: baby_realbasic
   - override nn/module/optimizer: deepspeed
-  - override nn/module/scheduler: cosine_warmup
+  - override nn/module/loss: flow_loss
   - override train/trainer: deepspeed
   - override train/strategy: deepspeed
   - override nn/data: reds_diag

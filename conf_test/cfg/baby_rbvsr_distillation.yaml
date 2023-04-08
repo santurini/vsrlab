@@ -1,0 +1,17 @@
+core:
+  project_name: 'video-super-resolution'
+  run_id: 'default'
+  storage_dir: ${oc.env:LOGGING_DIR}
+  version: 0.0.1
+  tags: null
+
+defaults:
+  - hydra: default
+  - nn: default
+  - train: default
+  - override nn/module: distillation
+  - override nn/module/optimizer: deepspeed
+  - override train/trainer: deepspeed
+  - override train/strategy: deepspeed
+  - override nn/data: reds_diag
+  - _self_
