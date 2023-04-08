@@ -3,9 +3,9 @@ defaults:
   - nn: default
   - train: default
   - override nn/module/model: baby_realbasic
-  - override nn/module/optimizer: ${core.strategy}
+  - override nn/module/optimizer: ${cfg.core.strategy}
   - override nn/module/scheduler: cosine_warmup
-  - override train/trainer: ${core.strategy}
-  - override train/strategy: ${core.strategy}
+  - override train/trainer: ${cfg.core.strategy}
+  - override train/strategy: ${cfg.core.strategy}
   - override nn/data: reds_diag
   - _self_
