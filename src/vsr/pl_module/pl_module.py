@@ -95,13 +95,15 @@ class LitVSR(pl.LightningModule):
         optimizer = hydra.utils.instantiate(
             self.hparams.optimizer,
             self.filter_params(self.hparams.group_lr),
-            _recursive_=False
+            _recursive_=False,
+            _convert_="partial"
         )
 
         scheduler: Optional[Any] = hydra.utils.instantiate(
             self.hparams.scheduler,
             optimizer,
             _recursive_=False,
+            _convert_="partial"
         )
 
         if scheduler is None:
