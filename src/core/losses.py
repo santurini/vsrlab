@@ -100,8 +100,8 @@ class OpticalFlowConsistency(nn.Module):
 
     def forward(self, sr, hr):
         b, t, c, h, w = sr.shape
-        img1 = sr[:, :-1, :, :, :].reshape(-1, c, hl, wl)
-        img2 = sr[:, 1:, :, :, :].reshape(-1, c, hl, wl)
+        img1 = sr[:, :-1, :, :, :].reshape(-1, c, h, w)
+        img2 = sr[:, 1:, :, :, :].reshape(-1, c, h, w)
         flow_sr = self.spynet(img2, img1)[-1]
 
         img1 = hr[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
