@@ -2,8 +2,6 @@ import math
 import torch
 from torch.optim.lr_scheduler import _LRScheduler
 
-from typing import List, Union
-
 class CosineAnnealingWarmupRestarts(_LRScheduler):
     """
         optimizer (Optimizer): Wrapped optimizer.
@@ -20,8 +18,8 @@ class CosineAnnealingWarmupRestarts(_LRScheduler):
                  optimizer: torch.optim.Optimizer,
                  first_cycle_steps: int,
                  cycle_mult: float = 1.,
-                 max_lrs: Union[float, List[float]] = 0.1,
-                 min_lrs: Union[float, List[float]] = 0.001,
+                 max_lrs = 0.1,
+                 min_lrs = 0.001,
                  warmup_steps: int = 0,
                  gamma: float = 1.,
                  last_epoch: int = -1
