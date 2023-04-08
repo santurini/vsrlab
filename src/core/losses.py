@@ -106,7 +106,7 @@ class OpticalFlowConsistency(nn.Module):
 
         img1 = hr[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
         img2 = hr[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
-        flow_hr = self.model(img2, img1)[-1]
+        flow_hr = self.spynet(img2, img1)[-1]
 
         return epe_loss(flow_sr, flow_hr) * self.weight
 
