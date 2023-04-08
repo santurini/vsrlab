@@ -81,7 +81,6 @@ class AdversarialLoss(nn.Module):
         loss = self.loss(input, target)
         return loss if is_disc else loss * self.weight
 
-# create a function (this my favorite choice)
 def rmse_loss(yhat,y):
     return torch.sqrt(torch.mean((yhat-y)**2))
 

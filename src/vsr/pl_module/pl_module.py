@@ -7,7 +7,7 @@ import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 from core import PROJECT_ROOT
-from core.losses import epe_loss
+from core.losses import rmse_loss
 from einops import rearrange
 from kornia.geometry.transform import resize
 from omegaconf import DictConfig
@@ -225,7 +225,7 @@ class LitFlowVSR(LitVSR):
         loss = 0
         for i in range(len(flow)):
             b, c, h, w = flow[i].shape
-            loss += epe_loss(
+            loss += rmse_loss(
                 flow[i],
                 resize(flow_hr, (h, w))
             )
