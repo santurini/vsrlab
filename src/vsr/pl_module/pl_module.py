@@ -277,8 +277,8 @@ class LitGanVSR(LitVSR):
 
         self.discriminator = hydra.utils.instantiate(discriminator, _recursive_=False)
 
-        self.perceptual_loss: nn.Module = PerceptualLoss()
-        self.adversarial_loss: nn.Module = AdversarialLoss()
+        self.perceptual: nn.Module = PerceptualLoss()
+        self.adversarial: nn.Module = AdversarialLoss()
 
     def training_step(self, batch, batch_idx):
         opt_g, opt_d = self.optimizers()
