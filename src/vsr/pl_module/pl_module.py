@@ -291,9 +291,10 @@ class LitGanVSR(LitVSR):
 
     def generator_step(self, batch):
         lr, hr = batch
+        b, t, c, h, w = hr.shape
         step_out = self.step(lr, hr)
         perceptual_loss = self.perceptual(step_out["sr"], hr)
-        disc_sr = self.discriminator(step_out["sr"])
+        disc_sr = self.discriminator(step_out["sr"].view(-1, c, h, w))
         disc_fake_loss = self.adversarial(disc_sr, 1, False)
         loss = step_out['loss'] + perceptual_loss + disc_fake_loss
 
