@@ -2,7 +2,7 @@ _target_: vsr.pl_module.pl_module.LitVSR
 log_interval: 250
 log_k_images: 5
 
-filter_params: False
+filter_params: True
 
 group_lr:
   group: "spynet"
