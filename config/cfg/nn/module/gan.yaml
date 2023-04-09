@@ -4,11 +4,7 @@ log_k_images: 5
 
 d_step_frequency: 1
 
-set_lr:
-  groups:
-    - "spynet"
-  lrs:
-    - 1e-5
+set_lr: null
 
 d_set_lr: null
 
@@ -29,5 +25,5 @@ discriminator:
 defaults:
   - model: baby_realbasic
   - loss: pixel_loss
-  - optimizer: gan_optimizer
-  - scheduler: gan_scheduler
+  - optimizer: gan_adam
+  - scheduler: gan_cosine_warmup
