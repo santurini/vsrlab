@@ -134,7 +134,7 @@ class LitVSR(pl.LightningModule):
         )
 
         parameters = []
-        for group, lr in enumerate(set_lr.groups, set_lr.lrs):
+        for group, lr in zip(set_lr.groups, set_lr.lrs):
             pylogger.info(f"Setting learning rate for parameters in <{group}> to <{lr}>")
             params = list(map(lambda x: x[1], list(
                 filter(lambda kv: group in kv[0], self.model.named_parameters()))))
