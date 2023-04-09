@@ -6,7 +6,7 @@ core:
   version: 0.0.1
   tags: null
 
-override cfg.nn.data.batch_size: 2
+cfg.nn.data.batch_size: 2
 
 defaults:
   - hydra: default
