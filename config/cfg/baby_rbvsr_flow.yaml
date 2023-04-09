@@ -14,5 +14,4 @@ defaults:
   - override nn/module/loss: flow_loss
   - override train/trainer: deepspeed
   - override train/strategy: deepspeed
-  - override nn.module.filter_params: True
   - _self_
