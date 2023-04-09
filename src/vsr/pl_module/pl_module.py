@@ -92,6 +92,7 @@ class LitVSR(pl.LightningModule):
         return step_out
 
     def configure_optimizers(self):
+
         if self.hparams.filter_params:
             parameters = self.filter_params(self.hparams.group_lr)
         else:
@@ -126,6 +127,7 @@ class LitVSR(pl.LightningModule):
             self,
             group: DictConfig
     ):
+        print('FILTERING')
         group_0 = list(map(lambda x: x[1], list(
             filter(lambda kv: group.group in kv[0], self.model.named_parameters()))))
         group_1 = list(map(lambda x: x[1], list(
