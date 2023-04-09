@@ -6,6 +6,8 @@ core:
   version: 0.0.1
   tags: null
 
+override nn.data.batch_size: 4
+
 defaults:
   - hydra: default
   - nn: default
