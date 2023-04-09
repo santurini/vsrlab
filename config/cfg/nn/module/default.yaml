@@ -4,9 +4,10 @@ log_k_images: 5
 
 filter_params: True
 
-group_lr:
-  group: "spynet"
-  lr:
+set_lr:
+  groups:
+    - "spynet"
+  lrs:
     - 1e-5
     - 1e-4
 

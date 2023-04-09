@@ -92,9 +92,8 @@ class LitVSR(pl.LightningModule):
         return step_out
 
     def configure_optimizers(self):
-
         if self.hparams.filter_params:
-            parameters = self.filter_params(self.hparams.group_lr)
+            parameters = self.filter_params(self.hparams.set_lr)
         else:
             parameters = self.model.parameters()
 
@@ -125,20 +124,27 @@ class LitVSR(pl.LightningModule):
 
     def filter_params(
             self,
-            group: DictConfig
+            set_lr: DictConfig
     ):
-        print('FILTERING')
-        group_0 = list(map(lambda x: x[1], list(
-            filter(lambda kv: group.group in kv[0], self.model.named_parameters()))))
-        group_1 = list(map(lambda x: x[1], list(
-            filter(lambda kv: not group.group in kv[0], self.model.named_parameters()))))
+        assert(
+            len(set_lr.lrs)==len(set_lr.groups)+1,
+            "For {} groups are expected the same number of learning rates but found {}".format(
+                len(set_lr.groups) + 1, len(set_lr.lrs)
+            )
+        )
 
-        params = [
-            {"params": group_0, "lr": group.lr[0]},
-            {"params": group_1, "lr": group.lr[1]}
-        ]
+        parameters = []
+        for i, group in enumerate(set_lr.groups):
+            pylogger.info(f"Filtering parameters for <{group}>")
+            params = list(map(lambda x: x[0], list(
+                filter(lambda kv: group in kv[0], self.model.named_parameters()))))
+            parameters.append({"params": params, "lr": set_lr.lrs[i]})
 
-        return params
+        params = list(map(lambda x: x[0], list(
+            filter(lambda kv: not any(g in kv[0] for g in set_lr.groups), self.model.named_parameters()))))
+        parameters.append({"params": params, "lr": set_lr.lrs[-1]})
+
+        return parameters
 
     def log_losses(self, out, stage):
         out_dict = {}
