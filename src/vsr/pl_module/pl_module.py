@@ -273,21 +273,25 @@ class LitGanVSR(LitVSR):
                  **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
+        self.automatic_optimization = False
+
         self.discriminator = hydra.utils.instantiate(discriminator, _recursive_=False)
 
         self.perceptual_loss: nn.Module = PerceptualLoss()
         self.adversarial_loss: nn.Module = AdversarialLoss()
 
-    def training_step(self, batch, batch_idx, optimizer_idx):
-        if optimizer_idx == 0:
-            return self.generator_step(batch, batch_idx, optimizer_idx)
-        elif optimizer_idx == 1:
-            return self.discriminator_step(batch, batch_idx, optimizer_idx)
+    def training_step(self, batch, batch_idx):
+        opt_g, opt_d = self.optimizers()
+        self.toggle_optimizer(opt_g)
+        step_out = self.generator_step(batch, batch_idx)
+        self._optim_step(opt_g, step_out["loss"])
+        self.toggle_optimizer(opt_d)
+        step_out = self.discriminator_step((step_out["sr"], step_out["hr"]), batch_idx)
+        self._optim_step(opt_d, step_out["loss"])
 
     def generator_step(self, batch):
         lr, hr = batch
         step_out = self.step(lr, hr)
-        self.discriminator.requires_grad_(False)
         perceptual_loss = self.perceptual(step_out["sr"], hr)
         disc_sr = self.discriminator(step_out["sr"])
         disc_fake_loss = self.adversarial(disc_sr, 1, False)
@@ -310,12 +314,10 @@ class LitGanVSR(LitVSR):
         return step_out
 
     def discriminator_step(self, batch):
-        lr, hr = batch
-        step_out = self.step(lr)
-        self.discriminator.requires_grad_(True)
+        sr, hr = batch
         disc_hr = self.discriminator(hr)
         disc_true_loss = self.adversarial(disc_hr, 1, True)
-        disc_sr = self.discriminator(step_out["sr"].detach())
+        disc_sr = self.discriminator(sr.detach())
         disc_fake_loss = self.adversarial(disc_sr, 0, True)
         loss = disc_fake_loss + disc_true_loss
 
@@ -326,6 +328,12 @@ class LitGanVSR(LitVSR):
         )
 
         return step_out
+
+    def _optim_step(self, optimizer, loss):
+        self.manual_backward(loss)
+        optimizer.step()
+        optimizer.zero_grad()
+        self.untoggle_optimizer(optimizer)
 
     def configure_optimizers(self):
         g_config = self._configure_optimizers(
