@@ -109,6 +109,7 @@ class LitVSR(pl.LightningModule):
     ):
         pylogger.info(f"Configuring optimizer for <{model.__class__.__name__}>")
         if set_lr is None:
+            pylogger.info("Nothing to filter here!")
             parameters = [{"params": model.parameters()}]
         else:
             parameters = self.filter_params(
