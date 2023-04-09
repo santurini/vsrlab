@@ -1,6 +1,6 @@
 core:
   project_name: 'video-super-resolution'
-  run_id: 'default'
+  run_id: 'default-run'
   storage_dir: ${oc.env:LOGGING_DIR}
   version: 0.0.1
   tags: null
