@@ -92,30 +92,47 @@ class LitVSR(pl.LightningModule):
         return step_out
 
     def configure_optimizers(self):
-        if self.hparams.filter_params:
-            parameters = self.filter_params(
-                self.hparams.set_lr,
-                self.model
-            )
-        else:
-            parameters = [{"params": self.model.parameters()}]
-
-        optimizer = hydra.utils.instantiate(
+        opt_config = self.config_optim(
+            self.model,
             self.hparams.optimizer,
-            parameters,
-            _recursive_=False,
-            _convert_="partial"
+            self.hparams.scheduler,
+            self.hparams.set_lr,
         )
 
-        scheduler: Optional[Any] = hydra.utils.instantiate(
-            self.hparams.scheduler,
-            optimizer,
+        return opt_config
+
+    def config_optim(
+            self,
+            model: nn.Module,
+            optim_cfg: DictConfig,
+            sched_cfg: DictConfig = None,
+            set_lr: Any = None,
+    ):
+        print(f"Configuring optimizer for <{model.__class__.__name__}>")
+        if set_lr is None:
+            parameters = [{"params": model.parameters()}]
+        else:
+            parameters = self.filter_params(
+                set_lr,
+                model
+            )
+
+        optimizer = hydra.utils.instantiate(
+            optim_cfg,
+            parameters,
             _recursive_=False,
             _convert_="partial"
         )
 
         if scheduler is None:
             return optimizer
+
+        scheduler: Optional[Any] = hydra.utils.instantiate(
+            sched_cfg,
+            optimizer,
+            _recursive_=False,
+            _convert_="partial"
+        )
 
         return {
             "optimizer": optimizer,
@@ -311,39 +328,19 @@ class LitGanVSR(LitVSR):
         return step_out
 
     def configure_optimizers(self):
-        g_config = super().configure_optimizers()
-
-        if self.hparams.d_filter_params:
-            parameters = self.filter_params(
-                self.hparams.d_set_lr,
-                self.discriminator
-            )
-        else:
-            parameters = [{"params": self.discriminator.parameters()}]
-
-        d_opt = hydra.utils.instantiate(
-            self.hparams.d_optimizer,
-            parameters,
-            _recursive_=False
+        g_config = self._configure_optimizers(
+            self.model,
+            self.hparams.optimizer.generator,
+            self.hparams.scheduler.generator,
+            self.hparams.set_lr,
         )
 
-        if self.hparams.d_scheduler:
-            return g_config, d_opt
-
-        d_sched: Optional[Any] = hydra.utils.instantiate(
-            self.hparams.d_scheduler,
-            optimizer=d_opt,
-            _recursive_=False
+        d_config = self._configure_optimizers(
+            self.discriminator,
+            self.hparams.optimizer.discriminator,
+            self.hparams.scheduler.discriminator,
+            self.hparams.d_set_lr,
         )
-
-        d_config = {
-            "optimizer": d_opt,
-            "lr_scheduler": {
-                "scheduler": d_sched,
-                "interval": "step",
-                "frequency": self.hparams.d_step_frequency,
-            },
-        }
 
         return g_config, d_config
 

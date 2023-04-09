@@ -2,9 +2,6 @@ _target_: vsr.pl_module.pl_module.LitGanVSR
 log_interval: 250
 log_k_images: 5
 
-filter_params: True
-d_filter_params: False
-
 d_step_frequency: 1
 
 set_lr:
@@ -13,11 +10,7 @@ set_lr:
   lrs:
     - 1e-5
 
-d_set_lr:
-  groups:
-    - "some_group"
-  lrs:
-    - 1e-5
+d_set_lr: null
 
 metric:
   _target_: core.metrics.MetricCollection
@@ -36,7 +29,5 @@ discriminator:
 defaults:
   - model: baby_realbasic
   - loss: pixel_loss
-  - optimizer: adam
-  - d_optimizer: adam
-  - scheduler: cosine_warmup
-  - d_scheduler: cosine_warmup
+  - optimizer: gan_optimizer
+  - scheduler: gan_scheduler
