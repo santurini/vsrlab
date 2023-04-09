@@ -1,16 +1,14 @@
 _target_: vsr.pl_module.pl_module.LitVSR
 log_interval: 250
 log_k_images: 5
-
 distillation: True
-
 filter_params: True
 
-group_lr:
-  group: "spynet"
-  lr:
+set_lr:
+  groups:
+    - "spynet"
+  lrs:
     - 1e-5
-    - 1e-4
 
 metric:
   _target_: core.metrics.MetricCollection
