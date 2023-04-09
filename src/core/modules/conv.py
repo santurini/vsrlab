@@ -9,11 +9,11 @@ from torch.nn.utils import spectral_norm
 class SpectralConv(nn.Module):
     def __init__(self, in_ch, out_ch, ks=3, stride=1, pad=1):
         super().__init__()
-        self.conv = nn.Conv2d(in_ch, out_ch, ks, stride, pad, bias=False)
+        self.conv = spectral_norm(nn.Conv2d(in_ch, out_ch, ks, stride, pad, bias=False))
 
     def forward(self, x):
         x = self.conv(x)
-        return spectral_norm(x)
+        return x
 
 class ConvReLU(nn.Module):
     def __init__(self, in_ch, out_ch, *args, **kwargs):
