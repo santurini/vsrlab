@@ -98,7 +98,6 @@ class LitVSR(pl.LightningModule):
             self.hparams.scheduler,
             self.hparams.set_lr,
         )
-
         return opt_config
 
     def _configure_optimizers(
@@ -124,7 +123,7 @@ class LitVSR(pl.LightningModule):
             _convert_="partial"
         )
 
-        if scheduler is None:
+        if sched_cfg is None:
             return optimizer
 
         scheduler: Optional[Any] = hydra.utils.instantiate(
