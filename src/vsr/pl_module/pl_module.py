@@ -286,8 +286,8 @@ class LitGanVSR(LitVSR):
         step_out = self.generator_step(batch)
         self._optim_step(opt_g, step_out["loss"])
         self.toggle_optimizer(opt_d)
-        step_out = self.discriminator_step((step_out["sr"], step_out["hr"]))
-        self._optim_step(opt_d, step_out["loss"])
+        loss = self.discriminator_step((step_out["sr"], step_out["hr"]))
+        self._optim_step(opt_d, loss)
 
     def generator_step(self, batch):
         lr, hr = batch
@@ -330,7 +330,7 @@ class LitGanVSR(LitVSR):
              "loss/train/discriminator_adversarial_true": disc_true_loss.cpu().detach()},
         )
 
-        return step_out
+        return loss
 
     def _optim_step(self, optimizer, loss):
         self.manual_backward(loss)
