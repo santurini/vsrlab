@@ -6,8 +6,6 @@ core:
   version: 0.0.1
   tags: null
 
-override train.trainer.accumulate_grad_batches: null
-
 defaults:
   - hydra: default
   - nn: default
