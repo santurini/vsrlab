@@ -315,6 +315,8 @@ class LitGanVSR(LitVSR):
 
     def discriminator_step(self, batch):
         sr, hr = batch
+        sr = rearrange(sr, 'b t c h w -> (b t) c h w')
+        hr = rearrange(hr, 'b t c h w -> (b t) c h w')
         disc_hr = self.discriminator(hr)
         disc_true_loss = self.adversarial(disc_hr, 1, True)
         disc_sr = self.discriminator(sr.detach())
