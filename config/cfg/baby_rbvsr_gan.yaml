@@ -14,6 +14,6 @@ defaults:
   - train: default
   - override nn/module: gan
   - override nn/module/optimizer: gan_deepspeed
-  - override train/trainer: deepspeed
+  - override train/trainer: gan_deepspeed
   - override train/strategy: deepspeed
   - _self_
