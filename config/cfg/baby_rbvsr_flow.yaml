@@ -1,6 +1,7 @@
 core:
   project_name: 'video-super-resolution'
   run_id: 'baby_rbvsr_flow'
+  run_name: "Baby Real Basic - Flow Consistency Pretrain"
   storage_dir: ${oc.env:LOGGING_DIR}
   version: 0.0.1
   tags: null

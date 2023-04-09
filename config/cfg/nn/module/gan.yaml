@@ -1,0 +1,42 @@
+_target_: vsr.pl_module.pl_module.LitGanVSR
+log_interval: 250
+log_k_images: 5
+
+filter_params: True
+d_filter_params: False
+
+d_step_frequency: 1
+
+set_lr:
+  groups:
+    - "spynet"
+  lrs:
+    - 1e-5
+
+d_set_lr:
+  groups:
+    - "some_group"
+  lrs:
+    - 1e-5
+
+metric:
+  _target_: core.metrics.MetricCollection
+  metrics:
+    PSNR:
+      _target_: piqa.PSNR
+
+    SSIM:
+      _target_: piqa.SSIM
+
+discriminator:
+  _target_: vsr.modules.unet-discriminator.UNetDiscriminator
+  in_ch: 3
+  mid_ch: 64
+
+defaults:
+  - model: baby_realbasic
+  - loss: pixel_loss
+  - optimizer: adam
+  - d_optimizer: adam
+  - scheduler: cosine_warmup
+  - d_scheduler: cosine_warmup

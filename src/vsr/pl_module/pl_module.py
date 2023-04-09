@@ -7,7 +7,7 @@ import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 from core import PROJECT_ROOT
-from core.losses import rmse_loss
+from core.losses import rmse_loss, AdversarialLoss, PerceptualLoss
 from einops import rearrange
 from kornia.geometry.transform import resize
 from omegaconf import DictConfig
@@ -93,7 +93,10 @@ class LitVSR(pl.LightningModule):
 
     def configure_optimizers(self):
         if self.hparams.filter_params:
-            parameters = self.filter_params(self.hparams.set_lr)
+            parameters = self.filter_params(
+                self.hparams.set_lr,
+                self.model
+            )
         else:
             parameters = [{"params": self.model.parameters()}]
 
@@ -122,9 +125,10 @@ class LitVSR(pl.LightningModule):
                 "frequency": 1},
         }
 
+    @staticmethod
     def filter_params(
-            self,
-            set_lr: DictConfig
+            set_lr: DictConfig,
+            model: nn.Module
     ):
         assert(
             len(set_lr.lrs)==len(set_lr.groups),
@@ -137,11 +141,11 @@ class LitVSR(pl.LightningModule):
         for group, lr in zip(set_lr.groups, set_lr.lrs):
             pylogger.info(f"Setting learning rate for parameters in <{group}> to <{lr}>")
             params = list(map(lambda x: x[1], list(
-                filter(lambda kv: group in kv[0], self.model.named_parameters()))))
+                filter(lambda kv: group in kv[0], model.named_parameters()))))
             parameters.append({"params": params, "lr": lr})
 
         params = list(map(lambda x: x[1], list(
-            filter(lambda kv: not any(g in kv[0] for g in set_lr.groups), self.model.named_parameters()))))
+            filter(lambda kv: not any(g in kv[0] for g in set_lr.groups), model.named_parameters()))))
         parameters.append({"params": params})
 
         return parameters
@@ -248,16 +252,14 @@ class LitFlowVSR(LitVSR):
 class LitGanVSR(LitVSR):
     def __init__(self,
                  discriminator: DictConfig,
-                 adversarial_loss: DictConfig,
-                 perceptual_loss: DictConfig,
                  *args,
                  **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.discriminator = hydra.utils.instantiate(discriminator, _recursive_=False)
 
-        self.perceptual_loss: Optional[Any] = hydra.utils.instantiate(perceptual_loss, _recursive_=False)
-        self.adversarial_loss = hydra.utils.instantiate(adversarial_loss, _recursive_=False)
+        self.perceptual_loss: nn.Module = PerceptualLoss()
+        self.adversarial_loss = nn.Module = AdversarialLoss()
 
     def training_step(self, batch, batch_idx, optimizer_idx):
         if optimizer_idx == 0:
@@ -275,10 +277,10 @@ class LitGanVSR(LitVSR):
         loss = step_out['loss'] + perceptual_loss + disc_fake_loss
 
         self.log_dict(
-            {"loss/train/generator": step_out['loss'].cpu().detach(),
-             "loss/train/generator_pixel": loss.cpu().detach(),
+            {"loss/train/generator": loss.cpu().detach(),
+             "loss/train/generator_pixel": step_out['loss'].cpu().detach(),
              "loss/train/generator_perceptual": perceptual_loss.cpu().detach(),
-             "loss/train/generator_fake": disc_fake_loss.cpu().detach(), },
+             "loss/train/generator_adversarial": disc_fake_loss.cpu().detach(), },
         )
 
         self.log_dict(
@@ -302,26 +304,37 @@ class LitGanVSR(LitVSR):
 
         self.log_dict(
             {"loss/train/discriminator": loss.cpu().detach(),
-             "loss/train/discriminator_fake": disc_fake_loss.cpu().detach(),
-             "loss/train/discriminator_true": disc_true_loss.cpu().detach()},
+             "loss/train/discriminator_adversarial_fake": disc_fake_loss.cpu().detach(),
+             "loss/train/discriminator_adversarial_true": disc_true_loss.cpu().detach()},
         )
 
         return step_out
 
     def configure_optimizers(self):
         g_config = super().configure_optimizers()
+
+        if self.hparams.d_filter_params:
+            parameters = self.filter_params(
+                self.hparams.d_set_lr,
+                self.discriminator
+            )
+        else:
+            parameters = [{"params": self.discriminator.parameters()}]
+
         d_opt = hydra.utils.instantiate(
             self.hparams.d_optimizer,
-            self.discriminator.parameters(),
+            parameters,
             _recursive_=False
         )
+
+        if self.hparams.d_scheduler:
+            return g_config, d_opt
+
         d_sched: Optional[Any] = hydra.utils.instantiate(
             self.hparams.d_scheduler,
             optimizer=d_opt,
             _recursive_=False
         )
-        if d_sched is None:
-            return g_config, d_opt
 
         d_config = {
             "optimizer": d_opt,
@@ -331,6 +344,7 @@ class LitGanVSR(LitVSR):
                 "frequency": self.hparams.d_step_frequency,
             },
         }
+
         return g_config, d_config
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")

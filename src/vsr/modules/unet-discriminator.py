@@ -1,5 +1,5 @@
 import torch.nn as nn
-from torch.nn.utils import spectral_norm
+from core.modules.conv import SpectralConv
 
 class UNetDiscriminator(nn.Module):
     def __init__(self, in_ch=3, mid_ch=64):
@@ -29,12 +29,3 @@ class UNetDiscriminator(nn.Module):
         out = self.lrelu(self.conv_7(feat_6))
         out = self.lrelu(self.conv_8(out))
         return self.conv_9(out)
-
-class SpectralConv(nn.Module):
-    def __init__(self, in_ch, out_ch, ks=3, stride=1, pad=1):
-        super().__init__()
-        self.conv = nn.Conv2d(in_ch, out_ch, ks, stride, pad, bias=False)
-
-    def forward(self, x):
-        x = self.conv(x)
-        return spectral_norm(x)

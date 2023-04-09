@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torchvision import models
 
 from optical_flow.modules.spynet import Spynet
@@ -55,7 +56,6 @@ class PerceptualLoss(nn.Module):
         self.weight = weight
         self.layer_weights = layer_weights
         self.vgg = PerceptualVGG(list(layer_weights.keys()))
-        self.criterion = nn.L1Loss()
 
     def forward(self, yhat, y):
         h = y.shape[-2];
@@ -66,7 +66,7 @@ class PerceptualLoss(nn.Module):
         gt_features = self.vgg(y.detach())
         percep_loss = 0
         for k in x_features.keys():
-            percep_loss += self.criterion(x_features[k], gt_features[k]) * self.layer_weights[k]
+            percep_loss += F.l1_loss(x_features[k], gt_features[k]) * self.layer_weights[k]
         return percep_loss * self.weight
 
 class AdversarialLoss(nn.Module):
@@ -74,11 +74,10 @@ class AdversarialLoss(nn.Module):
         super().__init__()
         self.name = 'adversarial'
         self.weight = weight
-        self.loss = nn.BCEWithLogitsLoss()
 
     def forward(self, x, target, is_disc=False):
         target = x.new_ones(x.size()) * target
-        loss = self.loss(input, target)
+        loss = F.binary_cross_entropy_with_logits(x, target)
         return loss if is_disc else loss * self.weight
 
 def rmse_loss(yhat,y):
