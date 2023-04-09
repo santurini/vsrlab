@@ -51,9 +51,9 @@ def run(cfg: DictConfig) -> str:
 
     return logger.save_dir
 
-@hydra.main(config_path=str(PROJECT_ROOT / "conf_test"), config_name="default", version_base="1.3")
-def main(cfg: omegaconf.DictConfig):
-    run(cfg.cfg)
+@hydra.main(config_path=str(PROJECT_ROOT / "config"), config_name="default", version_base="1.3")
+def main(config: omegaconf.DictConfig):
+    run(config.cfg)
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,6 @@
 core:
   project_name: 'video-super-resolution'
-  run_id: 'default'
+  run_id: 'baby_rbvsr'
   storage_dir: ${oc.env:LOGGING_DIR}
   version: 0.0.1
   tags: null
@@ -10,8 +10,8 @@ defaults:
   - nn: default
   - train: default
   - override nn/module/optimizer: deepspeed
-  - override nn/module/loss: flow_loss
   - override train/trainer: deepspeed
   - override train/strategy: deepspeed
   - override nn/data: reds_diag
+  - override nn.module.filter_params: True
   - _self_

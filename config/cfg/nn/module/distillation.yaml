@@ -2,6 +2,10 @@ _target_: vsr.pl_module.pl_module.LitVSR
 log_interval: 250
 log_k_images: 5
 
+distillation: True
+
+filter_params: True
+
 group_lr:
   group: "spynet"
   lr:
@@ -19,6 +23,6 @@ metric:
 
 defaults:
   - model: baby_realbasic
-  - loss: pixel_loss
+  - loss: flow_loss
   - optimizer: adam
   - scheduler: cosine_warmup
