@@ -18,8 +18,7 @@ class CosineAnnealingWarmupRestarts(_LRScheduler):
                  optimizer: torch.optim.Optimizer,
                  first_cycle_steps: int,
                  cycle_mult: float = 1.,
-                 max_lrs = 0.1,
-                 min_lrs = 0.001,
+                 min_lrs_pow: int = 2,
                  warmup_steps: int = 0,
                  gamma: float = 1.,
                  last_epoch: int = -1
@@ -27,11 +26,14 @@ class CosineAnnealingWarmupRestarts(_LRScheduler):
 
         assert warmup_steps < first_cycle_steps
 
+        max_lrs = [g["lr"] for g in optimizer.state_dict()['param_groups']]
+        min_lrs = [i * (10 ** -min_lrs_pow) for i in max_lrs]
+
         self.first_cycle_steps = first_cycle_steps  # first cycle step size
         self.cycle_mult = cycle_mult  # cycle steps magnification
-        self.base_max_lrs = max_lrs if isinstance(max_lrs, list) else [max_lrs] # first max learning rate
-        self.max_lrs = max_lrs if isinstance(max_lrs, list) else [max_lrs] # max learning rate in the current cycle
-        self.min_lrs = min_lrs if isinstance(min_lrs, list) else [min_lrs] # min learning rate
+        self.base_max_lrs = max_lrs # first max learning rate
+        self.max_lrs = max_lrs # max learning rate in the current cycle
+        self.min_lrs = min_lrs # min learning rate
         self.warmup_steps = warmup_steps  # warmup step size
         self.gamma = gamma  # decrease rate of max learning rate by cycle
 

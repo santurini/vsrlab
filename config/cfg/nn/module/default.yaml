@@ -9,7 +9,6 @@ set_lr:
     - "spynet"
   lrs:
     - 1e-5
-    - 1e-4
 
 metric:
   _target_: core.metrics.MetricCollection

@@ -95,7 +95,7 @@ class LitVSR(pl.LightningModule):
         if self.hparams.filter_params:
             parameters = self.filter_params(self.hparams.set_lr)
         else:
-            parameters = self.model.parameters()
+            parameters = [{"params": self.model.parameters()}]
 
         optimizer = hydra.utils.instantiate(
             self.hparams.optimizer,
@@ -127,9 +127,9 @@ class LitVSR(pl.LightningModule):
             set_lr: DictConfig
     ):
         assert(
-            len(set_lr.lrs)==len(set_lr.groups)+1,
+            len(set_lr.lrs)==len(set_lr.groups),
             "For {} groups are expected the same number of learning rates but found {}".format(
-                len(set_lr.groups) + 1, len(set_lr.lrs)
+                len(set_lr.groups), len(set_lr.lrs)
             )
         )
 
@@ -142,7 +142,7 @@ class LitVSR(pl.LightningModule):
 
         params = list(map(lambda x: x[0], list(
             filter(lambda kv: not any(g in kv[0] for g in set_lr.groups), self.model.named_parameters()))))
-        parameters.append({"params": params, "lr": set_lr.lrs[-1]})
+        parameters.append({"params": params})
 
         return parameters
 
