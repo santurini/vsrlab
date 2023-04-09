@@ -92,7 +92,7 @@ class LitVSR(pl.LightningModule):
         return step_out
 
     def configure_optimizers(self):
-        opt_config = self.config_optim(
+        opt_config = self._configure_optimizers(
             self.model,
             self.hparams.optimizer,
             self.hparams.scheduler,
@@ -101,14 +101,14 @@ class LitVSR(pl.LightningModule):
 
         return opt_config
 
-    def config_optim(
+    def _configure_optimizers(
             self,
             model: nn.Module,
             optim_cfg: DictConfig,
             sched_cfg: DictConfig = None,
             set_lr: Any = None,
     ):
-        print(f"Configuring optimizer for <{model.__class__.__name__}>")
+        pylogger.info(f"Configuring optimizer for <{model.__class__.__name__}>")
         if set_lr is None:
             parameters = [{"params": model.parameters()}]
         else:
