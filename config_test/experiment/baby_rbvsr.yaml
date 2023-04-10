@@ -5,6 +5,7 @@ core:
   run_name: "Baby Real Basic - Pretrain"
 
 defaults:
+  - override /hydra: default
   - override /nn/module/optimizer: deepspeed
   - override /train/trainer: deepspeed
   - override /train/strategy: deepspeed
