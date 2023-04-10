@@ -1,5 +1,3 @@
-#@package config_test
-
 core:
   project_name: 'video-super-resolution'
   run_id: 'baby_rbvsr'
@@ -9,10 +7,10 @@ core:
   tags: null
 
 defaults:
-  - hydra: default
-  - nn: default
-  - train: default
-  - override nn/module/optimizer: deepspeed
-  - override train/trainer: deepspeed
-  - override train/strategy: deepspeed
+  - hydra@config_test: default
+  - nn@config_test: default
+  - train@config_test: default
+  - override nn/module/optimizer@config_test: deepspeed
+  - override train/trainer@config_test: deepspeed
+  - override train/strategy@config_test: deepspeed
   - _self_
