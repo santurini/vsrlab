@@ -7,9 +7,9 @@ core:
   tags: null
 
 defaults:
-  - hydra@config_test: default
-  - nn@config_test: default
-  - train@config_test: default
+  - hydra@_here_: default
+  - nn@_here_: default
+  - train@_here_: default
   - override nn/module/optimizer@config_test: deepspeed
   - override train/trainer@config_test: deepspeed
   - override train/strategy@config_test: deepspeed
