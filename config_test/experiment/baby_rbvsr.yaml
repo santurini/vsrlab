@@ -8,4 +8,3 @@ defaults:
   - override /nn/module/optimizer: deepspeed
   - override /train/trainer: deepspeed
   - override /train/strategy: deepspeed
-  - _self_
