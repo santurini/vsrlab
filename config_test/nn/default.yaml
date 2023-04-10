@@ -1,0 +1,3 @@
+defaults:
+  - data: reds_diag
+  - module: default

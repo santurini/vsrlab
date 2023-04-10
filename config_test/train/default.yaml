@@ -1,0 +1,17 @@
+# reproducibility
+seed_index: 0
+deterministic: False
+
+restore:
+  ckpt_path: null
+
+monitor:
+  metric: 'loss/val'
+  mode: 'min'
+
+defaults:
+  - trainer: default
+  - callbacks: default
+  - logger: default
+  - strategy: default
+
