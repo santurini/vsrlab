@@ -1,16 +1,13 @@
+# @package _global_
 core:
-  project_name: 'video-super-resolution'
   run_id: 'baby_rbvsr'
   run_name: "Baby Real Basic - Pretrain"
-  storage_dir: ${oc.env:LOGGING_DIR}
-  version: 0.0.1
-  tags: null
 
 defaults:
-  - hydra@_global_: default
-  - nn@_global_: default
-  - train@_global_: default
-  - override nn/module/optimizer@_global_: deepspeed
-  - override train/trainer@_global_: deepspeed
-  - override train/strategy@_global_: deepspeed
+  - override hydra: default
+  - override nn: default
+  - override train: default
+  - override nn/module/optimizer: deepspeed
+  - override train/trainer: deepspeed
+  - override train/strategy: deepspeed
   - _self_
