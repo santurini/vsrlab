@@ -4,7 +4,7 @@ datasets:
     _target_: vsr.data.dataset.DatasetVSR
     path: "/home/aghinassi/hdd/vsr/REDS"
     split: "train"
-    seq: 12
+    seq: 15
     scale: 4
     size: 0.9
     hr_augmentation:
@@ -106,5 +106,5 @@ datasets:
         size: [ 64, 64 ]
 
 num_workers: 16
-batch_size: 6
+batch_size: 4
 prefetch_factor: 6
