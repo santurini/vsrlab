@@ -1,19 +1,9 @@
 import math
+
 import torch
 from torch.optim.lr_scheduler import _LRScheduler
 
 class CosineAnnealingWarmupRestarts(_LRScheduler):
-    """
-        optimizer (Optimizer): Wrapped optimizer.
-        first_cycle_steps (int): First cycle step size.
-        cycle_mult(float): Cycle steps magnification. Default: -1.
-        max_lr(float): First cycle's max learning rate. Default: 0.1.
-        min_lr(float): Min learning rate. Default: 0.001.
-        warmup_steps(int): Linear warmup step size. Default: 0.
-        gamma(float): Decrease rate of max learning rate by cycle. Default: 1.
-        last_epoch (int): The index of last epoch. Default: -1.
-    """
-
     def __init__(self,
                  optimizer: torch.optim.Optimizer,
                  first_cycle_steps: int,
@@ -31,9 +21,9 @@ class CosineAnnealingWarmupRestarts(_LRScheduler):
 
         self.first_cycle_steps = first_cycle_steps  # first cycle step size
         self.cycle_mult = cycle_mult  # cycle steps magnification
-        self.base_max_lrs = max_lrs # first max learning rate
-        self.max_lrs = max_lrs # max learning rate in the current cycle
-        self.min_lrs = min_lrs # min learning rate
+        self.base_max_lrs = max_lrs  # first max learning rate
+        self.max_lrs = max_lrs  # max learning rate in the current cycle
+        self.min_lrs = min_lrs  # min learning rate
         self.warmup_steps = warmup_steps  # warmup step size
         self.gamma = gamma  # decrease rate of max learning rate by cycle
 
@@ -43,13 +33,15 @@ class CosineAnnealingWarmupRestarts(_LRScheduler):
 
         super().__init__(optimizer, last_epoch)
 
-        assert(
-                  len(optimizer.param_groups)==len(max_lrs),
-                  "Expected number of max learning rates provided ({}) to be the same as the number of groups parameters ({})".format(len(max_lrs), len(optimizer.param_groups))
+        assert (
+            len(optimizer.param_groups) == len(max_lrs),
+            "Expected number of max learning rates provided ({}) to be the same as the number of groups parameters ({})".format(
+                len(max_lrs), len(optimizer.param_groups))
         )
-        assert(
-            len(optimizer.param_groups)==len(min_lrs),
-            "Expected number of min learning rates provided ({}) to be the same as the number of groups parameters ({})".format(len(max_lrs), len(optimizer.param_groups))
+        assert (
+            len(optimizer.param_groups) == len(min_lrs),
+            "Expected number of min learning rates provided ({}) to be the same as the number of groups parameters ({})".format(
+                len(max_lrs), len(optimizer.param_groups))
         )
 
         # set learning rate min_lr

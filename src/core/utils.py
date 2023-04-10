@@ -1,11 +1,22 @@
 import logging
-from typing import List, Optional
+from typing import List, Optional, Union, Dict, Any
+from pathlib import Path
 
+import os
 import hydra
 import numpy as np
+import torch.distributed.checkpoint.metadata
 from omegaconf import DictConfig, ListConfig
 from pytorch_lightning import seed_everything, Callback
 from torch.nn import Sequential
+
+from deepspeed.utils.zero_to_fp32 import (
+    get_fp32_state_dict_from_zero_checkpoint,
+    get_model_state_file,
+    get_optim_files,
+)
+
+CPU_DEVICE = torch.device("cpu")
 
 pylogger = logging.getLogger(__name__)
 
@@ -36,7 +47,53 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
         augmentation.append(hydra.utils.instantiate(aug, _recursive_=False))
     return Sequential(*augmentation)
 
+def ds_checkpoint_dir(
+        checkpoint_dir: Union[str, pathlib.Path],
+        tag: str | None = None
+) -> str:
+    if tag is None:
+        latest_path = os.path.join(checkpoint_dir, "latest")
+        if os.path.isfile(latest_path):
+            with open(latest_path) as fd:
+                tag = fd.read().strip()
+        else:
+            raise ValueError(f"Unable to find 'latest' file at {latest_path}")
 
+    directory = os.path.join(checkpoint_dir, tag)
 
+    if not os.path.isdir(directory):
+        raise FileNotFoundError(f"Directory '{ds_checkpoint_dir}' doesn't exist")
+    return directory
 
+def convert_zero_checkpoint_to_fp32_state_dict(
+        checkpoint_dir: _PATH,
+        output_file: _PATH,
+        tag: str | None = None
+) -> Dict[str, Any]:
 
+    state_dict = get_fp32_state_dict_from_zero_checkpoint(checkpoint_dir, tag)
+    deepspeed_states = [
+        "module",
+        "optimizer",
+        "lr_scheduler",
+        "csr_tensor_module_names",
+        "skipped_steps",
+        "global_steps",
+        "dp_world_size",
+        "mp_world_size",
+    ]
+    checkpoint_dir = ds_checkpoint_dir(checkpoint_dir)
+    optim_files = get_optim_files(checkpoint_dir)
+    optim_state = torch.load(optim_files[0], map_location=CPU_DEVICE)
+    zero_stage = optim_state["optimizer_state_dict"]["zero_stage"]
+    model_file = get_model_state_file(checkpoint_dir, zero_stage)
+    client_state = torch.load(model_file, map_location=CPU_DEVICE)
+    client_state = {key: value for key, value in client_state.items() if key not in deepspeed_states}
+    state_dict = {k.partition("module.")[2]: state_dict[k] for k in state_dict.keys()}
+    client_state["state_dict"] = state_dict
+
+    if not os.path.exists(os.path.abspath(output_file)):
+        print(f"Saving fp32 state dict to {output_file}")
+        torch.save(client_state, output_file)
+
+    return client_state

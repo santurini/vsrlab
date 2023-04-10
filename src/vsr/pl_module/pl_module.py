@@ -23,7 +23,7 @@ class LitVSR(pl.LightningModule):
             metric: DictConfig,
             *args,
             **kwargs
-                 ) -> None:
+    ) -> None:
         super().__init__()
         self.save_hyperparameters(logger=False)
 
@@ -147,8 +147,8 @@ class LitVSR(pl.LightningModule):
             set_lr: DictConfig,
             model: nn.Module
     ):
-        assert(
-            len(set_lr.lrs)==len(set_lr.groups),
+        assert (
+            len(set_lr.lrs) == len(set_lr.groups),
             "For {} groups are expected the same number of learning rates but found {}".format(
                 len(set_lr.groups), len(set_lr.lrs)
             )
@@ -198,7 +198,7 @@ class LitVSR(pl.LightningModule):
 class LitFlowVSR(LitVSR):
     def __init__(
             self,
-            distillation = False,
+            distillation=False,
             *args,
             **kwargs):
         super().__init__(*args, **kwargs)

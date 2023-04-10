@@ -1,10 +1,7 @@
-import math
-
 import torch.nn as nn
 from einops import rearrange
-from torchvision.ops import DeformConv2d, deform_conv2d
-
 from torch.nn.utils import spectral_norm
+from torchvision.ops import DeformConv2d, deform_conv2d
 
 class SpectralConv(nn.Module):
     def __init__(self, in_ch, out_ch, ks=3, stride=1, pad=1):
@@ -37,6 +34,7 @@ class DeformConv(DeformConv2d):
     '''
     torch based Deformable Convolution Pack
     '''
+
     def __init__(self, deformable_groups, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.conv_offset = nn.Conv2d(

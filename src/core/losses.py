@@ -1,11 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision import models
-
-from optical_flow.modules.spynet import Spynet
 from kornia.geometry.transform import resize
-
+from optical_flow.modules.spynet import Spynet
+from torchvision import models
 
 LAYER_WEIGHTS = {'2': 0.1, '7': 0.1, '16': 1.0, '25': 1.0, '34': 1.0}
 
@@ -80,8 +78,8 @@ class AdversarialLoss(nn.Module):
         loss = F.binary_cross_entropy_with_logits(x, target)
         return loss if is_disc else loss * self.weight
 
-def rmse_loss(yhat,y):
-    return torch.sqrt(torch.mean((yhat-y)**2))
+def rmse_loss(yhat, y):
+    return torch.sqrt(torch.mean((yhat - y) ** 2))
 
 class OpticalFlowConsistency(nn.Module):
     def __init__(self, weight=1.0):
@@ -154,9 +152,9 @@ class LossPipeline(nn.ModuleDict):
 
     def get_loss(self, args, cfg):
         for k, v in cfg.items():
-          loss_fn = self[k]
-          pred_key = v['x']
-          gt_key = v['y']
+            loss_fn = self[k]
+            pred_key = v['x']
+            gt_key = v['y']
 
         if "match" in pred_key:
             pred, gt = self.match_shapes(args[pred_key.removeprefix('match_')], args[gt_key])

@@ -1,5 +1,5 @@
 from copy import deepcopy
-from collections import defaultdict
+
 import torch.nn as nn
 
 class MetricCollection(nn.ModuleDict):
@@ -26,7 +26,6 @@ class MetricCollection(nn.ModuleDict):
                 raise ValueError(f"Encountered two metrics both named {name}")
 
             self[name] = metric
-
 
     def clone(self, prefix=None, postfix=None):
         mc = deepcopy(self)

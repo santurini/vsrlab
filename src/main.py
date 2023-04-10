@@ -10,8 +10,6 @@ import pytorch_lightning as pl
 from omegaconf import DictConfig
 from pytorch_lightning import Callback
 
-from deepspeed.utils.zero_to_fp32 import get_fp32_state_dict_from_zero_checkpoint
-
 from core import PROJECT_ROOT
 from core.utils import seed_index_everything, build_callbacks
 
