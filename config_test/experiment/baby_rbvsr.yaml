@@ -1,4 +1,4 @@
-# @package _global_
+# @package config_test
 
 core:
   project_name: 'video-super-resolution'
