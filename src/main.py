@@ -51,7 +51,7 @@ def run(cfg: DictConfig) -> str:
 
     return logger.save_dir
 
-@hydra.main(config_path=str(PROJECT_ROOT / "config_test"), config_name="default", version_base="1.3")
+@hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
 def main(config: omegaconf.DictConfig):
     run(config)
 

@@ -1,5 +1,0 @@
-_target_: pytorch_lightning.strategies.DeepSpeedStrategy
-stage: 3
-offload_optimizer: cpu
-allgather_bucket_size: 10000000
-reduce_bucket_size: 10000000

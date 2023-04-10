@@ -1,7 +1,0 @@
-devices: 1
-accelerator: gpu
-precision: 16
-max_steps: 50
-accumulate_grad_batches: 2
-num_sanity_val_steps: 2
-deterministic: ${cfg.train.deterministic}
