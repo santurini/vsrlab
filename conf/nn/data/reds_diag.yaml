@@ -106,5 +106,5 @@ datasets:
         size: [ 64, 64 ]
 
 num_workers: 16
-batch_size: 4
+batch_size: 6
 prefetch_factor: 6
