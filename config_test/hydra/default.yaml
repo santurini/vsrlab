@@ -11,8 +11,11 @@ job:
     WANDB_START_METHOD: thread
     WANDB_DIR: ${oc.env:LOGGING_DIR}
 
-job_logging: null
-hydra_logging: disabled
+job_logging:
+  disable_existing_loggers: true
+
+hydra_logging:
+  disable_existing_loggers: true
 
 runtime:
   version: "1.3"
