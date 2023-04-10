@@ -1,4 +1,4 @@
-# @package __here__
+#@package config_test
 
 core:
   project_name: 'video-super-resolution'
