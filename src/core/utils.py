@@ -67,8 +67,8 @@ def ds_checkpoint_dir(
     return directory
 
 def convert_zero_checkpoint_to_fp32_state_dict(
-        checkpoint_dir: _PATH,
-        output_file: _PATH,
+        checkpoint_dir: Union[str, Path],
+        output_file: Union[str, Path],
         tag: str | None = None
 ) -> Dict[str, Any]:
 
