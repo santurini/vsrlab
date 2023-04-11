@@ -27,10 +27,10 @@ class Spynet(nn.Module):
         self.register_buffer('mean', torch.Tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1))
         self.register_buffer('std', torch.Tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
         if isinstance(pretrained, str):
+            pylogger.info('Loading Spynet pretrained weights')
             state_dict = torch.load(pretrained)
             new_dict = OrderedDict([(key[13:34] + '.0' + key[34:], state_dict[key]) for key in state_dict.keys()])
             self.basic_module.load_state_dict(new_dict)
-            print('LOADED SPYNET PRETRAINED WEIGHTS')
 
     def compute_flow(self, ref, supp):
         t, _, h, w = ref.size()

@@ -2,6 +2,7 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
+import logging
 from typing import List
 
 import hydra
@@ -13,15 +14,17 @@ from pytorch_lightning import Callback
 from core import PROJECT_ROOT
 from core.utils import seed_index_everything, build_callbacks
 
+pylogger = logging.getLogger(__name__)
+
 def run(cfg: DictConfig) -> str:
     seed_index_everything(cfg.train)
 
     # Instantiate datamodule
-    print(f"Instantiating <{cfg.nn.data['_target_']}>")
+    pylogger.info(f"Instantiating <{cfg.nn.data['_target_']}>")
     datamodule: pl.LightningDataModule = hydra.utils.instantiate(cfg.nn.data, _recursive_=False)
 
     # Instantiate model
-    print(f"Instantiating <{cfg.nn.module['_target_']}>")
+    pylogger.info(f"Instantiating <{cfg.nn.module['_target_']}>")
     model: pl.LightningModule = hydra.utils.instantiate(cfg.nn.module, _recursive_=False)
 
     callbacks: List[Callback] = build_callbacks(cfg.train.callbacks)
@@ -31,7 +34,7 @@ def run(cfg: DictConfig) -> str:
 
     strategy = hydra.utils.instantiate(cfg.train.strategy)
 
-    print("Instantiating the <Trainer>")
+    pylogger.info("Instantiating the <Trainer>")
     trainer = pl.Trainer(
         default_root_dir=storage_dir,
         logger=logger,
@@ -40,7 +43,7 @@ def run(cfg: DictConfig) -> str:
         **cfg.train.trainer,
     )
 
-    print("Starting training!")
+    pylogger.info("Starting training!")
     trainer.fit(model=model, datamodule=datamodule, ckpt_path=cfg.train.restore.ckpt_path)
 
     # Logger closing to release resources/avoid multi-run conflicts

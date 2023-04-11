@@ -6,5 +6,12 @@
   mode: ${train.monitor.mode}
   save_last: True
 
+- _target_: pytorch_lightning.callbacks.EarlyStopping
+  monitor: ${train.monitor.metric}
+  mode: ${train.monitor.mode}
+  min_delta: 0.01
+  patience: 1000
+
 - _target_: pytorch_lightning.callbacks.ModelSummary
   max_depth: 3
+
