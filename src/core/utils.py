@@ -50,7 +50,7 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
 
 def ds_checkpoint_dir(
         checkpoint_dir: Union[str, Path],
-        tag: str | None = None
+        tag: str = None
 ) -> str:
     if tag is None:
         latest_path = os.path.join(checkpoint_dir, "latest")
@@ -69,7 +69,7 @@ def ds_checkpoint_dir(
 def convert_zero_checkpoint_to_fp32_state_dict(
         checkpoint_dir: Union[str, Path],
         output_file: Union[str, Path],
-        tag: str | None = None
+        tag: str = None
 ) -> Dict[str, Any]:
 
     state_dict = get_fp32_state_dict_from_zero_checkpoint(checkpoint_dir, tag)
