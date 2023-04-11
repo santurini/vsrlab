@@ -7,6 +7,8 @@ import hydra
 import numpy as np
 from omegaconf import DictConfig, ListConfig
 from pytorch_lightning import seed_everything, Callback
+
+import torch
 from torch.nn import Sequential
 
 from deepspeed.utils.zero_to_fp32 import (
