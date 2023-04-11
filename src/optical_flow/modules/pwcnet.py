@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import torch
 import torch.nn as nn
@@ -5,6 +6,8 @@ from core import PROJECT_ROOT
 from core.modules.correlation import SpatialCorrelationSampler
 from torch.autograd import Variable
 from torch.nn.functional import grid_sample
+
+pylogger = logging.getLogger(__name__)
 
 def conv(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1):
     return nn.Sequential(
@@ -110,7 +113,7 @@ class PWCNet(nn.Module):
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
             ckpt = torch.load(pretrained, map_location=torch.device(device))
             self.load_state_dict(ckpt)
-            print('LOADED PWCNET PRETRAINED WEIGHTS')
+            pylogger.info('Loading PWCNet pretrained weights')
 
         else:
             for m in self.modules():
@@ -146,7 +149,6 @@ class PWCNet(nn.Module):
         return output * mask
 
     def forward(self, im1, im2):
-
         c11 = self.conv1b(self.conv1aa(self.conv1a(im1)))
         c21 = self.conv1b(self.conv1aa(self.conv1a(im2)))
         c12 = self.conv2b(self.conv2aa(self.conv2a(c11)))
