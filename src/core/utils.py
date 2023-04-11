@@ -49,7 +49,7 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
     return Sequential(*augmentation)
 
 def ds_checkpoint_dir(
-        checkpoint_dir: Union[str, pathlib.Path],
+        checkpoint_dir: Union[str, Path],
         tag: str | None = None
 ) -> str:
     if tag is None:
