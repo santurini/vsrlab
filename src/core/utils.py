@@ -5,7 +5,6 @@ from pathlib import Path
 import os
 import hydra
 import numpy as np
-import torch.distributed.checkpoint.metadata
 from omegaconf import DictConfig, ListConfig
 from pytorch_lightning import seed_everything, Callback
 from torch.nn import Sequential
