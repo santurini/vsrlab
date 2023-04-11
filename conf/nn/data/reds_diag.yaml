@@ -1,4 +1,9 @@
 _target_: vsr.data.datamodule.DataModuleVSR
+
+num_workers: 16
+batch_size: 4
+prefetch_factor: 6
+
 datasets:
   train:
     _target_: vsr.data.dataset.DatasetVSR
@@ -102,9 +107,3 @@ datasets:
         codec: [ 'libx264', 'h264', 'mpeg4' ]
         crf: [ 30, 40 ]
         fps: [ 15, 30 ]
-
-
-
-num_workers: 16
-batch_size: 4
-prefetch_factor: 6

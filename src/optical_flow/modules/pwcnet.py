@@ -236,6 +236,12 @@ class PWCNet(nn.Module):
         x = self.dc_conv4(self.dc_conv3(self.dc_conv2(self.dc_conv1(x))))
         flow2 = flow2 + self.dc_conv7(self.dc_conv6(self.dc_conv5(x)))
 
-        flow_up = self.upsample(self.deconv2(flow2))
+        flow2 = self.upsample(self.deconv2(flow2))
 
-        return flow_up
+        return [
+            flow6,
+            flow5,
+            flow4,
+            flow3,
+            flow2
+        ]

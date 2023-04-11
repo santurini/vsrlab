@@ -205,7 +205,10 @@ class LitFlowVSR(LitVSR):
 
         if distillation:
             self.distillation = distillation
-            self.spynet = Spynet().requires_grad_(False)
+            self.teacher = hydra.utils.instantiate(
+                self.hparams.teacher,
+                _recursive_=False
+            ).requires_grad_(False)
 
     def step(self, lr, hr):
         sr, lq, flow_f, flow_b = self(lr)
@@ -248,13 +251,14 @@ class LitFlowVSR(LitVSR):
         return step_out
 
     def flow_distillation(self, flow, hr, reverse=False):
-        img1 = hr[:, :-1, :, :, :].reshape(-1, c, hl, wl)
-        img2 = hr[:, 1:, :, :, :].reshape(-1, c, hl, wl)
+        b, t, c, h, w = hr.shape
+        img1 = hr[:, :-1, :, :, :].reshape(-1, c, h, w)
+        img2 = hr[:, 1:, :, :, :].reshape(-1, c, h, w)
 
         if reverse:
-            flow_hr = self.spynet(img1, img2)[-1]
+            flow_hr = self.teacher(img1, img2)[-1]
         else:
-            flow_hr = self.spynet(img2, img1)[-1]
+            flow_hr = self.teacher(img2, img1)[-1]
 
         loss = 0
         for i in range(len(flow)):

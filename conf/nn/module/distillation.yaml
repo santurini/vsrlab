@@ -1,8 +1,12 @@
-_target_: vsr.pl_module.pl_module.LitVSR
+_target_: vsr.pl_module.pl_module.LitFlowVSR
 log_interval: 250
 log_k_images: 5
-distillation: True
 filter_params: True
+distillation: True
+
+teacher:
+  _target_: optical_flow.modules.spynet.Spynet
+  pretrained: ${oc.env:PROJECT_ROOT}/src/optical_flow/weights/pretrained_spynet.pth
 
 set_lr:
   groups:
