@@ -1,6 +1,6 @@
 # @package _global_
 core:
-  run_id: 'baby_rbvsr_flow'
+  run_id: 'baby_real_flow'
   run_name: "Baby Real Basic - Flow Consistency Pretrain"
 
 defaults:
