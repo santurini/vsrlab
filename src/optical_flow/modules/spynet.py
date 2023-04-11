@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import logging
 
 import torch
 import torch.nn as nn
@@ -6,6 +7,8 @@ import torch.nn.functional as F
 from core import PROJECT_ROOT
 from core.modules.conv import ConvReLU
 from torch.nn.functional import grid_sample
+
+pylogger = logging.getLogger(__name__)
 
 class SpynetModule(nn.Module):
     def __init__(self):
