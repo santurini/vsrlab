@@ -198,17 +198,17 @@ class LitVSR(pl.LightningModule):
 class LitFlowVSR(LitVSR):
     def __init__(
             self,
-            distillation=False,
+            reverse=False,
             *args,
             **kwargs):
         super().__init__(*args, **kwargs)
 
-        if distillation:
-            self.distillation = distillation
-            self.teacher = hydra.utils.instantiate(
-                self.hparams.teacher,
-                _recursive_=False
-            ).requires_grad_(False)
+        self.reverse = reverse
+
+        self.teacher = hydra.utils.instantiate(
+            self.hparams.teacher,
+            _recursive_=False
+        ).requires_grad_(False)
 
     def step(self, lr, hr):
         sr, lq, flow_f, flow_b = self(lr)
@@ -230,11 +230,13 @@ class LitFlowVSR(LitVSR):
         lr, hr = batch
         step_out = self.step(lr, hr)
 
-        if self.distillation:
-            distillation_loss = self.flow_distillation(step_out["flow_f"], step_out["hr"]) + \
-                                self.flow_distillation(step_out["flow_b"], step_out["hr"], reverse=True)
-            step_out["distillation_loss"] = distillation_loss
-            step_out["loss"] += distillation_loss
+        distillation_loss = self.flow_distillation(step_out["flow_f"], step_out["hr"])
+
+        if self.reverse:
+            distillation_loss += self.flow_distillation(step_out["flow_b"], step_out["hr"], reverse=True)
+
+        step_out["distillation_loss"] = distillation_loss
+        step_out["loss"] += distillation_loss
 
         self.log_losses(
             step_out,

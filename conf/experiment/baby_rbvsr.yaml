@@ -1,6 +1,6 @@
 # @package _global_
 core:
-  run_id: 'baby_real_default'
+  run_id: 'baby_vsr_default'
   run_name: "Baby Real Basic - Default Pretrain"
 
 defaults:
