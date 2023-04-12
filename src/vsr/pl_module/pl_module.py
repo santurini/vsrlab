@@ -263,12 +263,13 @@ class LitFlowVSR(LitVSR):
             flow_hr = self.teacher(img2, img1)[-1]
 
         loss = 0
+        weight = [(0.8) ** (len(flow) - i) for i in range(len(flow))]
         for i in range(len(flow)):
             b, c, h, w = flow[i].shape
             loss += rmse_loss(
                 flow[i],
                 resize(flow_hr, (h, w))
-            ) / (h*w)
+            ) / (h*w) * weight[i]
 
         return loss
 

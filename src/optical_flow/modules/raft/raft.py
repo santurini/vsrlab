@@ -1,48 +1,31 @@
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 from update import BasicUpdateBlock, SmallUpdateBlock
 from extractor import BasicEncoder, SmallEncoder
-from corr import alt_corr_cuda, corr_torch
-from utils.utils import bilinear_sampler, coords_grid, upflow8
+from optical_flow.modules.raft.utils import coords_grid
 
 try:
-    autocast = torch.cuda.amp.autocast
+    from core import alt_cuda_corr
+    cuda_corr = True
 except:
-    # dummy autocast for PyTorch < 1.6
-    class autocast:
-        def __init__(self, enabled):
-            pass
-        def __enter__(self):
-            pass
-        def __exit__(self, *args):
-            pass
-
+    cuda_corr = False
 
 class RAFT(nn.Module):
-    def __init__(self, args):
-        super(RAFT, self).__init__()
-        self.args = args
-
-        if args.small:
-            self.hidden_dim = hdim = 96
-            self.context_dim = cdim = 64
-            args.corr_levels = 4
-            args.corr_radius = 3
-        
-        else:
-            self.hidden_dim = hdim = 128
-            self.context_dim = cdim = 128
-            args.corr_levels = 4
-            args.corr_radius = 4
-
-        if 'dropout' not in self.args:
-            self.args.dropout = 0
-
-        if 'alternate_corr' not in self.args:
-            self.args.alternate_corr = False
+    def __init__(
+            self,
+            hidden_dim,
+            context_dim,
+            output_dim,
+            corr_levels,
+            corr_radius
+    ):
+        super().__init__()
+        self.hidden_dim = hidden_dim
+        self.context_dim = context_dim
+        self.corr_levels = corr_levels
+        self.corr_radius = corr_radius
 
         # feature network, context network, and update block
         if args.small:
