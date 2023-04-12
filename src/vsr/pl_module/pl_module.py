@@ -170,7 +170,7 @@ class LitVSR(pl.LightningModule):
     def log_losses(self, out, stage):
         out_dict = {}
         for key in out.keys():
-            if 'loss' in key:
+            if 'loss' in key.lower():
                 new_key = '/'.join([key, stage])
                 out_dict[new_key] = out[key].cpu().detach()
 
