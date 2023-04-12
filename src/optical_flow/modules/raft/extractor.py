@@ -121,7 +121,7 @@ class BasicEncoder(nn.Module):
 
         if self.norm_fn == 'group':
             self.norm1 = nn.GroupNorm(num_groups=8, num_channels=64)
-            
+
         elif self.norm_fn == 'batch':
             self.norm1 = nn.BatchNorm2d(64)
 

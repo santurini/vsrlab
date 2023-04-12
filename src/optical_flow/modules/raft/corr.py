@@ -1,9 +1,9 @@
 import torch
 import torch.nn.functional as F
-from src.optical_flow.modules.raft.utils import bilinear_sampler
+from optical_flow.modules.raft.utils import bilinear_sampler
 
 try:
-    import alt_cuda_corr
+    from core import alt_cuda_corr
 except:
     # alt_cuda_corr is not compiled
     pass
