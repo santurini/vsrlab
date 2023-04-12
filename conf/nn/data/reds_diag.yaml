@@ -72,7 +72,7 @@ datasets:
       - _target_: core.augmentations.RandomVideoCompression
         codec: [ 'libx264', 'h264', 'mpeg4' ]
         crf: [ 30, 40 ]
-        fps: 30
+        fps: [ 30 ]
 
   val:
     _target_: ${nn.data.datasets.train._target_}
@@ -99,4 +99,4 @@ datasets:
       - _target_: core.augmentations.RandomVideoCompression
         codec: [ 'libx264', 'h264', 'mpeg4' ]
         crf: [ 30, 40 ]
-        fps: 30
+        fps: [ 30 ]

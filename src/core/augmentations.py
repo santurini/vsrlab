@@ -40,8 +40,8 @@ class RandomVideoCompression(nn.Module):
     def __init__(self, codec, crf, fps, bitrate=None):
         super().__init__()
         self.codec = choice(codec) if len(codec) > 1 else codec
-        self.crf = str(randint(crf[0], crf[1])) if len(crf) == 2 else str(crf)
-        self.fps = str(randint(fps[0], fps[1])) if len(fps) == 2 else str(fps)
+        self.crf = str(randint(crf[0], crf[1])) if len(crf) == 2 else str(crf[0])
+        self.fps = str(randint(fps[0], fps[1])) if len(fps) == 2 else str(fps[0])
 
     def forward(self, video):
         buf = io.BytesIO()
