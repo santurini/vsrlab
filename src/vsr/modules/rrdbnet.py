@@ -35,3 +35,4 @@ class ResidualResidualDenseBlock(nn.Module):
         out = self.rdb2(out)
         out = self.rdb3(out)
         return out + x
+

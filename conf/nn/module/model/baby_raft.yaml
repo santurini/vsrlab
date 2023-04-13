@@ -1,6 +1,0 @@
-_target_: vsr.modules.vsraft.VSRaft
-hidden_dim: 96
-context_dim: 64
-corr_levels: 4
-corr_radius: 3
-output_dim: 128
