@@ -10,7 +10,6 @@ LAYER_WEIGHTS = {'2': 0.1, '7': 0.1, '16': 1.0, '25': 1.0, '34': 1.0}
 class WL1Loss(nn.L1Loss):
     def __init__(self, weight=1.0, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.name = 'wl1loss'
         self.weight = weight
         self.loss = nn.L1Loss()
 
