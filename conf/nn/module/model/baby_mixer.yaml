@@ -1,0 +1,11 @@
+_target_: vsr.modules.mixervsr.MixerVSR
+cleaning_blocks: [ 64, 64 ]
+steps: 3
+mid_ch: 64
+it_blocks: 5
+patch_size: 8
+time_dim: ${nn.data.datasets.train.seq}
+exp: 2
+mix_blocks: 5
+conv_blocks: 5
+upscale: ${nn.data.datasets.train.scale}

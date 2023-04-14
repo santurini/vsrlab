@@ -97,7 +97,7 @@ class OpticalFlowConsistency(nn.Module):
         img2 = hr[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
         flow_hr = self.spynet(img2, img1)[-1]
 
-        return rmse_loss(flow_sr, flow_hr) * self.weight
+        return F.l1_loss(flow_sr, flow_hr) * self.weight
 
 class LossPipeline(nn.ModuleDict):
     def __init__(self, losses, pipeline, prefix=None, postfix=None):
