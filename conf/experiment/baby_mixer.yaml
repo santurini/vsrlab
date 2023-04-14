@@ -9,4 +9,4 @@ defaults:
   - override /train/trainer: deepspeed
   - override /train/strategy: deepspeed
 
-nn.module.set_lr@_global_: False
+override nn.module.set_lr@_global_: False
