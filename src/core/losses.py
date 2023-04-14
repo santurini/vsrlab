@@ -17,10 +17,9 @@ class WL1Loss(nn.L1Loss):
     def forward(self, x, y):
         return self.loss(x, y) * self.weight
 
-class CharbonierLoss(nn.Module):
+class CharbonnierLoss(nn.Module):
     def __init__(self, weight=1.0, eps=1e-12):
         super().__init__()
-        self.name = 'charbonier'
         self.eps = eps
         self.weight = weight
 

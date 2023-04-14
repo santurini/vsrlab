@@ -1,13 +1,13 @@
 _target_: core.losses.LossPipeline
 losses:
-  L1Loss:
-    _target_: core.losses.WL1Loss
+  CharbonnierLoss:
+    _target_: core.losses.CharbonnierLoss
     weight: 1.0
 
 pipeline:
-  - L1Loss:
+  - CharbonnierLoss:
       x: "sr"
       y: "hr"
-  - L1Loss:
+  - CharbonnierLoss:
       x: "lq"
       y: "match_hr"
