@@ -7,5 +7,5 @@ patch_size: 8
 time_dim: ${nn.data.datasets.train.seq}
 exp: 2
 mix_blocks: 40
-conv_blocks: 20
+conv_blocks: 40
 upscale: ${nn.data.datasets.train.scale}
