@@ -40,6 +40,7 @@ class DeformConv(DeformConv2d):
         self.conv_offset = nn.Conv2d(
             self.in_channels,
             deformable_groups * 2 * self.kernel_size[0] * self.kernel_size[1],
+            self.kernel_size,
             self.stride,
             self.padding,
             self.dilation,
