@@ -16,6 +16,7 @@ class MixerVSR(nn.Module):
         channels_dim = 3 * patch_size ** 2
         patches_dim = (height // patch_size) * (width // patch_size)
         self.dcblock = DeformBlock(3, mid_ch, it_blocks)
+        #self.cleaner = IterativeRefinement(steps, 3, mid_ch, it_blocks)  # b t c h w
         self.encoder = EncoderDCT(patch_size)  # b t (h/p)*(w/p) (c*p*p)
         self.mixer = MlpMixer(patches_dim, channels_dim, time_dim, exp, mix_blocks)  # b t (h/p)*(w/p) (c*p*p)
         self.decoder = DecoderIDCT(mid_ch, patch_size, height, width)  # b t c h w
@@ -23,13 +24,14 @@ class MixerVSR(nn.Module):
 
     def forward(self, x):
         b, t, c, h, w = x.shape
-        x_noise = self.dcblock(x.view(-1, c, h, w))
-        x_clean = rearrange(x-x_noise.view(b, t, c, h, w), 'b t c h w -> (b t) c h w')
+        #lq = self.cleaner(x)
+        #x_c = rearrange(lq, 'b t c h w -> (b t) c h w')
+        x_clean = x - self.dcblock(x.view(-1, c, h, w)).view(b, t, c, h, w)
         x = self.encoder(x_clean)
         x = self.mixer(x)
         x = self.decoder(x)
         x = self.upsample(x)
-        up = F.interpolate(x_clean, scale_factor=self.upscale, mode='bilinear')
+        up = F.interpolate(x_clean.view(-1, c, h, w), scale_factor=self.upscale, mode='bilinear')
         sr = rearrange(up, '(b t) c h w -> b t c h w', b=b, t=t) - x
         return sr, lq, None, None
 
