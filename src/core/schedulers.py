@@ -1,23 +1,50 @@
 import math
 
+from typing import Union, List
+
 import torch
 from torch.optim.lr_scheduler import _LRScheduler
 
-class CosineAnnealingWarmupRestarts(_LRScheduler):
-    def __init__(self,
-                 optimizer: torch.optim.Optimizer,
-                 first_cycle_steps: int,
-                 cycle_mult: float = 1.,
-                 min_lrs_pow: int = 2,
-                 warmup_steps: int = 0,
-                 gamma: float = 1.,
-                 last_epoch: int = -1
+class CosineAnnealingLinearWarmup(_LRScheduler):
+    def __init__(
+            self,
+            optimizer: torch.optim.Optimizer,
+            first_cycle_steps: int,
+            min_lrs: Union[float, List[float]] = None,
+            cycle_mult: float = 1.,
+            warmup_steps: int = 0,
+            gamma: float = 1.,
+            last_epoch: int = -1,
+            min_lrs_pow: int = None,
                  ):
 
-        assert warmup_steps < first_cycle_steps
+        '''
+        :param optimizer: warped optimizer
+        :param first_cycle_steps: number of steps for the first scheduling cycle
+        :param min_lrs: same as eta_min, min value to reach for each param_groups learning rate
+        :param cycle_mult: cycle steps magnification
+        :param warmup_steps: number of linear warmup steps
+        :param gamma: decreasing factor of the max learning rate for each cycle
+        :param last_epoch: index of the last epoch
+        :param min_lrs_pow: power of 10 factor of decrease of max_lrs (ex: min_lrs_pow=2, min_lrs = max_lrs * 10 ** -2
+        '''
+        assert warmup_steps < first_cycle_steps, "Warmup steps should be smaller than first cycle steps"
+        assert min_lrs_pow is None and min_lrs is not None, "Only one of min_lrs and min_lrs_pow should be specified"
+        assert min_lrs_pow is None and min_lrs is not None, "Only one of min_lrs and min_lrs_pow should be specified"
 
+        # inferred from optimizer param_groups
         max_lrs = [g["lr"] for g in optimizer.state_dict()['param_groups']]
-        min_lrs = [i * (10 ** -min_lrs_pow) for i in max_lrs]
+
+        if min_lrs_pow:
+            min_lrs = [i * (10 ** -min_lrs_pow) for i in max_lrs]
+
+        if min_lrs:
+            assert (
+                len(min_lrs)==len(max_lrs),
+                "The length of min_lrs should be the same as max_lrs, but found {} and {}".format(
+                    len(min_lrs), len(max_lrs)
+                )
+            )
 
         self.first_cycle_steps = first_cycle_steps  # first cycle step size
         self.cycle_mult = cycle_mult  # cycle steps magnification

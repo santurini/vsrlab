@@ -1,5 +1,5 @@
 _target_: vsr.modules.mixervsr.MixerVSR
-cleaning_blocks: [ 64, 64 ]
+img_size: [ 64, 64 ]
 steps: 3
 mid_ch: 64
 it_blocks: 5
