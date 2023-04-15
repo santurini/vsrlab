@@ -31,7 +31,7 @@ class MixerVSR(nn.Module):
         x = self.upsample(x)
         up = F.interpolate(x_clean, scale_factor=self.upscale, mode='bilinear')
         sr = rearrange(up, '(b t) c h w -> b t c h w', b=b, t=t) - x
-        return x, lq, None, None
+        return sr, lq, None, None
 
 class IterativeRefinement(nn.Module):
     def __init__(self, steps, *args, **kwargs):
