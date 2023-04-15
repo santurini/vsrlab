@@ -25,9 +25,12 @@ class MixerVSR(nn.Module):
         b, t, c, h, w = x.shape
         lq = self.cleaner(x)
         x_c = rearrange(lq, 'b t c h w -> (b t) c h w')
+        print(x.shape)
         x = self.encoder(lq)
+        print(x.shape)
         x = self.mixer(x)
         x = self.decoder(x)
+        print(x.shape)
         x = self.upsample(x)
         up = F.interpolate(x_c, scale_factor=self.upscale, mode='bilinear')
         sr = x + rearrange(up, '(b t) c h w -> b t c h w', b=b, t=t)
