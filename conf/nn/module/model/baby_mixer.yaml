@@ -3,7 +3,7 @@ img_size: [ 64, 64 ]
 steps: 3
 mid_ch: 64
 it_blocks: 20
-patch_size: 8
+patch_size: 4
 time_dim: ${nn.data.datasets.train.seq}
 exp: 2
 mix_blocks: 20
