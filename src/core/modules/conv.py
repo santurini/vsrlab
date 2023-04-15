@@ -44,8 +44,7 @@ class DeformConv(DeformConv2d):
             self.stride,
             self.padding,
             self.dilation,
-            self.groups,
-            self.bias
+            self.groups
         )
         self.init_offset()
 
