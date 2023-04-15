@@ -23,8 +23,8 @@ class MixerVSR(nn.Module):
 
     def forward(self, x):
         b, t, c, h, w = x.shape
-        x_noise = self.dcblock(x)
-        x_clean = rearrange(x-x_noise, 'b t c h w -> (b t) c h w')
+        x_noise = self.dcblock(x.view(-1, c, h, w))
+        x_clean = rearrange(x-x_noise.view(b, t, c, h, w), 'b t c h w -> (b t) c h w')
         x = self.encoder(x_clean)
         x = self.mixer(x)
         x = self.decoder(x)
