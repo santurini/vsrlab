@@ -6,7 +6,7 @@ core:
 defaults:
   - override /nn/module/model: baby_mixer
   - override /nn/module/optimizer: deepspeed
-  - override /nn/module/optimizer: bi_flow_loss
+  - override /nn/module/loss: bi_flow_loss
   - override /train/trainer: deepspeed
   - override /train/strategy: deepspeed
 

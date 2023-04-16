@@ -3,7 +3,6 @@ losses:
   L1Loss:
     _target_: core.losses.WL1Loss
     weight: 1.0
-
   OFLoss:
     _target_: core.losses.OpticalFlowConsistency
     weight: 1.0

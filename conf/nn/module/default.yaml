@@ -13,7 +13,6 @@ metric:
   metrics:
     PSNR:
       _target_: piqa.PSNR
-
     SSIM:
       _target_: piqa.SSIM
 
