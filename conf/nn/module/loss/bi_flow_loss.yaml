@@ -6,8 +6,7 @@ losses:
 
   OFLoss:
     _target_: core.losses.OpticalFlowConsistency
-    model:
-    weight:
+    weight: 1.0
 
 pipeline:
   - L1Loss:

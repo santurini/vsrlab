@@ -110,6 +110,7 @@ class LossPipeline(nn.ModuleDict):
         args = self.set_keys(args)
         for cfg in self.pipeline:
             loss, k = self.get_loss(args, cfg)
+            print(f"{k} loss: {loss}")
             args[self._set_name(k)] += loss
             args[self._set_name("loss")] += loss
 
