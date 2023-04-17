@@ -31,7 +31,7 @@ def run(cfg: DictConfig) -> str:
     if cfg.pretrain:
         pylogger.info(f"Loading pretrained weights: <{cfg.pretrain}>")
         state_dict = get_state_dict(cfg.pretrain)
-        model.load_state_dict(state_dict, strict=True)
+        model.load_state_dict(state_dict, strict=False)
 
     callbacks: List[Callback] = build_callbacks(cfg.train.callbacks)
 
