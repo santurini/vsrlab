@@ -13,7 +13,7 @@ from omegaconf import DictConfig
 from pytorch_lightning import Callback
 
 from core import PROJECT_ROOT
-from core.utils import seed_index_everything, build_callbacks
+from core.utils import seed_index_everything, build_callbacks, get_state_dict
 
 pylogger = logging.getLogger(__name__)
 
@@ -27,9 +27,11 @@ def run(cfg: DictConfig) -> str:
     # Instantiate model
     pylogger.info(f"Instantiating <{cfg.nn.module['_target_']}>")
     model: pl.LightningModule = hydra.utils.instantiate(cfg.nn.module, _recursive_=False)
+
     if cfg.pretrain:
         pylogger.info(f"Loading pretrained weights: <{cfg.pretrain}>")
-        model.load_state_dict(torch.load(cfg.pretrain), strict=True)
+        state_dict = get_state_dict(cfg.pretrain)
+        model.load_state_dict(state_dict, strict=True)
 
     callbacks: List[Callback] = build_callbacks(cfg.train.callbacks)
 
