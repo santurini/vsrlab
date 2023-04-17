@@ -172,7 +172,7 @@ class LitVSR(pl.LightningModule):
         for key in out.keys():
             if 'loss' in key.lower():
                 new_key = '/'.join([key, stage])
-                out_dict[new_key] = out[key].cpu().detach()
+                out_dict[new_key] = out[key]
 
         self.log_dict(
             out_dict,
@@ -182,10 +182,10 @@ class LitVSR(pl.LightningModule):
 
     def log_images(self, out):
         b, t, c, h, w = out["sr"].shape
-        lr = resize(out["lr"][0][-1], (h, w)).detach()
-        lq = resize(out["lq"][0][-1], (h, w)).detach()
-        hr = out["hr"][0][-1].detach()
-        sr = out["sr"][0][-1].detach().clamp(0, 1)
+        lr = resize(out["lr"][0][-1], (h, w)).cpu().detach()
+        lq = resize(out["lq"][0][-1], (h, w)).cpu().detach()
+        hr = out["hr"][0][-1].cpu().detach()
+        sr = out["sr"][0][-1].cpu().detach().clamp(0, 1)
 
         grid = make_grid([lr, hr, lq, sr], nrow=2, ncol=2)
         self.logger.log_image(key='Input Images', images=[grid], caption=[f'Model Output: step {self.global_step}'])
