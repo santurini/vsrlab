@@ -3,6 +3,5 @@ accelerator: gpu
 precision: 16
 max_steps: 200000
 min_steps: 80000
-accumulate_grad_batches: 2
 num_sanity_val_steps: 2
 deterministic: ${train.deterministic}
