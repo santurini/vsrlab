@@ -290,8 +290,8 @@ class LitGanVSR(LitVSR):
     def training_step(self, batch, batch_idx):
         opt_g, opt_d = self.optimizers()
         self.toggle_optimizer(opt_g)
-        step_out = self.generator_step(batch)
-        self._optim_step(opt_g, step_out["loss"])
+        loss = self.generator_step(batch)
+        self._optim_step(opt_g, loss)
         self.toggle_optimizer(opt_d)
         loss = self.discriminator_step((step_out["sr"], step_out["hr"]))
         self._optim_step(opt_d, loss)
@@ -340,9 +340,9 @@ class LitGanVSR(LitVSR):
         return loss
 
     def _optim_step(self, optimizer, loss):
+        optimizer.zero_grad()
         self.manual_backward(loss)
         optimizer.step()
-        optimizer.zero_grad()
         self.untoggle_optimizer(optimizer)
 
     def configure_optimizers(self):
