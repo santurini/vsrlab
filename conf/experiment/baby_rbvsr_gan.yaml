@@ -6,3 +6,5 @@ core:
 defaults:
   - override /nn/data: reds_ws
   - override /nn/module: gan
+
+pretrain: '/home/aghinassi/VSR/unified.ckpt'

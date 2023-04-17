@@ -5,6 +5,8 @@ core:
   version: 0.0.1
   tags: null
 
+pretrain: False
+
 defaults:
   - hydra: default
   - nn: default
