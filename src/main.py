@@ -29,7 +29,7 @@ def run(cfg: DictConfig) -> str:
     model: pl.LightningModule = hydra.utils.instantiate(cfg.nn.module, _recursive_=False)
     if cfg.pretrain:
         pylogger.info(f"Loading pretrained weights: <{cfg.pretrain}>")
-        model.load_from_checkpoint(torch.load(cfg.pretrain), strict=False)
+        model.load_state_dict(torch.load(cfg.pretrain), strict=False)
 
     callbacks: List[Callback] = build_callbacks(cfg.train.callbacks)
 
