@@ -68,7 +68,7 @@ class LitVSR(pl.LightningModule):
             )
         )
 
-        return step_out
+        return step_out["loss"]
 
     def validation_step(self, batch, batch_idx):
         lr, hr = batch
@@ -89,7 +89,7 @@ class LitVSR(pl.LightningModule):
         if self.get_log_flag(batch_idx, self.hparams.log_interval):
             self.log_images(step_out)
 
-        return step_out
+        return step_out["loss"]
 
     def configure_optimizers(self):
         opt_config = self._configure_optimizers(
@@ -250,7 +250,7 @@ class LitFlowVSR(LitVSR):
             )
         )
 
-        return step_out
+        return step_out["loss"]
 
     def flow_distillation(self, flow, hr, reverse=False):
         b, t, c, h, w = hr.shape
@@ -271,7 +271,7 @@ class LitFlowVSR(LitVSR):
                 resize(flow_hr, (h, w))
             ) / (h*w) * weight[i]
 
-        return loss
+        return step_out["loss"]
 
 class LitGanVSR(LitVSR):
     def __init__(self,
@@ -319,7 +319,7 @@ class LitGanVSR(LitVSR):
             ),
         )
 
-        return step_out
+        return loss
 
     def discriminator_step(self, batch):
         sr, hr = batch
