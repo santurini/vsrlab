@@ -1,6 +1,0 @@
-devices: 1
-accelerator: gpu
-precision: 16
-max_epochs: 2
-num_sanity_val_steps: 2
-deterministic: ${train.deterministic}
