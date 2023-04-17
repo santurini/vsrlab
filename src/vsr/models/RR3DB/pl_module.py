@@ -269,7 +269,7 @@ class LitFlowVSR(LitVSR):
             loss += rmse_loss(
                 flow[i],
                 resize(flow_hr, (h, w))
-            ) / (h*w) * weight[i]
+            ) / (h * w) * weight[i]
 
         return step_out["loss"]
 

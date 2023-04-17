@@ -68,7 +68,9 @@ class DeformBlock(nn.Module):
     def __init__(self, in_channels, mid_channels, blocks):
         super().__init__()
         self.conv_in = nn.Conv2d(in_channels, mid_channels, 3, 1, 1)
-        self.dcblock = nn.Sequential(*[DeformConv(deformable_groups=1, in_channels=mid_channels, out_channels=mid_channels, kernel_size=3, padding=1) for _ in range(blocks)])
+        self.dcblock = nn.Sequential(*[
+            DeformConv(deformable_groups=1, in_channels=mid_channels, out_channels=mid_channels, kernel_size=3,
+                       padding=1) for _ in range(blocks)])
         self.conv_out = nn.Conv2d(mid_channels, in_channels, 3, 1, 1)
 
     def forward(self, x):

@@ -1,21 +1,19 @@
 import logging
-from typing import List, Optional, Union, Dict, Any
-from pathlib import Path
-
 import os
+from pathlib import Path
+from typing import List, Optional, Union, Dict, Any
+
 import hydra
 import numpy as np
-from omegaconf import DictConfig, ListConfig
-from pytorch_lightning import seed_everything, Callback
-
 import torch
-from torch.nn import Sequential
-
 from deepspeed.utils.zero_to_fp32 import (
     get_fp32_state_dict_from_zero_checkpoint,
     get_model_state_file,
     get_optim_files,
 )
+from omegaconf import DictConfig, ListConfig
+from pytorch_lightning import seed_everything, Callback
+from torch.nn import Sequential
 
 CPU_DEVICE = torch.device("cpu")
 
@@ -71,7 +69,6 @@ def convert_zero_checkpoint_to_fp32_state_dict(
         output_file: Union[str, Path],
         tag: Union[str, None] = None
 ) -> Dict[str, Any]:
-
     state_dict = get_fp32_state_dict_from_zero_checkpoint(checkpoint_dir, tag)
     deepspeed_states = [
         "module",
@@ -102,9 +99,9 @@ def convert_zero_checkpoint_to_fp32_state_dict(
 def bilinear_sampler(img, coords, mask=False):
     """ Wrapper for grid_sample, uses pixel coordinates """
     H, W = img.shape[-2:]
-    xgrid, ygrid = coords.split([1,1], dim=-1)
-    xgrid = 2*xgrid/(W-1) - 1
-    ygrid = 2*ygrid/(H-1) - 1
+    xgrid, ygrid = coords.split([1, 1], dim=-1)
+    xgrid = 2 * xgrid / (W - 1) - 1
+    ygrid = 2 * ygrid / (H - 1) - 1
 
     grid = torch.cat([xgrid, ygrid], dim=-1)
     img = F.grid_sample(img, grid, align_corners=True)
@@ -114,7 +111,6 @@ def bilinear_sampler(img, coords, mask=False):
         return img, mask.float()
 
     return img
-
 
 def coords_grid(batch, ht, wd, device):
     coords = torch.meshgrid(torch.arange(ht, device=device), torch.arange(wd, device=device))
