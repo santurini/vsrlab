@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from kornia.geometry.transform import resize
-from optical_flow.modules.spynet import Spynet
+from optical_flow.models.spynet import Spynet
 from torchvision import models
 
 LAYER_WEIGHTS = {'2': 0.1, '7': 0.1, '16': 1.0, '25': 1.0, '34': 1.0}
