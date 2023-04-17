@@ -1,11 +1,11 @@
 _target_: vsr.data.datamodule.DataModuleVSR
-num_workers: 2
+num_workers: 8
 batch_size: 4
 prefetch_factor: 2
 datasets:
   train:
     _target_: vsr.data.dataset.DatasetVSR
-    path: "/mnt/hdd/dataset/REDS"
+    path: "/mnt/hdd/dataset/MixedVSR"
     split: "train"
     seq: 15
     scale: 4

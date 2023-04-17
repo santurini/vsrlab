@@ -4,4 +4,5 @@ core:
   run_name: "Baby Real Basic - Finetune"
 
 defaults:
+  - override /nn/data: reds_ws
   - override /nn/module: gan
