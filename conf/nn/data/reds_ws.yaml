@@ -5,7 +5,7 @@ prefetch_factor: 2
 datasets:
   train:
     _target_: vsr.data.dataset.DatasetVSR
-    path: "/mnt/hdd/dataset/MixedVSR"
+    path: "/mnt/hdd/dataset/MergedVSR"
     split: "train"
     seq: 15
     scale: 4
