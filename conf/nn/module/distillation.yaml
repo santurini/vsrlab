@@ -4,7 +4,7 @@ filter_params: True
 reverse: True
 
 teacher:
-  _target_: optical_flow.modules.spynet.Spynet
+  _target_: optical_flow.models.spynet.Spynet
   pretrained: ${oc.env:PROJECT_ROOT}/src/optical_flow/weights/pretrained_spynet.pth
 
 set_lr:

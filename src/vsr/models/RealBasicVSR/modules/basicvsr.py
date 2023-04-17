@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from core.modules.conv import ResidualBlock
 from core.modules.upsampling import PixelShufflePack
-from optical_flow.modules.spynet import Spynet, flow_warp
+from optical_flow.models.spynet import Spynet, flow_warp
 
 class BasicVSR(nn.Module):
     def __init__(self, mid_channels=64, res_blocks=30, upscale=4, is_mirror=False):

@@ -1,4 +1,4 @@
-_target_: vsr.modules.realbasicvsr.RealBasicVSR
+_target_: vsr.models.RealBasicVSR.modules.realbasicvsr.RealBasicVSR
 cleaning_blocks: 10
 mid_channels: 64
 upscale: ${nn.data.datasets.train.scale}

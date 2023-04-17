@@ -18,7 +18,7 @@ metric:
       _target_: piqa.SSIM
 
 discriminator:
-  _target_: vsr.modules.unet-discriminator.UNetDiscriminator
+  _target_: vsr.models.RealBasicVSR.modules.unet-discriminator.UNetDiscriminator
   in_ch: 3
   mid_ch: 64
 
