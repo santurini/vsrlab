@@ -1,5 +1,6 @@
 import logging
 import os
+import yaml
 from pathlib import Path
 from typing import List, Optional, Union, Dict, Any
 
@@ -29,9 +30,10 @@ def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> Opt
         pylogger.warning("The seed has not been set! The reproducibility is not guaranteed.")
         return None
 
-def save_config(path):
-    with open(path, 'w') as file:
-        yaml.dump(dict_file, file)
+def save_config(cfg, save_dir, file_name):
+    save_path = os.path.joins(save_dir, file_name)
+    with open(f"{save_path}.yaml", 'w') as file:
+        yaml.dump(cfg, file)
 
 def get_state_dict(path):
     return torch.load(path)['state_dict']

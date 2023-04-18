@@ -5,7 +5,7 @@ from kornia.geometry.transform import resize
 from optical_flow.models.spynet import Spynet
 from torchvision import models
 
-LAYER_WEIGHTS = {'2': 0.1, '7': 0.1, '16': 1.0, '25': 1.0, '34': 1.0}
+LAYER_WEIGHTS = {'2': 0.1, '7': 0.1, '16': 0.8, '25': 0.9, '34': 1.0}
 
 class WL1Loss(nn.L1Loss):
     def __init__(self, weight=1.0, *args, **kwargs):

@@ -19,7 +19,7 @@ pylogger = logging.getLogger(__name__)
 
 def run(cfg: DictConfig) -> str:
     seed_index_everything(cfg.train)
-    save_config(cfg.train.logger.save_dir)
+    save_config(cfg, cfg.train.logger.save_dir, cfg.train.logger.id)
 
     # Instantiate datamodule
     pylogger.info(f"Instantiating <{cfg.nn.data['_target_']}>")
