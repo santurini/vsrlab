@@ -4,3 +4,4 @@ mid_channels: 64
 upscale: ${nn.data.datasets.train.scale}
 is_mirror: False
 res_blocks: 5
+pretrained_flow: False

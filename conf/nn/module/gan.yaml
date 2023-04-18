@@ -22,6 +22,14 @@ discriminator:
   in_ch: 3
   mid_ch: 64
 
+perceptual_loss:
+  _target_: core.losses.PerceptualLoss
+  weight: 1
+
+adversarial_loss:
+  _target_: core.losses.AdversarialLoss
+  weight: 2e-5
+
 defaults:
   - model: baby_realbasic
   - loss: pixel_loss

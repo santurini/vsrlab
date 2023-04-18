@@ -5,12 +5,12 @@ from core.modules.upsampling import PixelShufflePack
 from optical_flow.models.spynet import Spynet, flow_warp
 
 class BasicVSR(nn.Module):
-    def __init__(self, mid_channels=64, res_blocks=30, upscale=4, is_mirror=False):
+    def __init__(self, mid_channels=64, res_blocks=30, upscale=4, is_mirror=False, pretrained_flow=False):
         super().__init__()
         self.name = 'BasicVSR'
         self.is_mirror = is_mirror
         self.mid_channels = mid_channels
-        self.spynet = Spynet()
+        self.spynet = Spynet(pretrained_flow)
         self.backward_resblocks = ResidualBlock(mid_channels + 3, mid_channels, res_blocks)
         self.forward_resblocks = ResidualBlock(mid_channels + 3, mid_channels, res_blocks)
         self.point_conv = nn.Sequential(nn.Conv2d(mid_channels * 2, mid_channels, 1, 1), nn.LeakyReLU(0.1))

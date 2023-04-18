@@ -172,7 +172,7 @@ class LitVSR(pl.LightningModule):
         for key in out.keys():
             if 'loss' in key.lower():
                 new_key = '/'.join([key, stage])
-                out_dict[new_key] = out[key]
+                out_dict[new_key] = out[key].cpu().detach()
 
         self.log_dict(
             out_dict,
@@ -184,7 +184,7 @@ class LitVSR(pl.LightningModule):
         b, t, c, h, w = out["sr"].shape
         lr = resize(out["lr"][0][-1], (h, w)).detach()
         lq = resize(out["lq"][0][-1], (h, w)).detach()
-        hr = out["hr"][0][-1].detach()
+        hr = out["hr"][0][-1].cpu().detach()
         sr = out["sr"][0][-1].detach().clamp(0, 1)
 
         grid = make_grid([lr, hr, lq, sr], nrow=2, ncol=2)
@@ -276,6 +276,8 @@ class LitFlowVSR(LitVSR):
 class LitGanVSR(LitVSR):
     def __init__(self,
                  discriminator: DictConfig,
+                 perceptual_loss: DictConfig,
+                 adversarial_loss: DictConfig,
                  *args,
                  **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -284,8 +286,8 @@ class LitGanVSR(LitVSR):
 
         self.discriminator = hydra.utils.instantiate(discriminator, _recursive_=False)
 
-        self.perceptual: nn.Module = PerceptualLoss()
-        self.adversarial: nn.Module = AdversarialLoss()
+        self.perceptual: nn.Module = hydra.utils.instantiate(perceptual_loss, _recursive_=False)
+        self.adversarial: nn.Module = hydra.utils.instantiate(adversarial_loss, _recursive_=False)
 
     def training_step(self, batch, batch_idx):
         opt_g, opt_d = self.optimizers()
@@ -300,9 +302,16 @@ class LitGanVSR(LitVSR):
         lr, hr = batch
         b, t, c, h, w = hr.shape
         step_out = self.step(lr, hr)
-        perceptual_loss = self.perceptual(step_out["sr"], hr)
+        perceptual_loss = self.perceptual(
+            step_out["sr"].view(-1, c, h, w),
+            hr.view(-1, c, h, w)
+        )
         disc_sr = self.discriminator(step_out["sr"].view(-1, c, h, w))
-        disc_fake_loss = self.adversarial(disc_sr, 1, False)
+        disc_fake_loss = self.adversarial(
+            disc_sr,
+            1,
+            False
+        )
         loss = step_out['loss'] + perceptual_loss + disc_fake_loss
 
         self.log_dict(
@@ -326,9 +335,17 @@ class LitGanVSR(LitVSR):
         sr = rearrange(sr, 'b t c h w -> (b t) c h w')
         hr = rearrange(hr, 'b t c h w -> (b t) c h w')
         disc_hr = self.discriminator(hr)
-        disc_true_loss = self.adversarial(disc_hr, 1, True)
+        disc_true_loss = self.adversarial(
+            disc_hr,
+            1,
+            True
+        )
         disc_sr = self.discriminator(sr.detach())
-        disc_fake_loss = self.adversarial(disc_sr, 0, True)
+        disc_fake_loss = self.adversarial(
+            disc_sr,
+            0,
+            True
+        )
         loss = disc_fake_loss + disc_true_loss
 
         self.log_dict(

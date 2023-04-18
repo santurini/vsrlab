@@ -42,15 +42,14 @@ class PerceptualVGG(nn.Module):
         for name, module in self.vgg_layers.named_children():
             x = module(x)
             if name in self.layer_name_list:
-                output[name] = x.clone()
+                output[name] = x
         return output
 
 class PerceptualLoss(nn.Module):
-    def __init__(self, weight=1, layer_weights=LAYER_WEIGHTS):
+    def __init__(self, weight=1):
         super().__init__()
-        self.name = 'perceptual'
         self.weight = weight
-        self.layer_weights = layer_weights
+        self.layer_weights = LAYER_WEIGHTS
         self.vgg = PerceptualVGG(list(layer_weights.keys()))
 
     def forward(self, yhat, y):
@@ -68,7 +67,6 @@ class PerceptualLoss(nn.Module):
 class AdversarialLoss(nn.Module):
     def __init__(self, weight=2e-5):
         super().__init__()
-        self.name = 'adversarial'
         self.weight = weight
 
     def forward(self, x, target, is_disc=False):

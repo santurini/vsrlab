@@ -29,6 +29,10 @@ def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> Opt
         pylogger.warning("The seed has not been set! The reproducibility is not guaranteed.")
         return None
 
+def save_config(path):
+    with open(path, 'w') as file:
+        yaml.dump(dict_file, file)
+
 def get_state_dict(path):
     return torch.load(path)['state_dict']
 

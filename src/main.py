@@ -13,12 +13,13 @@ from omegaconf import DictConfig
 from pytorch_lightning import Callback
 
 from core import PROJECT_ROOT
-from core.utils import seed_index_everything, build_callbacks, get_state_dict
+from core.utils import seed_index_everything, build_callbacks, get_state_dict, save_config
 
 pylogger = logging.getLogger(__name__)
 
 def run(cfg: DictConfig) -> str:
     seed_index_everything(cfg.train)
+    save_config(cfg.train.logger.save_dir)
 
     # Instantiate datamodule
     pylogger.info(f"Instantiating <{cfg.nn.data['_target_']}>")
