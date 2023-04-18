@@ -1,17 +1,24 @@
+import logging
+from collections import OrderedDict
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from update import BasicUpdateBlock, SmallUpdateBlock
-from extractor import BasicEncoder, SmallEncoder
-from corr import correlation
-from src.optical_flow.models.raft.utils import coords_grid, upflow
+from optical_flow.models.raft.update import BasicUpdateBlock, SmallUpdateBlock
+from optical_flow.models.raft.extractor import BasicEncoder, SmallEncoder
+from optical_flow.models.raft.corr import correlation
+from optical_flow.models.raft.utils import coords_grid, upflow
+from core import PROJECT_ROOT
+
+pylogger = logging.getLogger(__name__)
 
 class RAFT(nn.Module):
     def __init__(
             self,
             small: bool = True,
-            scale_factor: int = 4
+            scale_factor: int = 4,
+            pretrained: bool = True
     ):
         super().__init__()
 
@@ -25,6 +32,12 @@ class RAFT(nn.Module):
             self.fnet = SmallEncoder(output_dim=128, norm_fn='instance')
             self.cnet = SmallEncoder(output_dim=self.hidden_dim+self.context_dim, norm_fn='none')
             self.update_block = SmallUpdateBlock(self.corr_levels, self.corr_radius, hidden_dim=self.hidden_dim)
+
+            if pretrained:
+                pylogger.info('Loading RAFT pretrained weights')
+                state_dict = torch.load(f'{PROJECT_ROOT}/src/optical_flow/weights/raft-small.pth')
+                new_dict = OrderedDict([(k.partition('module.')[-1], v) for k, v in state_dict.items()])
+                self.load_state_dict(new_dict, strict=True)
         
         else:
             self.hidden_dim = 128
@@ -34,6 +47,12 @@ class RAFT(nn.Module):
             self.fnet = BasicEncoder(output_dim=256, norm_fn='instance')
             self.cnet = BasicEncoder(output_dim=self.hidden_dim+self.context_dim, norm_fn='batch')
             self.update_block = BasicUpdateBlock(self.corr_levels, self.corr_radius, hidden_dim=self.hidden_dim)
+
+            if pretrained:
+                pylogger.info('Loading <RAFT> pretrained weights')
+                state_dict = torch.load(f'{PROJECT_ROOT}/src/optical_flow/weights/raft-sintel.pth')
+                new_dict = OrderedDict([(k.partition('module.')[-1], v) for k, v in state_dict.items()])
+                self.load_state_dict(new_dict)
 
     def freeze_bn(self):
         for m in self.modules():
@@ -60,7 +79,7 @@ class RAFT(nn.Module):
 
         for itr in range(iters):
             coords1 = coords1.detach()
-            corr = self.corr_fn(coords1, fmap1, fmap2, self.corr_levels, self.corr_radius)
+            corr = correlation(coords1, fmap1, fmap2, self.corr_levels, self.corr_radius)
 
             flow = coords1 - coords0
             net, up_mask, delta_flow = self.update_block(net, inp, corr, flow)

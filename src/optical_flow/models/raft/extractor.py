@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 class ResidualBlock(nn.Module):
     def __init__(self, in_planes, planes, norm_fn='instance', stride=1):
         super().__init__()
