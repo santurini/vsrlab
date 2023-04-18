@@ -17,7 +17,7 @@ class RAFT(nn.Module):
     def __init__(
             self,
             small: bool = True,
-            scale_factor: int = 4,
+            scale_factor: int = 2,
             pretrained: bool = True
     ):
         super().__init__()
