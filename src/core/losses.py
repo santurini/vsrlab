@@ -50,7 +50,7 @@ class PerceptualLoss(nn.Module):
         super().__init__()
         self.weight = weight
         self.layer_weights = LAYER_WEIGHTS
-        self.vgg = PerceptualVGG(list(layer_weights.keys()))
+        self.vgg = PerceptualVGG(list(self.layer_weights.keys()))
 
     def forward(self, yhat, y):
         h = y.shape[-2];
