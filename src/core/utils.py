@@ -9,7 +9,7 @@ import numpy as np
 from collections import OrderedDict
 import torch
 
-from omegaconf import DictConfig, ListConfig
+from omegaconf import DictConfig, ListConfig, OmegaConf
 from pytorch_lightning import seed_everything, Callback
 from torch.nn import Sequential
 
@@ -31,9 +31,10 @@ def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> Opt
         return None
 
 def save_config(cfg, save_dir, file_name):
-    save_path = os.path.joins(save_dir, file_name)
+    save_path = os.path.join(save_dir, file_name)
     with open(f"{save_path}.yaml", 'w') as file:
-        yaml.dump(cfg, file)
+        yaml_str = OmegaConf.to_yaml(cfg, resolve=True)
+        file.write(yaml_str)
 
 def get_state_dict(path):
     return torch.load(path)['state_dict']
