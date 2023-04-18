@@ -42,16 +42,13 @@ class RAFT(nn.Module):
 
     @staticmethod
     def initialize_flow(img):
-        """ Flow is represented as difference between two coordinate grids flow = coords1 - coords0"""
         N, C, H, W = img.shape
         coords0 = coords_grid(N, H//8, W//8, device=img.device)
         coords1 = coords_grid(N, H//8, W//8, device=img.device)
 
-        # optical flow computed as difference: flow = coords1 - coords0
         return coords0, coords1
 
     def forward(self, image1, image2, iters=12):
-        """ Estimate optical flow between pair of frames """
         fmap1, fmap2 = self.fnet([image1, image2])
 
         cnet = self.cnet(image1)
@@ -68,7 +65,6 @@ class RAFT(nn.Module):
             flow = coords1 - coords0
             net, up_mask, delta_flow = self.update_block(net, inp, corr, flow)
 
-            # F(t+1) = F(t) + \Delta(t)
             coords1 = coords1 + delta_flow
 
         flow_up = upflow(coords1-coords0, scale_factor=self.scale_factor)
