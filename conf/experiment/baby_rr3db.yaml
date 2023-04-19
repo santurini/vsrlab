@@ -5,6 +5,7 @@ core:
 
 defaults:
   - override /nn/module: baby_rr3db
+  - override /nn/module/optimizer: deepspeed
   - override /train/trainer: deepspeed
   - override /train/strategy: deepspeed
 
