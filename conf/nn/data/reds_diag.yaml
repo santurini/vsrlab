@@ -9,7 +9,7 @@ datasets:
     _target_: vsr.data.dataset.DatasetVSR
     path: "/home/aghinassi/Desktop/MergedVSR"
     split: "train"
-    seq: 15
+    seq: 12
     scale: 4
     size: 0.9
     hr_augmentation:
