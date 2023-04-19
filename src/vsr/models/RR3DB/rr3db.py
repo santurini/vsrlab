@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from kornia.geometry.transform import resize
 
 from optical_flow.models.raft.raft import RAFT
@@ -95,10 +96,11 @@ class RR3DBNet(nn.Module):
             self,
             in_nc=3, out_nc=3, nf=32, nrb=2, nb=5, gc=64, sf=4,
             raft_small=True, raft_scale_factor=4, raft_pretrained=True,
-            iterations=10
+            iterations=10, gamma=0.9
     ):
         super().__init__()
         self.sf = sf
+        self.gamma = gamma
         self.iterations = iterations
         self.conv_first = nn.Conv3d(in_nc, nf, 3, 1, 1, padding_mode='reflect', bias=False)
         self.rrdbnet = nn.Sequential(*[RRDB(nf, gc, nrb) for _ in range(nb)])
@@ -106,15 +108,40 @@ class RR3DBNet(nn.Module):
         self.upsample = UpsampleBlock(nf, out_nc)
         self.update = UpdateBlock(raft_small, raft_scale_factor, raft_pretrained, nf)
 
-    def forward(self, x):
-        fea = self.conv_first(x)
+    def forward(self, lr, hr, test=True):
+        if test:
+            return self.test_step(lr, hr)
+        else:
+            return self.train_step(lr, hr)
+
+    def train_step(self, lr, hr):
+        fea = self.conv_first(lr)
         trunk = self.trunk_conv(self.rrdbnet(fea))
         fea = fea + trunk
 
         out = self.upsample(fea)
-        for _ in range(self.iterations):
+
+        loss = 0
+        for i in range(self.iterations):
+            fea = self.update(fea, out)
+            res = self.upsample(fea)
+            out = out + res
+            loss += F.l1_loss(out, hr) * self.gamma ** (self.iterations - i)
+
+        return out, loss
+
+    def test_step(self, lr, hr):
+        fea = self.conv_first(lr)
+        trunk = self.trunk_conv(self.rrdbnet(fea))
+        fea = fea + trunk
+
+        out = self.upsample(fea)
+
+        for i in range(self.iterations):
             fea = self.update(fea, out)
             res = self.upsample(fea)
             out = out + res
 
-        return out
+        loss = F.l1_loss(out, hr)
+
+        return out, loss

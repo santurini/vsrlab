@@ -15,11 +15,10 @@ from torchvision.utils import make_grid
 
 pylogger = logging.getLogger(__name__)
 
-class LitVSR(pl.LightningModule):
+class LitBase(pl.LightningModule):
     def __init__(
             self,
             model: DictConfig,
-            loss: DictConfig,
             metric: DictConfig,
             *args,
             **kwargs
@@ -31,30 +30,31 @@ class LitVSR(pl.LightningModule):
         self.train_metric = metric.clone(postfix='/train')
         self.val_metric = metric.clone(postfix='/val')
 
-        self.loss = hydra.utils.instantiate(loss, _recursive_=True, _convert_="partial")
-
         self.model = hydra.utils.instantiate(model, _recursive_=False)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.model(x)
+    def forward(
+            self,
+            lr: torch.Tensor,
+            hr: torch.Tensor,
+            test: bool
+    ):
+        return self.model(lr, hr, test)
 
-    def step(self, lr, hr):
-        sr, lq, _, _ = self(lr)
+    def step(self, lr, hr, test):
+        sr, loss = self(lr, hr, test)
 
         args = {
             "lr": lr,
             "sr": sr,
             "hr": hr,
-            "lq": lq
+            "loss": loss
         }
-
-        args = self.loss(args)
 
         return args
 
     def training_step(self, batch, batch_idx):
         lr, hr = batch
-        step_out = self.step(lr, hr)
+        step_out = self.step(lr, hr, test=False)
 
         self.log_losses(
             step_out,
@@ -72,7 +72,7 @@ class LitVSR(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         lr, hr = batch
-        step_out = self.step(lr, hr)
+        step_out = self.step(lr, hr, test=True)
 
         self.log_losses(
             step_out,
@@ -195,85 +195,7 @@ class LitVSR(pl.LightningModule):
         flag = batch_idx % log_interval == 0
         return flag
 
-class LitFlowVSR(LitVSR):
-    def __init__(
-            self,
-            reverse=False,
-            *args,
-            **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.reverse = reverse
-
-        self.teacher = hydra.utils.instantiate(
-            self.hparams.teacher,
-            _recursive_=False
-        ).requires_grad_(False)
-
-    def step(self, lr, hr):
-        sr, lq, flow_f, flow_b = self(lr)
-
-        args = {
-            "lr": lr,
-            "sr": sr,
-            "hr": hr,
-            "lq": lq,
-            "flow_f": flow_f,
-            "flow_b": flow_b
-        }
-
-        args = self.loss(args)
-
-        return args
-
-    def training_step(self, batch, batch_idx):
-        lr, hr = batch
-        step_out = self.step(lr, hr)
-
-        distillation_loss = self.flow_distillation(step_out["flow_f"], step_out["hr"])
-
-        if self.reverse:
-            distillation_loss += self.flow_distillation(step_out["flow_b"], step_out["hr"], reverse=True)
-
-        step_out["distillation_loss"] = distillation_loss
-        step_out["loss"] += distillation_loss
-
-        self.log_losses(
-            step_out,
-            "train",
-        )
-
-        self.log_dict(
-            self.train_metric(
-                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
-                rearrange(hr, 'b t c h w -> (b t) c h w')
-            )
-        )
-
-        return step_out["loss"]
-
-    def flow_distillation(self, flow, hr, reverse=False):
-        b, t, c, h, w = hr.shape
-        img1 = hr[:, :-1, :, :, :].reshape(-1, c, h, w)
-        img2 = hr[:, 1:, :, :, :].reshape(-1, c, h, w)
-
-        if reverse:
-            flow_hr = self.teacher(img1, img2)[-1]
-        else:
-            flow_hr = self.teacher(img2, img1)[-1]
-
-        loss = 0
-        weight = [(0.8) ** (len(flow) - i) for i in range(len(flow))]
-        for i in range(len(flow)):
-            b, c, h, w = flow[i].shape
-            loss += rmse_loss(
-                flow[i],
-                resize(flow_hr, (h, w))
-            ) / (h * w) * weight[i]
-
-        return step_out["loss"]
-
-class LitGanVSR(LitVSR):
+class LitGan(LitBase):
     def __init__(self,
                  discriminator: DictConfig,
                  *args,
