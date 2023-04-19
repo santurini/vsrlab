@@ -96,12 +96,11 @@ class UpdateBlock(nn.Module):
 class RR3DBNet(nn.Module):
     def __init__(
             self,
-            in_nc=3, out_nc=3, nf=32, nrb=2, nb=5, gc=64, sf=4,
+            in_nc=3, out_nc=3, nf=32, nrb=2, nb=5, gc=64,
             raft_small=True, raft_scale_factor=4, raft_pretrained=True,
             iterations=10, gamma=0.9
     ):
         super().__init__()
-        self.sf = sf
         self.gamma = gamma
         self.iterations = iterations
         self.conv_first = nn.Conv3d(in_nc, nf, 3, 1, 1, padding_mode='reflect', bias=False)
