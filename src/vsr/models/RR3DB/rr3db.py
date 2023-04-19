@@ -79,12 +79,10 @@ class UpdateBlock(nn.Module):
 
     def forward(self, fea, img):
         b, c, t, h, w = fea.shape
-        print(fea.shape)
         img0 = rearrange(img[:, :, :-1, :, :], 'b c t h w -> (b t) c h w')
         img1 = rearrange(img[:, :, 1:, :, :], 'b c t h w -> (b t) c h w')
 
         flow = self.optical_flow(img0, img1)
-        print(flow.shape)
         flow = rearrange(flow, '(b t) c h w -> b c t h w', b=b, t=t-1)
         flow_0 = flow.new_zeros(b, 2, 1, h, w)
         flow = torch.cat([flow_0, flow], dim=2)
