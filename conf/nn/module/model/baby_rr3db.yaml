@@ -3,7 +3,7 @@ in_nc: 3
 out_nc: 3
 nf: 32
 nrb: 2
-nb: 3
+nb: 2
 gc: 64
 raft_small: True
 raft_scale_factor: 2
