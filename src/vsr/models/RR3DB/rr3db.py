@@ -109,11 +109,13 @@ class RR3DBNet(nn.Module):
             return self.train_step(lr, hr)
 
     def train_step(self, lr, hr):
+        _, _, _, h, w = hr.shape
+
         fea = self.conv_first(lr)
         trunk = self.trunk_conv(self.rrdbnet(fea))
         fea = fea + trunk
 
-        out = self.upsample(fea)
+        out = self.upsample(fea) + resize(lr, (h, w))
 
         total_loss = 0
         for i in range(self.iterations):
