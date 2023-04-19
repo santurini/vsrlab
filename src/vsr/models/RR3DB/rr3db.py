@@ -119,9 +119,11 @@ class RR3DBNet(nn.Module):
 
         total_loss = 0
         for i in range(self.iterations):
+            out = out.detach()
+
             fea = self.update(fea, out)
             res = self.upsample(fea)
-            out = out.detach() + res
+            out = out + res
 
             loss = F.l1_loss(out, hr) * self.gamma ** (self.iterations - i)
             total_loss += loss
@@ -138,6 +140,8 @@ class RR3DBNet(nn.Module):
         out = self.upsample(fea) + resize(lr, (h, w))
 
         for i in range(self.iterations):
+            out = out.detach()
+
             fea = self.update(fea, out)
             res = self.upsample(fea)
             out = out + res
