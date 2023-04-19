@@ -1,7 +1,7 @@
 _target_: vsr.models.RR3DB.rr3db.RR3DBNet
 in_nc: 3
 out_nc: 3
-nf: 32
+nf: 16
 nrb: 2
 nb: 4
 gc: 64
