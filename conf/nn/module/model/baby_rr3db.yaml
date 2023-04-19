@@ -8,5 +8,5 @@ gc: 64
 raft_small: True
 raft_scale_factor: 2
 raft_pretrained: True
-iterations: 1
+iterations: 2
 gamma: 0.9
