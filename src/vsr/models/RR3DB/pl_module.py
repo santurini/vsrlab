@@ -31,7 +31,6 @@ class LitBase(pl.LightningModule):
         self.val_metric = metric.clone(postfix='/val')
 
         self.model = hydra.utils.instantiate(model, _recursive_=False)
-        print('NUMBER OF PARAMS:', sum(p.numel() for p in self.model.parameters() if p.requires_grad))
 
     def forward(
             self,
@@ -64,8 +63,8 @@ class LitBase(pl.LightningModule):
 
         self.log_dict(
             self.train_metric(
-                rearrange(step_out["sr"].detach().clamp(0, 1), 'b c t h w -> (b t) c h w'),
-                rearrange(hr.detach(), 'b c t h w -> (b t) c h w')
+                rearrange(step_out["sr"].detach().clamp(0, 1), 'b c t h w -> (b t) c h w').contiguous(),
+                rearrange(hr.detach(), 'b c t h w -> (b t) c h w').contiguous()
             )
         )
 
@@ -82,8 +81,8 @@ class LitBase(pl.LightningModule):
 
         self.log_dict(
             self.val_metric(
-                rearrange(step_out["sr"].detach().clamp(0, 1), 'b c t h w -> (b t) c h w'),
-                rearrange(hr.detach(), 'b c t h w -> (b t) c h w')
+                rearrange(step_out["sr"].detach().clamp(0, 1), 'b c t h w -> (b t) c h w').contiguous(),
+                rearrange(hr.detach(), 'b c t h w -> (b t) c h w').contiguous()
             )
         )
 
