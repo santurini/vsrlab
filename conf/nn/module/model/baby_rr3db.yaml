@@ -3,7 +3,7 @@ in_nc: 3
 out_nc: 3
 nf: 16
 nrb: 2
-nb: 4
+nb: 2
 gc: 32
 sf: 4
 raft_small: True
