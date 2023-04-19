@@ -9,15 +9,15 @@ datasets:
     _target_: vsr.data.dataset.DatasetVSR
     path: "/home/aghinassi/Desktop/MergedVSR"
     split: "train"
-    seq: 8
+    seq: 10
     scale: 4
     size: 0.9
     hr_augmentation:
       - _target_: kornia.augmentation.RandomCrop
         size: [ 256, 256 ]
+        pad_if_needed: True
         same_on_batch: True
         keepdim: True
-        p: 1.0
 
       - _target_: kornia.augmentation.RandomHorizontalFlip
         p: 0.5
@@ -80,9 +80,9 @@ datasets:
     hr_augmentation:
       - _target_: kornia.augmentation.RandomCrop
         size: [ 256, 256 ]
+        pad_if_needed: True
         same_on_batch: True
         keepdim: True
-        p: 1.0
 
     lr_augmentation:
       - _target_: kornia.augmentation.Resize
