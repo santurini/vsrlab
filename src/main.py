@@ -29,7 +29,7 @@ def run(cfg: DictConfig) -> str:
     pylogger.info(f"Instantiating <{cfg.nn.module['_target_']}>")
     model: pl.LightningModule = hydra.utils.instantiate(cfg.nn.module, _recursive_=False)
 
-    if cfg.pretrain:
+    if cfg.finetune:
         pylogger.info(f"Loading pretrained weights: <{cfg.pretrain}>")
         state_dict = get_state_dict(cfg.pretrain)
         model.load_state_dict(state_dict, strict=False)
@@ -51,7 +51,7 @@ def run(cfg: DictConfig) -> str:
     )
 
     pylogger.info("Starting training!")
-    trainer.fit(model=model, datamodule=datamodule, ckpt_path=cfg.train.restore.ckpt_path)
+    trainer.fit(model=model, datamodule=datamodule, ckpt_path=cfg.train.restore)
 
     # Logger closing to release resources/avoid multi-run conflicts
     if logger is not None:

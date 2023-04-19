@@ -2,8 +2,7 @@
 seed_index: 0
 deterministic: False
 
-restore:
-  ckpt_path: null
+restore: null
 
 monitor:
   metric: 'loss/val'
