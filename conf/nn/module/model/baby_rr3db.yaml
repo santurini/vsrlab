@@ -4,9 +4,9 @@ out_nc: 3
 nf: 16
 nrb: 2
 nb: 2
-gc: 32
+gc: 16
 raft_small: True
 raft_scale_factor: 2
 raft_pretrained: True
-iterations: 5
+iterations: 10
 gamma: 0.9
