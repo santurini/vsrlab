@@ -74,7 +74,7 @@ class ConvGRU(nn.Module):
 class UpdateBlock(nn.Module):
     def __init__(self, small, scale_factor, pretrained, nf):
         super().__init__()
-        self.optical_flow = RAFT(small, scale_factor, pretrained).requires_grad_(False)
+        self.optical_flow = RAFT(small, scale_factor, pretrained)
         self.gru = ConvGRU(fea_dim=nf, flow_dim=2)
 
     def forward(self, fea, img):
