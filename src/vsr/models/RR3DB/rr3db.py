@@ -120,18 +120,18 @@ class RR3DBNet(nn.Module):
 
         out = self.upsample(fea)
 
-        loss = 0
+        total_loss = 0
         for i in range(self.iterations):
             fea = self.update(fea, out)
             res = self.upsample(fea)
             out = out + res
 
-            it_loss = F.l1_loss(out, hr) * self.gamma ** (self.iterations - i)
-            it_loss.backward(retain_graph=True)
+            loss = F.l1_loss(out, hr) * self.gamma ** (self.iterations - i)
+            loss.backward(retain_graph=True)
 
-            loss += it_loss
+            total_loss += it_loss
 
-        return out, loss
+        return out, total_loss
 
     def test_step(self, lr, hr):
         fea = self.conv_first(lr)
