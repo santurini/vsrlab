@@ -39,4 +39,4 @@ def correlation(coords, fmap1, fmap2, num_levels=4, radius=4):
         out_pyramid.append(corr)
 
     out = torch.cat(out_pyramid, dim=-1)
-    return out.permute(0, 3, 1, 2).contiguous().float()
+    return out.permute(0, 3, 1, 2)
