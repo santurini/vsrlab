@@ -38,21 +38,16 @@ class RRDB(nn.Module):
         return out + x
 
 class UpsampleBlock(nn.Module):
-    def __init__(self, nf, out_nc):
+    def __init__(self, nf, out_nc, sf):
         super().__init__()
-        self.upconv1 = nn.Conv3d(nf, nf, 3, 1, 1, padding_mode='reflect', bias=False)
-        self.upconv2 = nn.Conv3d(nf, nf, 3, 1, 1, padding_mode='reflect', bias=False)
-        self.HRconv = nn.Conv3d(nf, nf, 3, 1, 1, padding_mode='reflect', bias=False)
-        self.conv_last = nn.Conv3d(nf, out_nc, 3, 1, 1, padding_mode='reflect', bias=False)
-        self.selu = nn.SELU()
+        self.upconv = nn.Conv3d(nf, out_nc * sf ** 2, 3, 1, 1, padding_mode='reflect', bias=False)
+        self.pixel_shuffle = nn.PixelShuffle(upscale_factor=sf)
 
     def forward(self, x):
-        _, _, _, h, w = x.shape
-        x = self.selu(self.upconv1(resize(x, (2 * h, 2 * w))))
-        _, _, _, h, w = x.shape
-        x = self.selu(self.upconv2(resize(x, (2 * h, 2 * w))))
-        out = self.conv_last(self.selu(self.HRconv(x)))
-        return out
+        out = self.upconv(x)
+        out = out.permute(0, 2, 1, 3, 4)
+        out = self.pixel_shuffle(out)
+        return out.permute(0, 2, 1, 3, 4)
 
 class ConvGRU(nn.Module):
     def __init__(self, fea_dim=64, flow_dim=2):
@@ -94,7 +89,7 @@ class UpdateBlock(nn.Module):
 class RR3DBNet(nn.Module):
     def __init__(
             self,
-            in_nc=3, out_nc=3, nf=32, nrb=2, nb=5, gc=64,
+            in_nc=3, out_nc=3, nf=32, nrb=2, nb=5, gc=64, sf=4,
             raft_small=True, raft_scale_factor=4, raft_pretrained=True,
             iterations=10, gamma=0.9
     ):
@@ -104,7 +99,7 @@ class RR3DBNet(nn.Module):
         self.conv_first = nn.Conv3d(in_nc, nf, 3, 1, 1, padding_mode='reflect', bias=False)
         self.rrdbnet = nn.Sequential(*[RRDB(nf, gc, nrb) for _ in range(nb)])
         self.trunk_conv = nn.Conv3d(nf, nf, 3, 1, 1, padding_mode='reflect', bias=False)
-        self.upsample = UpsampleBlock(nf, out_nc)
+        self.upsample = UpsampleBlock(nf, out_nc, sf)
         self.update = UpdateBlock(raft_small, raft_scale_factor, raft_pretrained, nf)
 
     def forward(self, lr, hr, test=True):

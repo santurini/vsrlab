@@ -5,6 +5,7 @@ nf: 32
 nrb: 2
 nb: 4
 gc: 64
+sf: 4
 raft_small: True
 raft_scale_factor: 2
 raft_pretrained: True
