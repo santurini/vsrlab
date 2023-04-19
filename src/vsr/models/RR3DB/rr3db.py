@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from kornia.geometry.transform import resize
+from einops import rearrange
 
 from optical_flow.models.raft.raft import RAFT
 
