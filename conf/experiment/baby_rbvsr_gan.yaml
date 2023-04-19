@@ -7,4 +7,4 @@ defaults:
   - override /nn/data: reds_ws
   - override /nn/module: gan
 
-pretrain: '/home/aghinassi/VSR/baby_vsr_default.ckpt'
+finetune: '/home/aghinassi/VSR/baby_vsr_default.ckpt'
