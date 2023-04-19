@@ -13,5 +13,7 @@ finetune: False
 
 nn:
   data:
-    _target_: vsr.models.RR3DB.dataset.DatasetVSR
+    datasets:
+      train:
+        _target_: vsr.models.RR3DB.dataset.DatasetVSR
 
