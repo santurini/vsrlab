@@ -4,7 +4,7 @@ out_nc: 3
 nf: 16
 nrb: 2
 nb: 2
-gc: 64
+gc: 32
 raft_small: True
 raft_scale_factor: 2
 raft_pretrained: True
