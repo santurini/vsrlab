@@ -31,7 +31,7 @@ class LitBase(pl.LightningModule):
         self.val_metric = metric.clone(postfix='/val')
 
         self.model = hydra.utils.instantiate(model, _recursive_=False)
-        print(sum(p.numel() for p in self.model.parameters() if p.requires_grad))
+        print('NUMBER OF PARAMS:', sum(p.numel() for p in self.model.parameters() if p.requires_grad))
 
     def forward(
             self,
