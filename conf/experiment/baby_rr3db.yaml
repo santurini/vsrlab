@@ -10,3 +10,8 @@ defaults:
   - override /train/strategy: deepspeed
 
 finetune: False
+
+nn:
+  data:
+    _target_: vsr.models.RR3DB.dataset.DatasetVSR
+
