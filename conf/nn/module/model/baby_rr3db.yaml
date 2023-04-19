@@ -1,13 +1,13 @@
 _target_: vsr.models.RR3DB.rr3db.RR3DBNet
 in_nc: 3
 out_nc: 3
-nf: 32
+nf: 16
 nrb: 2
 nb: 4
-gc: 64
+gc: 32
 sf: 4
 raft_small: True
 raft_scale_factor: 2
 raft_pretrained: True
-iterations: 2
+iterations: 3
 gamma: 0.9
