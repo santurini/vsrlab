@@ -62,8 +62,8 @@ class RAFT(nn.Module):
     @staticmethod
     def initialize_flow(img):
         N, C, H, W = img.shape
-        coords0 = coords_grid(N, H//8, W//8, device=img.device)
-        coords1 = coords_grid(N, H//8, W//8, device=img.device)
+        coords0 = coords_grid(N, H//8, W//8).type_as(img)
+        coords1 = coords_grid(N, H//8, W//8).type_as(img)
 
         return coords0, coords1
 
