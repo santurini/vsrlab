@@ -122,8 +122,6 @@ class RR3DBNet(nn.Module):
             out = out + res
 
             loss = F.l1_loss(out, hr) * self.gamma ** (self.iterations - i)
-            loss.backward(retain_graph=True)
-
             total_loss += loss
 
         return out, total_loss
