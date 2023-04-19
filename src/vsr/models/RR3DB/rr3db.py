@@ -125,7 +125,11 @@ class RR3DBNet(nn.Module):
             fea = self.update(fea, out)
             res = self.upsample(fea)
             out = out + res
-            loss += F.l1_loss(out, hr) * self.gamma ** (self.iterations - i)
+
+            it_loss = F.l1_loss(out, hr) * self.gamma ** (self.iterations - i)
+            it_loss.backward(retain_graph=True)
+
+            loss += it_loss
 
         return out, loss
 
