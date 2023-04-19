@@ -7,7 +7,7 @@ nb: 5
 gc: 64
 sf: 4
 raft_small: True
-raft_scale_factor: 4
+raft_scale_factor: 2
 raft_pretrained: True
 iterations: 10
 gamma: 0.9
