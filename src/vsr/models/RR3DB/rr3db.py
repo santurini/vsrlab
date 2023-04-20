@@ -115,7 +115,7 @@ class RR3DBNet(nn.Module):
         trunk = self.trunk_conv(self.rrdbnet(fea))
         fea = fea + trunk
 
-        out = self.upsample(fea) + resize(lr, (h, w))
+        out = resize(lr, (h, w))
 
         total_loss = 0
         for i in range(self.iterations):

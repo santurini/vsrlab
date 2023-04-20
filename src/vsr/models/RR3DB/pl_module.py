@@ -68,8 +68,6 @@ class LitBase(pl.LightningModule):
             )
         )
 
-        print(self.model.rrdbnet.weight[0][0][0])
-
         return step_out["loss"]
 
     def validation_step(self, batch, batch_idx):
