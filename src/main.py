@@ -18,6 +18,7 @@ from core.utils import seed_index_everything, build_callbacks, get_state_dict, s
 pylogger = logging.getLogger(__name__)
 
 def run(cfg: DictConfig) -> str:
+    save_config(cfg)
     seed_index_everything(cfg.train)
 
     # Instantiate datamodule
@@ -37,7 +38,6 @@ def run(cfg: DictConfig) -> str:
 
     storage_dir: str = cfg.core.storage_dir
     logger: pl.loggers.Logger = hydra.utils.instantiate(cfg.train.logger)
-    save_config(cfg)
 
     strategy = hydra.utils.instantiate(cfg.train.strategy)
 

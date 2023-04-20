@@ -37,6 +37,8 @@ def save_config(cfg):
         cfg.train.logger.id,
         "config.yaml"
     )
+    Path(save_path).stem.mkdir(exist_ok=True, parents=True)
+
     with open(save_path, 'w') as file:
         yaml_str = OmegaConf.to_yaml(cfg, resolve=True)
         file.write(yaml_str)
