@@ -69,6 +69,41 @@ class RandomVideoCompression(nn.Module):
 
         return torch.stack(outputs)
 
+def read_video(path):
+    with av.open(path) as container:
+        assert container.streams.video, f"not a video: {path}"
+        frames = [frame for frame in container.decode(video=0)]
+        rate = str(container.streams.video[0].average_rate.numerator)
+        height = container.streams.video[0].height
+        width = container.streams.video[0].width
+
+    return frames, rate, height, width
+
+def write_video(path, frames, codec, rate, crf, height, width):
+    with av.open(path, 'w') as container:
+        stream = container.add_stream(codec, rate=rate)
+        stream.height = height
+        stream.width = width
+        stream.pix_fmt = 'yuv420p'
+        stream.options = {"crf": crf}
+        for frame in frames:
+            frame.pict_type = 'NONE'
+            for packet in stream.encode(frame):
+                container.mux(packet)
+
+        for packet in stream.encode():
+            container.mux(packet)
+
+def compress_video(path_hr, path_lr, codec, crf, scale_factor):
+
+    frames_hr, rate, height, width =  read_video(path_hr)
+
+    assert height%scale_factor==0, f"{height=} should be divisible by scale factor"
+    assert width%scale_factor==0, f"{width=} should be divisible by scale factor"
+
+    write_video(path_lr, frames_hr, codec, rate, crf, height//scale_factor, width//scale_factor)
+
+
 class Mirroring(nn.Module):
     def __init__(self) -> None:
         super().__init__()
