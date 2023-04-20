@@ -12,4 +12,5 @@ finetune: '/home/aghinassi/VSR/nn-lab/src/vsr/weights/baby_mixer.ckpt'
 
 nn:
   module:
+    _target_: vsr.models.MixerVSR.pl_module.GanLit
     set_lr: False

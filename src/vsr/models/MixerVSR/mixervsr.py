@@ -30,7 +30,7 @@ class MixerVSR(nn.Module):
         x = self.upsample(x)
         up = F.interpolate(x_clean.view(-1, c, h, w), scale_factor=self.upscale, mode='bilinear')
         sr = rearrange(up, '(b t) c h w -> b t c h w', b=b, t=t) - x
-        return sr, x_clean, None, None
+        return sr, x_clean
 
 class SuperResolver(nn.Module):
     def __init__(self, in_ch, mid_ch, blocks, upscale):
