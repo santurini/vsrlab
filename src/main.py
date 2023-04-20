@@ -29,8 +29,8 @@ def run(cfg: DictConfig) -> str:
     model: pl.LightningModule = hydra.utils.instantiate(cfg.nn.module, _recursive_=False)
 
     if cfg.finetune:
-        pylogger.info(f"Loading pretrained weights: <{cfg.pretrain}>")
-        state_dict = get_state_dict(cfg.pretrain)
+        pylogger.info(f"Loading pretrained weights: <{cfg.finetune}>")
+        state_dict = get_state_dict(cfg.finetune)
         model.load_state_dict(state_dict, strict=False)
 
     callbacks: List[Callback] = build_callbacks(cfg.train.callbacks)
