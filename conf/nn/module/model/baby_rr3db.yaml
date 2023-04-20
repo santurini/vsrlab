@@ -9,5 +9,5 @@ sf: 4
 raft_small: True
 raft_scale_factor: 2
 raft_pretrained: True
-iterations: 5
+iterations: 10
 gamma: 0.9

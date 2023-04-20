@@ -57,11 +57,7 @@ class DatasetSR(Dataset):
 
     @staticmethod
     def load_img(path):
-        try:
-            return to_tensor(Image.open(path))
-        except Exception as e:
-            print(path)
-            raise e
+        return to_tensor(Image.open(path))
 
 class DatasetVSR(DatasetSR):
     def __init__(self,
