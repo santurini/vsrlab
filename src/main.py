@@ -39,6 +39,8 @@ def run(cfg: DictConfig) -> str:
     storage_dir: str = cfg.core.storage_dir
     logger: pl.loggers.Logger = hydra.utils.instantiate(cfg.train.logger)
 
+    logger.watch(model)
+
     strategy = hydra.utils.instantiate(cfg.train.strategy)
 
     pylogger.info("Instantiating the <Trainer>")
