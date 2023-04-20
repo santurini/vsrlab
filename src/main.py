@@ -18,8 +18,8 @@ from core.utils import seed_index_everything, build_callbacks, get_state_dict, s
 pylogger = logging.getLogger(__name__)
 
 def run(cfg: DictConfig) -> str:
+    save_config(cfg)
     seed_index_everything(cfg.train)
-    save_config(cfg, cfg.train.logger.save_dir, cfg.train.logger.id)
 
     # Instantiate datamodule
     pylogger.info(f"Instantiating <{cfg.nn.data['_target_']}>")

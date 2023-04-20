@@ -30,9 +30,14 @@ def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> Opt
         pylogger.warning("The seed has not been set! The reproducibility is not guaranteed.")
         return None
 
-def save_config(cfg, save_dir, file_name):
-    save_path = os.path.join(save_dir, file_name)
-    with open(f"{save_path}.yaml", 'w') as file:
+def save_config(cfg):
+    save_path = os.path.join(
+        cfg.train.logger.save_dir,
+        cfg.train.logger.project,
+        cfg.train.logger.id,
+        "config.yaml"
+    )
+    with open(save_path, 'w') as file:
         yaml_str = OmegaConf.to_yaml(cfg, resolve=True)
         file.write(yaml_str)
 
