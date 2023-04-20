@@ -1,4 +1,4 @@
-_target_: vsr.models.MixerVSR.modules.mixervsr.MixerVSR
+_target_: vsr.models.MixerVSR.mixervsr.MixerVSR
 img_size: [ 64, 64 ]
 steps: 3
 mid_ch: 64
