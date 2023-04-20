@@ -184,7 +184,7 @@ class LitVSR(pl.LightningModule):
         b, t, c, h, w = out["sr"].shape
         lr = resize(out["lr"][0][-1], (h, w)).detach()
         lq = resize(out["lq"][0][-1], (h, w)).detach()
-        hr = out["hr"][0][-1].cpu().detach()
+        hr = out["hr"][0][-1].detach()
         sr = out["sr"][0][-1].detach().clamp(0, 1)
 
         grid = make_grid([lr, hr, lq, sr], nrow=2, ncol=2)
