@@ -38,10 +38,11 @@ class LitBase(pl.LightningModule):
             hr: torch.Tensor,
             test: bool
     ):
-        return self.model(lr, hr, test)
+        return self.model(lr)
 
-    def step(self, lr, hr, test):
-        sr, loss = self(lr, hr, test)
+    def step(self, lr, hr):
+        sr = self(lr)
+        loss = F.l1_loss(sr, hr)
 
         args = {
             "lr": lr,
@@ -54,7 +55,7 @@ class LitBase(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         lr, hr = batch
-        step_out = self.step(lr, hr, test=False)
+        step_out = self.model.train_step(lr, hr)
 
         self.log_losses(
             step_out,

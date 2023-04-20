@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from kornia.geometry.transform import resize
+from torchvision.transforms.functional import resize
 from einops import rearrange
 
 from optical_flow.models.raft.raft import RAFT
@@ -102,11 +102,23 @@ class RR3DBNet(nn.Module):
         self.upsample = UpsampleBlock(nf, out_nc, sf)
         self.update = UpdateBlock(raft_small, raft_scale_factor, raft_pretrained, nf)
 
-    def forward(self, lr, hr, test=True):
-        if test:
-            return self.test_step(lr, hr)
-        else:
-            return self.train_step(lr, hr)
+    def forward(self, lr):
+        b, c, t, h, w = lr.shape
+
+        fea = self.conv_first(lr)
+        trunk = self.trunk_conv(self.rrdbnet(fea))
+        fea = fea + trunk
+
+        out = resize(lr, (2*h, 2*w))
+
+        for i in range(self.iterations):
+            out = out.detach()
+
+            fea = self.update(fea, out)
+            res = self.upsample(fea)
+            out = out + res
+
+        return out
 
     def train_step(self, lr, hr):
         _, _, _, h, w = hr.shape
@@ -125,27 +137,13 @@ class RR3DBNet(nn.Module):
             res = self.upsample(fea)
             out = out + res
 
-            loss = F.l1_loss(out, hr) * self.gamma ** (self.iterations - i)
+            loss = F.l1_loss(out, hr) * self.gamma ** (self.iterations - i - 1)
             total_loss += loss
 
-        return out, total_loss
+        return {
+            "lr": lr,
+            "sr": out,
+            "hr": hr,
+            "loss": total_loss
+        }
 
-    def test_step(self, lr, hr):
-        _, _, _, h, w = hr.shape
-
-        fea = self.conv_first(lr)
-        trunk = self.trunk_conv(self.rrdbnet(fea))
-        fea = fea + trunk
-
-        out = resize(lr, (h, w))
-
-        for i in range(self.iterations):
-            out = out.detach()
-
-            fea = self.update(fea, out)
-            res = self.upsample(fea)
-            out = out + res
-
-        loss = F.l1_loss(out, hr)
-
-        return out, loss
