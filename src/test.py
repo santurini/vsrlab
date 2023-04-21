@@ -42,7 +42,7 @@ def test(cfg: DictConfig) -> str:
     for path in Path(cfg.path_lr).glob('*'):
 
         pylogger.info(f"Reading LR video: <{path}>")
-        lr_video, *_ = read_video(str(path), iterator=True)
+        lr_video, *_ = read_video(str(path), iterator=False)
         hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr, path.name), iterator=True)
 
         pylogger.info(f"Processing video>")
