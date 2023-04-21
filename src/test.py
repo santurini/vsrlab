@@ -56,12 +56,12 @@ def test(cfg: DictConfig) -> str:
         out_video = []
         for window_lr, window_hr in zip(batched(lr_video, cfg.window_size), batched(hr_video, cfg.window_size)):
 
-            window_lr = torch.stack([to_tensor(frame.to_image()) for frame in window_lr]).cuda()
+            window_lr = torch.stack([to_tensor(frame.to_rgb().to_image()) for frame in window_lr]).cuda()
 
             out = model.test(window_lr.unsqueeze(0)).squeeze(0).clamp(0, 1)
             del window_lr
 
-            window_hr = torch.stack([to_tensor(frame.to_image()) for frame in window_hr]).cuda()
+            window_hr = torch.stack([to_tensor(frame.to_rgb().to_image()) for frame in window_hr]).cuda()
 
             metrics = {
                 "PSNR": psnr(out, window_hr),
@@ -70,7 +70,7 @@ def test(cfg: DictConfig) -> str:
                 "LPIPS": lpips(out, window_hr),
             }
 
-            out_video.extend([av.VideoFrame.from_image(to_pil_image(i)) for i in out])
+            out_video.extend([av.VideoFrame.reformat(format='yuv420p').from_image(to_pil_image(i)) for i in out])
             del out
 
             df = df.append([metrics], ignore_index=True)
