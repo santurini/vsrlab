@@ -36,11 +36,15 @@ def test(cfg: DictConfig) -> str:
 
     df = pd.DataFrame()
     for path in Path(cfg.path_lr).glob('*'):
+        pylogger.info(f"Reading video: <{path}>")
         lr_video, *_ = read_video(str(path), tensor=True)
         hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr,path.name), tensor=True)
 
         lr_video = lr_video.cuda()
         hr_video = hr_video.cuda()
+
+        pylogger.info(f"Video shape: <{lr_video.shape}>")
+        pylogger.info(f"Processing video>")
 
         out = model(lr_video.unsqueeze(0)).squeeze(0)
 
