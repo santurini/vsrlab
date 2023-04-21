@@ -1,0 +1,10 @@
+# @package _global_
+finetune: '/home/aghinassi/VSR/nn-lab/storage/video-super-resolution/baby_vsr_finetuning/checkpoints/last-v1.ckpt'
+
+path_hr: '/mnt/hdd/dataset/pexels/hr'
+path_lr: '/mnt/hdd/dataset/pexels/lr_crf_42'
+
+model_name: 'baby_realbasic'
+
+defaults:
+  - override nn/module/model: baby_realbasic

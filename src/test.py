@@ -14,7 +14,7 @@ import pytorch_lightning as pl
 from omegaconf import DictConfig
 
 from core import PROJECT_ROOT
-from core.utils import get_state_dict
+from core.utils import get_state_dict, save_config
 from core.augmentations import read_video, write_video
 
 import pandas as pd
@@ -24,6 +24,7 @@ pylogger = logging.getLogger(__name__)
 
 def test(cfg: DictConfig) -> str:
     os.mkdir(cfg.output_path)
+    output_path = save_test_config(cfg)
 
     # Instantiate model
     pylogger.info(f"Instantiating <{cfg.nn.module.model['_target_']}>")
@@ -52,10 +53,10 @@ def test(cfg: DictConfig) -> str:
 
         df = df.append([metrics], ignore_index=True)
 
-    metrics_path = os.path.join(cfg.output_path, 'metrics.csv')
+    metrics_path = os.path.join(output_path, 'metrics.csv')
     df.mean(axis=0).to_frame(name='Score').to_csv(metrics_path)
 
-    return cfg.output_path
+    return output_path
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="test", version_base="1.3")
 def main(config: omegaconf.DictConfig):
