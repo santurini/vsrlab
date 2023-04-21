@@ -70,6 +70,7 @@ class RandomVideoCompression(nn.Module):
         return torch.stack(outputs)
 
 def read_video(path):
+    print(path)
     with av.open(path) as container:
         assert container.streams.video, f"not a video: {path}"
         frames = [frame for frame in container.decode(video=0)]
