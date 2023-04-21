@@ -68,6 +68,9 @@ class RAFT(nn.Module):
         return coords0, coords1
 
     def forward(self, image1, image2, iters=12):
+        image1 = image1.contiguous()
+        image2 = image2.contiguous()
+
         fmap1, fmap2 = self.fnet([image1, image2])
 
         cnet = self.cnet(image1)
