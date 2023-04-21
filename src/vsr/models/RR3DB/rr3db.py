@@ -109,7 +109,7 @@ class RR3DBNet(nn.Module):
         trunk = self.trunk_conv(self.rrdbnet(fea))
         fea = fea + trunk
 
-        out = resize(lr, (b, c, t, self.sf*h, self.sf*w), antialias=True)
+        out = F.interpolate(lr.view(-1, c, h, w), scale_factor=self.sf).view(b, c, t, self.sf*h, self.sf*w)
 
         for i in range(self.iterations):
             out = out.detach()
