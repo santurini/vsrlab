@@ -45,7 +45,7 @@ def save_config(cfg):
 
 def save_test_config(cfg):
     model = cfg.model_name
-    version = cfg.finetune.stem
+    version = Path(cfg.finetune).stem
     output_path = ''.join(['sr', Path(cfg.path_lr).name.partition('lr')[-1]])
 
     save_path = '_'.join([

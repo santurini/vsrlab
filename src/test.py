@@ -63,7 +63,7 @@ def test(cfg: DictConfig) -> str:
 def main(config: omegaconf.DictConfig):
     print(config)
     model = config.model_name
-    version = config.finetune.stem
+    version = Path(config.finetune).stem
     output_path = ''.join(['sr', Path(config.path_lr).name.partition('lr')[-1]])
 
     save_path = '_'.join([
