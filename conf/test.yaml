@@ -1,0 +1,9 @@
+finetune: 'path/to/weights'
+
+path: 'path/to/lr_videos'
+
+output_path: 'path/to/output'
+
+defaults:
+  nn/module/model: baby_realbasic
+
