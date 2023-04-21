@@ -20,6 +20,7 @@ from piqa import PSNR, SSIM, MS_SSIM, LPIPS
 
 pylogger = logging.getLogger(__name__)
 
+@torch.no_grad()
 def test(cfg: DictConfig) -> str:
     output_path = save_test_config(cfg)
     pylogger.info(f"Output path <{output_path}>")
