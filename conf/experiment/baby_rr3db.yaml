@@ -9,6 +9,10 @@ defaults:
 
 finetune: False
 
+train:
+  trainer:
+    devices: 2
+
 nn:
   data:
     datasets:
