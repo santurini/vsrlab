@@ -55,7 +55,7 @@ def test(cfg: DictConfig) -> str:
             window_lr = torch.stack([to_tensor(frame.to_image()) for frame in window_lr]).cuda()
 
             pylogger.info(f"Super resolve")
-            out = model(window_lr.unsqueeze(0)).squeeze(0)
+            out = model.test(window_lr.unsqueeze(0)).squeeze(0)
 
             del window_lr
 

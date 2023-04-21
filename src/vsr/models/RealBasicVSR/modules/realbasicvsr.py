@@ -22,6 +22,17 @@ class RealBasicVSR(nn.Module):
         sr, flow_f, flow_b = self.basicvsr(lqs)
         return sr, lqs, flow_f, flow_b
 
+    def test(self, lqs):
+        n, t, c, h, w = lqs.size()
+        for _ in range(3):  # at most 3 cleaning, determined empirically
+            lqs = lqs.view(-1, c, h, w)
+            residues = self.cleaner(lqs)
+            lqs = (lqs + residues).view(n, t, c, h, w)
+            if torch.mean(torch.abs(residues)) < self.threshold:
+                break
+        sr, _, _ = self.basicvsr(lqs)
+        return sr
+
 class CleaningModule(nn.Module):
     def __init__(self, mid_ch, blocks):
         super().__init__()
