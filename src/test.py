@@ -23,6 +23,11 @@ from piqa import PSNR, SSIM, MS_SSIM, LPIPS
 
 pylogger = logging.getLogger(__name__)
 
+psnr = PSNR()
+ms_ssim = MS_SSIM()
+ssim = SSIM()
+lpips = LPIPS()
+
 @torch.no_grad()
 def test(cfg: DictConfig) -> str:
     output_path = save_test_config(cfg)
@@ -63,10 +68,10 @@ def test(cfg: DictConfig) -> str:
             window_hr = torch.stack([to_tensor(frame.to_image()) for frame in window_hr]).cuda()
 
             metrics = {
-                "PSNR": PSNR(out, window_hr),
-                "MS-SSIM": MS_SSIM(out, window_hr),
-                "SSIM": SSIM(out, window_hr),
-                "LPIPS": LPIPS(out, window_hr),
+                "PSNR": psnr(out, window_hr),
+                "MS-SSIM": ms_ssim(out, window_hr),
+                "SSIM": ssim(out, window_hr),
+                "LPIPS": lpips(out, window_hr),
             }
 
             pylogger.info(f"Converting to Video Frame")
