@@ -5,5 +5,5 @@ path: 'path/to/lr_videos'
 output_path: 'path/to/output'
 
 defaults:
-  nn/module/model: baby_realbasic
+  - nn/module/model: baby_realbasic
 
