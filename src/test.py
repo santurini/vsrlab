@@ -14,7 +14,7 @@ import omegaconf
 from omegaconf import DictConfig
 
 from core import PROJECT_ROOT
-from core.utils import get_state_dict, save_test_config, batched
+from core.utils import get_model_state_dict, save_test_config, batched
 from core.augmentations import read_video, write_video
 
 import pandas as pd
