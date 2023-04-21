@@ -73,6 +73,7 @@ class RandomVideoCompression(nn.Module):
 def read_video(path):
     with av.open(path) as container:
         assert container.streams.video, f"not a video: {path}"
+        container.streams.video[0].thread_type = "AUTO"
         frames = [frame for frame in container.decode(video=0)]
         rate = str(container.streams.video[0].average_rate.numerator)
         height = container.streams.video[0].height
