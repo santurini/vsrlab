@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.transforms.functional import resize
 from einops import rearrange
 
 from optical_flow.models.raft.raft import RAFT
@@ -122,13 +121,13 @@ class RR3DBNet(nn.Module):
         return out
 
     def train_step(self, lr, hr):
-        _, _, _, h, w = hr.shape
+        b, c, t, h, w = lr.shape
 
         fea = self.conv_first(lr)
         trunk = self.trunk_conv(self.rrdbnet(fea))
         fea = fea + trunk
 
-        out = resize(lr, (h, w))
+        out = F.interpolate(lr.view(-1, c, h, w), scale_factor=self.sf).view(b, c, t, self.sf*h, self.sf*w)
 
         total_loss = 0
         for i in range(self.iterations):
