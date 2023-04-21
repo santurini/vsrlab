@@ -37,7 +37,7 @@ class RandomJPEGCompression(nn.Module):
         return torch.stack([self.torch_add_compression(elem, q) for elem in in_batch])
 
 class RandomVideoCompression(nn.Module):
-    def __init__(self, codec, crf, fps, bitrate=None):
+    def __init__(self, codec, crf, fps):
         super().__init__()
         self.codec = choice(codec) if len(codec) > 1 else codec
         self.crf = str(randint(crf[0], crf[1])) if len(crf) == 2 else str(crf[0])
@@ -50,7 +50,6 @@ class RandomVideoCompression(nn.Module):
             stream.height = video[0].shape[-2]
             stream.width = video[0].shape[-1]
             stream.pix_fmt = 'yuv420p'
-            # stream.bit_rate = self.bitrate
             stream.options = {"crf": self.crf}
             for frame in video:
                 frame = av.VideoFrame.from_image(F.to_pil_image(frame))
@@ -85,7 +84,7 @@ def write_video(path, frames, codec, rate, crf, height, width):
         stream.height = height
         stream.width = width
         stream.pix_fmt = 'yuv420p'
-        stream.options = {"crf": crf}
+        stream.options = {"crf": str(crf)}
         for frame in frames:
             frame.pict_type = 'NONE'
             for packet in stream.encode(frame):
@@ -102,6 +101,12 @@ def compress_video(path_hr, path_lr, codec, crf, scale_factor):
     assert width%scale_factor==0, f"{width=} should be divisible by scale factor"
 
     write_video(path_lr, frames_hr, codec, rate, crf, height//scale_factor, width//scale_factor)
+
+def compress_video_folder(folder, codec, crf, scale_factor):
+    paths = Path(folder).glob('hr/*')
+    for video in paths:
+        file_name = f'lr_crf_{crf}/{video.stem}.mp4'
+        compress_video(video, Path(folder) / Path(file_name), codec, crf, scale_factor)
 
 
 class Mirroring(nn.Module):

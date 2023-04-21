@@ -19,12 +19,13 @@ pylogger = logging.getLogger(__name__)
 
 def test(cfg: DictConfig) -> str:
     # Instantiate model
-    pylogger.info(f"Instantiating <{cfg.nn.module.model['_target_']}>")
-    model: nn.Module = hydra.utils.instantiate(cfg.nn.module.model, _recursive_=False)
+    pylogger.info(f"Instantiating <{cfg.nn.module['_target_']}>")
+    model: nn.Module = hydra.utils.instantiate(cfg.nn.module, _recursive_=False)
 
     pylogger.info(f"Loading pretrained weights: <{cfg.finetune}>")
     state_dict = get_state_dict(cfg.finetune)
     model.load_state_dict(state_dict, strict=False)
+    model = model.model
 
 
 
