@@ -8,3 +8,8 @@ model_name: 'baby_realbasic'
 
 defaults:
   - override /nn/module/model: baby_realbasic
+
+nn:
+  module:
+    model:
+      upscale: 4
