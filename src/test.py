@@ -4,8 +4,10 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import logging
+from itertools import islice
 
 import torch
+import torch.nn.functional as F
 import hydra
 import omegaconf
 from omegaconf import DictConfig
@@ -35,33 +37,35 @@ def test(cfg: DictConfig) -> str:
     model = model.cuda()
     model.eval()
 
-    df = pd.DataFrame()
+    df_final = pd.DataFrame()
     for path in Path(cfg.path_lr).glob('*'):
         pylogger.info(f"Reading video: <{path}>")
-        lr_video, *_ = read_video(str(path), tensor=True)
+        lr_video, *_ = read_video(str(path), iterator=True)
+        hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr, path.name), iterator=True)
 
-        lr_video = lr_video.cuda()
-
-        pylogger.info(f"Video shape: <{lr_video.shape}>")
         pylogger.info(f"Processing video>")
+        df = pd.DataFrame()
+        for window_lr, window_hr in zip(islice(lr_video, 0, cfg.window_size), islice(hr_video, 0, cfg.window_size)):
 
-        out = model(lr_video.unsqueeze(0)).squeeze(0)
-        del lr_video
+            window_lr = torch.stack([F.to_tensor(frame.to_image()) for frame in window_lr])
+            window_hr = torch.stack([F.to_tensor(frame.to_image()) for frame in window_hr])
+            out = model(window_lr.unsqueeze(0)).squeeze(0)
+            del window_lr
 
+            metrics = {
+                "PSNR": PSNR(out, window_hr),
+                "MS-SSIM": MS_SSIM(out, window_hr),
+                "SSIM": SSIM(out, window_hr),
+                "LPIPS": LPIPS(out, window_hr),
+            }
+
+            df = df.append([metrics], ignore_index=True)
+
+        ## DA RIFARE
         video_path = os.path.join(output_path, path.name)
         write_video(video_path, out, codec=c, rate=r, crf=0, height=h, width=w)
 
-        hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr, path.name), tensor=True)
-        hr_video = hr_video.cuda()
-
-        metrics = {
-            "PSNR": PSNR(out, hr_video),
-            "MS-SSIM": MS_SSIM(out, hr_video),
-            "SSIM": SSIM(out, hr_video),
-            "LPIPS": LPIPS(out, hr_video),
-        }
-
-        df = df.append([metrics], ignore_index=True)
+        df_final = df_final.append([metrics], ignore_index=True)
 
     metrics_path = os.path.join(output_path, 'metrics.csv')
     df.mean(axis=0).to_frame(name='Score').to_csv(metrics_path)
