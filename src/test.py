@@ -41,7 +41,7 @@ def test(cfg: DictConfig) -> str:
     df_final = pd.DataFrame()
     for path in Path(cfg.path_lr).glob('*'):
 
-        pylogger.info(f"Reading video: <{path}>")
+        pylogger.info(f"Reading LR video: <{path}>")
         lr_video, *_ = read_video(str(path), iterator=True)
         hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr, path.name), iterator=True)
 
@@ -51,11 +51,15 @@ def test(cfg: DictConfig) -> str:
         out_video = []
         for window_lr, window_hr in zip(batched(lr_video, cfg.window_size), batched(hr_video, cfg.window_size)):
 
+            pylogger.info(f"Loading LR window")
             window_lr = torch.stack([F.to_tensor(frame.to_image()) for frame in window_lr]).cuda()
 
+            pylogger.info(f"Super resolve")
             out = model(window_lr.unsqueeze(0)).squeeze(0)
+
             del window_lr
 
+            pylogger.info(f"Loading HR window")
             window_hr = torch.stack([F.to_tensor(frame.to_image()) for frame in window_hr]).cuda()
 
             metrics = {
@@ -65,9 +69,11 @@ def test(cfg: DictConfig) -> str:
                 "LPIPS": LPIPS(out, window_hr),
             }
 
+            pylogger.info(f"Converting to Video Frame")
             out_video.extend([av.VideoFrame.from_image(to_pil_image(i)) for i in out])
             del out
 
+            pylogger.info(f"Appending metrics")
             df = df.append([metrics], ignore_index=True)
 
         metrics = df.mean(axis=0).to_dict()
