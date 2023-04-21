@@ -45,7 +45,7 @@ def save_config(cfg):
 
 def save_test_config(cfg):
     model = cfg.model_name
-    version = Path(cfg.finetune).stem
+    version = Path(cfg.finetune).stem + '.yaml'
     output_path = ''.join(['sr', Path(cfg.path_lr).name.partition('lr')[-1]])
 
     save_path = '_'.join([
@@ -56,11 +56,11 @@ def save_test_config(cfg):
 
     Path(save_path).parent.mkdir(exist_ok=True, parents=True)
 
-    with open(f"{save_path}.yaml", 'w') as file:
+    with open(save_path, 'w') as file:
         yaml_str = OmegaConf.to_yaml(cfg, resolve=True)
         file.write(yaml_str)
 
-    return save_path
+    return Path(save_path).parent
 
 def get_state_dict(path):
     return torch.load(path)['state_dict']
