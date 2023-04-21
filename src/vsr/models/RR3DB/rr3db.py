@@ -94,6 +94,7 @@ class RR3DBNet(nn.Module):
             iterations=10, gamma=0.9
     ):
         super().__init__()
+        self.sf = sf
         self.gamma = gamma
         self.iterations = iterations
         self.conv_first = nn.Conv3d(in_nc, nf, 3, 1, 1, padding_mode='reflect', bias=False)
@@ -109,7 +110,7 @@ class RR3DBNet(nn.Module):
         trunk = self.trunk_conv(self.rrdbnet(fea))
         fea = fea + trunk
 
-        out = resize(lr, (2*h, 2*w))
+        out = resize(lr, (self.sf*h, self.sf*w))
 
         for i in range(self.iterations):
             out = out.detach()
