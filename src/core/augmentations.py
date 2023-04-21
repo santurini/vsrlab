@@ -77,8 +77,9 @@ def read_video(path):
         rate = str(container.streams.video[0].average_rate.numerator)
         height = container.streams.video[0].height
         width = container.streams.video[0].width
+        codec =  container.streams.video[0].codec.name
 
-    return frames, rate, height, width
+    return frames, codec, rate, height, width
 
 def write_video(path, frames, codec, rate, crf, height, width):
     with av.open(path, 'w') as container:
@@ -95,22 +96,21 @@ def write_video(path, frames, codec, rate, crf, height, width):
         for packet in stream.encode():
             container.mux(packet)
 
-def compress_video(path_hr, path_lr, codec, crf, scale_factor):
+def compress_video(path_hr, path_lr, crf, scale_factor):
 
-    frames_hr, rate, height, width =  read_video(path_hr)
+    frames_hr, codec, rate, height, width =  read_video(path_hr)
 
     assert height%scale_factor==0, f"{height=} should be divisible by scale factor"
     assert width%scale_factor==0, f"{width=} should be divisible by scale factor"
 
     write_video(path_lr, frames_hr, codec, rate, crf, height//scale_factor, width//scale_factor)
 
-def compress_video_folder(folder, codec, crf, scale_factor):
+def compress_video_folder(folder, crf, scale_factor):
     os.mkdir(os.path.join(folder, f'lr_crf_{crf}'))
     paths = Path(folder).glob('hr/*')
     for video in paths:
-        file_name = f'lr_crf_{crf}/{video.stem}.mp4'
-        compress_video(str(video), str(Path(folder) / Path(file_name)), codec, crf, scale_factor)
-
+        file_name = f'lr_crf_{crf}/{video.name}'
+        compress_video(str(video), str(Path(folder) / Path(file_name)), crf, scale_factor)
 
 class Mirroring(nn.Module):
     def __init__(self) -> None:

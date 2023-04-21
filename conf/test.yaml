@@ -1,10 +1,9 @@
 finetune: 'path/to/weights'
 
-path: 'path/to/lr_videos'
+path_hr: '/mnt/hdd/dataset/pexels/hr'
+path_lr: '/mnt/hdd/dataset/pexels/lr_crf_42'
 
-output_path: 'path/to/output'
+output_path: '/mnt/hdd/dataset/pexels/sr_crf_42'
 
 defaults:
   - nn/module/model: baby_realbasic
-
-model: nn/module/model/baby_realbasic

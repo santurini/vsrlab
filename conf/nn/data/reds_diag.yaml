@@ -37,14 +37,7 @@ datasets:
 
     lr_augmentation:
       - _target_: core.augmentations.RandomJPEGCompression
-        quality: [ 30, 90 ]
-
-      - _target_: kornia.augmentation.RandomGaussianBlur
-        kernel_size: 9
-        sigma: [ 0.2, 3 ]
-        same_on_batch: False
-        keepdim: True
-        p: 0.8
+        quality: [ 40, 90 ]
 
       - _target_: kornia.augmentation.RandomGaussianNoise
         mean: 0
