@@ -15,8 +15,3 @@ nn:
       train:
         _target_: vsr.models.RR3DB.dataset.DatasetVSR
 
-train:
-  trainer:
-    strategy: 'ddp'
-    devices: 2
-
