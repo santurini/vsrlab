@@ -6,4 +6,4 @@ path_lr: '/path/to/lr'
 model_name: 'model_name'
 
 defaults:
-  - nn/module/model: realbasic
+  - nn/module/model: default
