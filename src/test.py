@@ -50,21 +50,17 @@ def test(cfg: DictConfig) -> str:
         lr_video, *_ = read_video(str(path))
         hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr, path.name))
 
-        pylogger.info(f"Processing video>")
+        pylogger.info(f"<Processing video>")
 
         df = pd.DataFrame()
         out_video = []
         for window_lr, window_hr in zip(batched(lr_video, cfg.window_size), batched(hr_video, cfg.window_size)):
 
-            pylogger.info(f"Loading LR window")
             window_lr = torch.stack([to_tensor(frame.to_image()) for frame in window_lr]).cuda()
 
-            pylogger.info(f"Super resolve")
             out = model.test(window_lr.unsqueeze(0)).squeeze(0).clamp(0, 1)
-
             del window_lr
 
-            pylogger.info(f"Loading HR window")
             window_hr = torch.stack([to_tensor(frame.to_image()) for frame in window_hr]).cuda()
 
             metrics = {
@@ -74,20 +70,21 @@ def test(cfg: DictConfig) -> str:
                 "LPIPS": lpips(out, window_hr),
             }
 
-            pylogger.info(f"Converting to Video Frame")
-            out_video.extend([av.VideoFrame.from_image(to_pil_image(i)) for i in out])
+            out_video.extend([to_pil_image(i) for i in out])
             del out
 
-            pylogger.info(f"Appending metrics")
             df = df.append([metrics], ignore_index=True)
 
+        pylogger.info(f"<Appending metrics>")
         metrics = df.mean(axis=0).to_dict()
         df_final = df_final.append([metrics], ignore_index=True)
 
         video_path = os.path.join(output_path, path.name)
+        pylogger.info(f"<Saving video to <{video_path}>")
         write_video(video_path, out_video, codec=c, rate=r, crf=5, height=h, width=w)
 
     metrics_path = os.path.join(output_path, 'metrics.csv')
+    pylogger.info(f"<Saving metrics csv to <{metrics_path}>")
     df_final.mean(axis=0).to_frame(name='Score').to_csv(metrics_path)
 
     return output_path
