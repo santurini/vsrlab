@@ -66,7 +66,12 @@ def save_test_config(cfg):
     return save_path
 
 def get_state_dict(path):
-    return torch.load(path)['state_dict']
+    return  torch.load(path)['state_dict']
+
+def get_model_state_dict(path):
+    state_dict = torch.load(path)['state_dict']
+    out = {k.partition('model.')[-1]: v for k, v in state_dict.items() if k.startswith('model.')}
+    return out
 
 def build_callbacks(cfg: ListConfig) -> List[Callback]:
     callbacks = list()
