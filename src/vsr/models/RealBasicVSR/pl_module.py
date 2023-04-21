@@ -276,6 +276,8 @@ class FlowLit(BaseLit):
 class GanLit(BaseLit):
     def __init__(self,
                  discriminator: DictConfig,
+                 perceptual_loss: DictConfig,
+                 adversarial_loss: DictConfig,
                  *args,
                  **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -284,14 +286,14 @@ class GanLit(BaseLit):
 
         self.discriminator = hydra.utils.instantiate(discriminator, _recursive_=False)
 
-        self.perceptual: nn.Module = PerceptualLoss()
-        self.adversarial: nn.Module = AdversarialLoss()
+        self.perceptual: nn.Module = hydra.utils.instantiate(perceptual_loss, _recursive_=False)
+        self.adversarial: nn.Module = hydra.utils.instantiate(adversarial_loss, _recursive_=False)
 
     def training_step(self, batch, batch_idx):
         opt_g, opt_d = self.optimizers()
         self.toggle_optimizer(opt_g)
-        step_out = self.generator_step(batch)
-        self._optim_step(opt_g, step_out["loss"])
+        step_out, loss = self.generator_step(batch)
+        self._optim_step(opt_g, loss)
         self.toggle_optimizer(opt_d)
         loss = self.discriminator_step((step_out["sr"], step_out["hr"]))
         self._optim_step(opt_d, loss)
@@ -300,9 +302,16 @@ class GanLit(BaseLit):
         lr, hr = batch
         b, t, c, h, w = hr.shape
         step_out = self.step(lr, hr)
-        perceptual_loss = self.perceptual(step_out["sr"], hr)
+        perceptual_loss = self.perceptual(
+            step_out["sr"].view(-1, c, h, w),
+            hr.view(-1, c, h, w)
+        )
         disc_sr = self.discriminator(step_out["sr"].view(-1, c, h, w))
-        disc_fake_loss = self.adversarial(disc_sr, 1, False)
+        disc_fake_loss = self.adversarial(
+            disc_sr,
+            1,
+            False
+        )
         loss = step_out['loss'] + perceptual_loss + disc_fake_loss
 
         self.log_dict(
@@ -319,16 +328,24 @@ class GanLit(BaseLit):
             ),
         )
 
-        return loss
+        return step_out, loss
 
     def discriminator_step(self, batch):
         sr, hr = batch
         sr = rearrange(sr, 'b t c h w -> (b t) c h w')
         hr = rearrange(hr, 'b t c h w -> (b t) c h w')
         disc_hr = self.discriminator(hr)
-        disc_true_loss = self.adversarial(disc_hr, 1, True)
+        disc_true_loss = self.adversarial(
+            disc_hr,
+            1,
+            True
+        )
         disc_sr = self.discriminator(sr.detach())
-        disc_fake_loss = self.adversarial(disc_sr, 0, True)
+        disc_fake_loss = self.adversarial(
+            disc_sr,
+            0,
+            True
+        )
         loss = disc_fake_loss + disc_true_loss
 
         self.log_dict(
@@ -340,9 +357,9 @@ class GanLit(BaseLit):
         return loss
 
     def _optim_step(self, optimizer, loss):
+        optimizer.zero_grad()
         self.manual_backward(loss)
         optimizer.step()
-        optimizer.zero_grad()
         self.untoggle_optimizer(optimizer)
 
     def configure_optimizers(self):

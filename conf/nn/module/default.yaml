@@ -6,7 +6,7 @@ set_lr:
   groups:
     - "spynet"
   lrs:
-    - 1e-5
+    - 1e-6
 
 metric:
   _target_: core.metrics.MetricCollection

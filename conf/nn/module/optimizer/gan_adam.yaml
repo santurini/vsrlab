@@ -1,9 +1,13 @@
-generator: &defaults
+generator:
   _target_: torch.optim.Adam
-  lr: 1e-4
+  lr: 5e-5
   betas: [ 0.9, 0.999 ]
   eps: 1e-08
   weight_decay: 0
 
 discriminator:
-  <<: *defaults
+  _target_: torch.optim.Adam
+  lr: 1e-4
+  betas: [ 0.9, 0.999 ]
+  eps: 1e-08
+  weight_decay: 0

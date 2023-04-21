@@ -1,10 +1,18 @@
 # @package _global_
 core:
-  run_id: 'baby_vsr_finetuning'
+  run_id: 'baby_vsr_finetuning2'
   run_name: "Baby Real Basic - Finetune"
 
 defaults:
   - override /nn/data: reds_ws
   - override /nn/module: gan
 
-finetune: '/home/aghinassi/VSR/baby_vsr_default.ckpt'
+nn:
+  module:
+    set_lr:
+      groups:
+        - "spynet"
+      lrs:
+        - 1e-6
+
+finetune: '/home/aghinassi/VSR/baby_vsr_default2.ckpt'
