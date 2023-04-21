@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange
 
+from kornia.geometry.transform import resize
+
 from optical_flow.models.raft.raft import RAFT
 
 class ResidualDenseBlock(nn.Module):
@@ -109,7 +111,7 @@ class RR3DBNet(nn.Module):
         trunk = self.trunk_conv(self.rrdbnet(fea))
         fea = fea + trunk
 
-        out = F.interpolate(lr.view(-1, c, h, w), scale_factor=self.sf).view(b, c, t, self.sf*h, self.sf*w)
+        out = resize(lr, (self.sf*h, self.sf*w), align_corners=True, antialias=True)
 
         for i in range(self.iterations):
             out = out.detach()
@@ -127,7 +129,7 @@ class RR3DBNet(nn.Module):
         trunk = self.trunk_conv(self.rrdbnet(fea))
         fea = fea + trunk
 
-        out = F.interpolate(lr.view(-1, c, h, w), scale_factor=self.sf).view(b, c, t, self.sf*h, self.sf*w)
+        out = resize(lr, (self.sf*h, self.sf*w), align_corners=True, antialias=True)
 
         total_loss = 0
         for i in range(self.iterations):
