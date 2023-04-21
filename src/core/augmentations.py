@@ -70,7 +70,6 @@ class RandomVideoCompression(nn.Module):
         return torch.stack(outputs)
 
 def read_video(path):
-    print(path)
     with av.open(path) as container:
         assert container.streams.video, f"not a video: {path}"
         frames = [frame for frame in container.decode(video=0)]
@@ -108,7 +107,7 @@ def compress_video_folder(folder, codec, crf, scale_factor):
     paths = Path(folder).glob('hr/*')
     for video in paths:
         file_name = f'lr_crf_{crf}/{video.stem}.mp4'
-        compress_video(video, Path(folder) / Path(file_name), codec, crf, scale_factor)
+        compress_video(str(video), str(Path(folder) / Path(file_name)), codec, crf, scale_factor)
 
 
 class Mirroring(nn.Module):
