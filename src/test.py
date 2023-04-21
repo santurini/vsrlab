@@ -51,7 +51,7 @@ def test(cfg: DictConfig) -> str:
         out_video = []
         for window_lr, window_hr in zip(batched(lr_video, cfg.window_size), batched(hr_video, cfg.window_size)):
 
-            pylogger.info(f"Loading LR window")
+            print(f"Loading LR window")
             window_lr = torch.stack([F.to_tensor(frame.to_image()) for frame in window_lr]).cuda()
 
             pylogger.info(f"Super resolve")
