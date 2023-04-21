@@ -96,14 +96,14 @@ def write_video(path, frames, codec, rate, crf, height, width):
         for packet in stream.encode():
             container.mux(packet)
 
-def compress_video(path_hr, path_lr, crf, height, width):
+def compress_video(path_hr, path_lr, crf, scale_factor):
 
-    frames_hr, codec, rate, _, _ =  read_video(path_hr)
+    frames_hr, codec, rate, height, width =  read_video(path_hr)
 
-    #assert height%scale_factor==0, f"{height=} should be divisible by scale factor"
-    #assert width%scale_factor==0, f"{width=} should be divisible by scale factor"
+    assert height%scale_factor==0, f"{height=} should be divisible by scale factor"
+    assert width%scale_factor==0, f"{width=} should be divisible by scale factor"
 
-    write_video(path_lr, frames_hr, codec, rate, crf, height, width)
+    write_video(path_lr, frames_hr, codec, rate, crf, height//scale_factor, width//scale_factor)
 
 def compress_video_folder(folder, crf, scale_factor):
     os.mkdir(os.path.join(folder, f'lr_crf_{crf}'))
