@@ -5,6 +5,7 @@ core:
 
 defaults:
   - override /nn/module: baby_rr3db
+  - override /train/strategy: ddp
 
 finetune: False
 
