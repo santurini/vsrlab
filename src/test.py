@@ -35,7 +35,7 @@ def test(cfg: DictConfig) -> str:
 
     # Instantiate model
     pylogger.info(f"Instantiating <{cfg.nn.module.model['_target_']}>")
-    model: nn.Module = hydra.utils.instantiate(cfg.nn.module, _recursive_=False)
+    model: nn.Module = hydra.utils.instantiate(cfg.nn.module.model, _recursive_=False)
 
     pylogger.info(f"Loading pretrained weights: <{cfg.finetune}>")
     state_dict = get_model_state_dict(cfg.finetune)
