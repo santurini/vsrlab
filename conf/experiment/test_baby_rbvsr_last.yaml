@@ -7,4 +7,4 @@ path_lr: '/mnt/hdd/dataset/pexels/lr_crf_42'
 model_name: 'baby_realbasic'
 
 defaults:
-  - override nn/module/model: baby_realbasic
+  - override /nn/module/model: baby_realbasic
