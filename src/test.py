@@ -42,8 +42,8 @@ def test(cfg: DictConfig) -> str:
     for path in Path(cfg.path_lr).glob('*'):
 
         pylogger.info(f"Reading LR video: <{path}>")
-        lr_video, *_ = read_video(str(path), iterator=False)
-        hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr, path.name), iterator=False)
+        lr_video, *_ = read_video(str(path))
+        hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr, path.name))
 
         pylogger.info(f"Processing video>")
 
@@ -52,7 +52,7 @@ def test(cfg: DictConfig) -> str:
         for window_lr, window_hr in zip(batched(lr_video, cfg.window_size), batched(hr_video, cfg.window_size)):
 
             pylogger.info(f"Loading LR window")
-            window_lr = torch.stack([F.to_tensor(frame.to_image()) for frame in window_lr]).cuda()
+            window_lr = torch.stack([to_tensor(frame.to_image()) for frame in window_lr]).cuda()
 
             pylogger.info(f"Super resolve")
             out = model(window_lr.unsqueeze(0)).squeeze(0)

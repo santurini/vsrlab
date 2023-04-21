@@ -70,13 +70,10 @@ class RandomVideoCompression(nn.Module):
 
         return torch.stack(outputs)
 
-def read_video(path, iterator: bool = False):
+def read_video(path):
     with av.open(path) as container:
         assert container.streams.video, f"not a video: {path}"
-        if not iterator:
-            frames = [frame for frame in container.decode(video=0)]
-        else:
-            frames = (frame for frame in container.decode(video=0))
+        frames = [frame for frame in container.decode(video=0)]
         rate = str(container.streams.video[0].average_rate.numerator)
         height = container.streams.video[0].height
         width = container.streams.video[0].width
