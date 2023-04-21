@@ -1,16 +1,11 @@
-import os.path
 import warnings
 
 warnings.filterwarnings("ignore")
 
 import logging
-from typing import List
 
-import torch
-import torch.nn as nn
 import hydra
 import omegaconf
-import pytorch_lightning as pl
 from omegaconf import DictConfig
 
 from core import PROJECT_ROOT
@@ -61,19 +56,7 @@ def test(cfg: DictConfig) -> str:
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="test", version_base="1.3")
 def main(config: omegaconf.DictConfig):
-    print(config)
-    model = config.model_name
-    version = Path(config.finetune).stem
-    output_path = ''.join(['sr', Path(config.path_lr).name.partition('lr')[-1]])
-
-    save_path = '_'.join([
-        output_path,
-        model,
-        version
-        ])
-
-    print(save_path)
-    #test(config)
+    test(config)
 
 if __name__ == "__main__":
     main()
