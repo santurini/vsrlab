@@ -34,9 +34,7 @@ class LitBase(pl.LightningModule):
 
     def forward(
             self,
-            lr: torch.Tensor,
-            hr: torch.Tensor,
-            test: bool
+            lr: torch.Tensor
     ):
         return self.model(lr)
 
