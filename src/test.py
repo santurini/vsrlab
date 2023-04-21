@@ -46,6 +46,9 @@ def test(cfg: DictConfig) -> str:
     df_final = pd.DataFrame()
     for path in Path(cfg.path_lr).glob('*'):
 
+        lr_frame_path = Path(output_path) / Path(path).stem
+        lr_frame_path.mkdir(parents=True)
+
         pylogger.info(f"Reading LR video: <{path}>")
         lr_video, *_ = read_video(str(path))
         hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr, path.name))
@@ -71,7 +74,7 @@ def test(cfg: DictConfig) -> str:
             }
 
             for frame in out:
-                file_name = Path(output_path) / Path(path).stem / f"frame_{i:04d}.png"
+                file_name = lr_frame_path / f"frame_{i:04d}.png"
                 to_pil_image(frame).save(file_name)
                 i += 1
 
