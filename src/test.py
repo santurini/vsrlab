@@ -53,7 +53,7 @@ def test(cfg: DictConfig) -> str:
         pylogger.info(f"<Processing video>")
 
         df = pd.DataFrame()
-        out_video = []
+        i = 0
         for window_lr, window_hr in zip(batched(lr_video, cfg.window_size), batched(hr_video, cfg.window_size)):
 
             window_lr = torch.stack([to_tensor(frame.to_rgb().to_image()) for frame in window_lr]).cuda()
@@ -70,18 +70,19 @@ def test(cfg: DictConfig) -> str:
                 "LPIPS": lpips(out, window_hr),
             }
 
-            out_video.extend([av.VideoFrame.from_image(to_pil_image(i)).reformat(format='yuv420p') for i in out])
+            for frame in out:
+                file_name = Path(output_path) / Path(path).stem / f"frame_{i:04d}.png"
+                to_pil_image(frame).save(file_name)
+                i += 1
+
             del out
 
             df = df.append([metrics], ignore_index=True)
 
+
         pylogger.info(f"<Appending metrics>")
         metrics = df.mean(axis=0).to_dict()
         df_final = df_final.append([metrics], ignore_index=True)
-
-        video_path = os.path.join(output_path, path.name)
-        pylogger.info(f"<Saving video to <{video_path}>")
-        write_video(video_path, out_video, codec=c, rate=r, crf=5, height=h, width=w)
 
     metrics_path = os.path.join(output_path, 'metrics.csv')
     pylogger.info(f"<Saving metrics csv to <{metrics_path}>")
