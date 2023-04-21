@@ -8,7 +8,7 @@ import logging
 
 import torch
 import torch.nn.functional as F
-from torchvision.transforms.functional import to_pil_image
+from torchvision.transforms.functional import to_pil_image, to_tensor
 import hydra
 import omegaconf
 from omegaconf import DictConfig
@@ -60,7 +60,7 @@ def test(cfg: DictConfig) -> str:
             del window_lr
 
             pylogger.info(f"Loading HR window")
-            window_hr = torch.stack([F.to_tensor(frame.to_image()) for frame in window_hr]).cuda()
+            window_hr = torch.stack([to_tensor(frame.to_image()) for frame in window_hr]).cuda()
 
             metrics = {
                 "PSNR": PSNR(out, window_hr),
