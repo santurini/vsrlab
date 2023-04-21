@@ -70,7 +70,7 @@ class RandomVideoCompression(nn.Module):
 
         return torch.stack(outputs)
 
-def read_video(path):
+def read_video(path, tensor=False):
     with av.open(path) as container:
         assert container.streams.video, f"not a video: {path}"
         frames = [frame for frame in container.decode(video=0)]
@@ -78,6 +78,9 @@ def read_video(path):
         height = container.streams.video[0].height
         width = container.streams.video[0].width
         codec =  container.streams.video[0].codec.name
+
+    if tensor:
+        frames = torch.stack([F.to_tensor(frame.to_image()) for frame in frames])
 
     return frames, codec, rate, height, width
 

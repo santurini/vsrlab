@@ -35,8 +35,8 @@ def test(cfg: DictConfig) -> str:
 
     df = pd.DataFrame()
     for path in Path(cfg.path_lr).glob('*'):
-        lr_video, *_ = read_video(str(path))
-        hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr,path.name))
+        lr_video, *_ = read_video(str(path), tensor=True)
+        hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr,path.name), tensor=True)
 
         lr_video = torch.stack(lr_video)
         print(lr_video.shape)
