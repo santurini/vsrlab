@@ -47,10 +47,11 @@ def save_test_config(cfg):
     model = cfg.model_name
     version = Path(cfg.finetune).stem + '.yaml'
     output_path = ''.join(['sr', Path(cfg.path_lr).name.partition('lr')[-1]])
+    dir = Path(Path(cfg.path_lr).parent) / Path(output_path)
 
-    print(output_path)
+    print(dir)
     save_path = '_'.join([
-        output_path,
+        dir,
         model,
         version
         ])

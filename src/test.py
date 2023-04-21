@@ -31,6 +31,7 @@ def test(cfg: DictConfig) -> str:
     pylogger.info(f"Loading pretrained weights: <{cfg.finetune}>")
     state_dict = get_state_dict(cfg.finetune)
     model.load_state_dict(state_dict, strict=False)
+    model = model.cuda()
     model.eval()
 
     df = pd.DataFrame()
@@ -38,7 +39,9 @@ def test(cfg: DictConfig) -> str:
         lr_video, *_ = read_video(str(path), tensor=True)
         hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr,path.name), tensor=True)
 
-        print(lr_video.shape)
+        lr_video = lr_video.cuda()
+        hr_video = hr_video.cuda()
+
         out = model(lr_video.unsqueeze(0)).squeeze(0)
 
         video_path = os.path.join(output_path, path.name)
