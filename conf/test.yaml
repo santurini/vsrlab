@@ -7,3 +7,4 @@ output_path: 'path/to/output'
 defaults:
   - nn/module/model: baby_realbasic
 
+model: nn/module/model/baby_realbasic
