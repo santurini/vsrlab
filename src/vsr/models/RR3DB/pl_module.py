@@ -73,7 +73,7 @@ class LitBase(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         lr, hr = batch
-        step_out = self.step(lr, hr, test=True)
+        step_out = self.step(lr, hr)
 
         self.log_losses(
             step_out,
