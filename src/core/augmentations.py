@@ -73,14 +73,14 @@ class RandomVideoCompression(nn.Module):
 def read_video(path, iterator: bool = False):
     with av.open(path) as container:
         assert container.streams.video, f"not a video: {path}"
-        frames = [frame for frame in container.decode(video=0)]
+        if not iterator:
+            frames = [frame for frame in container.decode(video=0)]
+        else:
+            frames = (frame for frame in container.decode(video=0))
         rate = str(container.streams.video[0].average_rate.numerator)
         height = container.streams.video[0].height
         width = container.streams.video[0].width
         codec =  container.streams.video[0].codec.name
-
-    if iterator:
-        frames = (frame for frame in container.decode(video=0))
 
     return frames, codec, rate, height, width
 
