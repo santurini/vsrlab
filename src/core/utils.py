@@ -66,7 +66,7 @@ def save_test_config(cfg):
     return save_path
 
 def get_state_dict(path):
-    return  torch.load(path)['state_dict']
+    return torch.load(path)['state_dict']
 
 def get_model_state_dict(path):
     state_dict = torch.load(path)['state_dict']
