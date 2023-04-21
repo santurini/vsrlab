@@ -70,7 +70,7 @@ def test(cfg: DictConfig) -> str:
                 "LPIPS": lpips(out, window_hr),
             }
 
-            out_video.extend([av.VideoFrame.reformat(format='yuv420p').from_image(to_pil_image(i)) for i in out])
+            out_video.extend([av.VideoFrame.from_image(to_pil_image(i)).reformat(format='yuv420p') for i in out])
             del out
 
             df = df.append([metrics], ignore_index=True)
