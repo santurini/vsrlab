@@ -35,7 +35,7 @@ def test(cfg: DictConfig) -> str:
     df = pd.DataFrame()
     for path in Path(cfg.path_lr).glob('*'):
         lr_video, *_ = read_video(str(path))
-        hr_video, c, r, h, w = read_video(cfg.path_hr + path.name)
+        hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr,path.name))
         out = model(lr_video.unsqueeze(0)).squeeze(0)
 
         video_path = os.path.join(output_path, path.name)
