@@ -23,10 +23,10 @@ from piqa import PSNR, SSIM, MS_SSIM, LPIPS
 
 pylogger = logging.getLogger(__name__)
 
-psnr = PSNR()
-ms_ssim = MS_SSIM()
-ssim = SSIM()
-lpips = LPIPS()
+psnr = PSNR().cuda()
+ms_ssim = MS_SSIM().cuda()
+ssim = SSIM().cuda()
+lpips = LPIPS().cuda()
 
 @torch.no_grad()
 def test(cfg: DictConfig) -> str:
