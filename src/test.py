@@ -14,7 +14,7 @@ import pytorch_lightning as pl
 from omegaconf import DictConfig
 
 from core import PROJECT_ROOT
-from core.utils import get_state_dict, save_config
+from core.utils import get_state_dict, save_test_config
 from core.augmentations import read_video, write_video
 
 import pandas as pd
@@ -60,7 +60,8 @@ def test(cfg: DictConfig) -> str:
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="test", version_base="1.3")
 def main(config: omegaconf.DictConfig):
-    test(config)
+    print(config)
+    #test(config)
 
 if __name__ == "__main__":
     main()
