@@ -21,7 +21,7 @@ pylogger = logging.getLogger(__name__)
 
 def test(cfg: DictConfig) -> str:
     output_path = save_test_config(cfg)
-    os.mkdir(output_path)
+    Path(output_path).parent.mkdir(exist_ok=True)
 
     # Instantiate model
     pylogger.info(f"Instantiating <{cfg.nn.module.model['_target_']}>")
