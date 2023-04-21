@@ -83,6 +83,8 @@ def read_video(path):
     return frames, codec, rate, height, width
 
 def write_video(path, frames, codec, rate, crf, height, width):
+    assert frames[0].width == width
+    assert frames[0].height == height
     with av.open(path, 'w') as container:
         stream = container.add_stream(codec, rate=rate)
         stream.height = height
