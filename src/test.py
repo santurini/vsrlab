@@ -5,6 +5,7 @@ warnings.filterwarnings("ignore")
 
 import logging
 
+import torch
 import hydra
 import omegaconf
 from omegaconf import DictConfig
