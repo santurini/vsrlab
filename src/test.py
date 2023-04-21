@@ -1,4 +1,5 @@
 import os
+import av
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -8,6 +9,7 @@ from itertools import islice
 
 import torch
 import torch.nn.functional as F
+from torchvision.transforms.functional import to_pil_image
 import hydra
 import omegaconf
 from omegaconf import DictConfig
@@ -39,18 +41,23 @@ def test(cfg: DictConfig) -> str:
 
     df_final = pd.DataFrame()
     for path in Path(cfg.path_lr).glob('*'):
+
         pylogger.info(f"Reading video: <{path}>")
         lr_video, *_ = read_video(str(path), iterator=True)
         hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr, path.name), iterator=True)
 
         pylogger.info(f"Processing video>")
-        df = pd.DataFrame()
-        for window_lr, window_hr in zip(islice(lr_video, 0, cfg.window_size), islice(hr_video, 0, cfg.window_size)):
 
-            window_lr = torch.stack([F.to_tensor(frame.to_image()) for frame in window_lr])
-            window_hr = torch.stack([F.to_tensor(frame.to_image()) for frame in window_hr])
+        df = pd.DataFrame()
+        out_video = []
+        for window_lr, window_hr in zip(batched(lr_video, cfg.window_size), batched(hr_video, cfg.window_size)):
+
+            window_lr = torch.stack([F.to_tensor(frame.to_image()) for frame in window_lr]).cuda()
+
             out = model(window_lr.unsqueeze(0)).squeeze(0)
             del window_lr
+
+            window_hr = torch.stack([F.to_tensor(frame.to_image()) for frame in window_hr]).cuda()
 
             metrics = {
                 "PSNR": PSNR(out, window_hr),
@@ -59,16 +66,19 @@ def test(cfg: DictConfig) -> str:
                 "LPIPS": LPIPS(out, window_hr),
             }
 
+            out_video.extend([av.VideoFrame.from_image(to_pil_image(i)) for i in out])
+            del out
+
             df = df.append([metrics], ignore_index=True)
 
-        ## DA RIFARE
-        video_path = os.path.join(output_path, path.name)
-        write_video(video_path, out, codec=c, rate=r, crf=0, height=h, width=w)
-
+        metrics = df.mean(axis=0).to_dict()
         df_final = df_final.append([metrics], ignore_index=True)
 
+        video_path = os.path.join(output_path, path.name)
+        write_video(video_path, out_video, codec=c, rate=r, crf=5, height=h, width=w)
+
     metrics_path = os.path.join(output_path, 'metrics.csv')
-    df.mean(axis=0).to_frame(name='Score').to_csv(metrics_path)
+    df_final.mean(axis=0).to_frame(name='Score').to_csv(metrics_path)
 
     return output_path
 
