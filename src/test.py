@@ -62,9 +62,9 @@ def test(cfg: DictConfig) -> str:
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="test", version_base="1.3")
 def main(config: omegaconf.DictConfig):
     print(config)
-    model = cfg.model_name
-    version = cfg.finetune.stem
-    output_path = ''.join(['sr', Path(cfg.path_lr).name.partition('lr')[-1]])
+    model = config.model_name
+    version = config.finetune.stem
+    output_path = ''.join(['sr', Path(config.path_lr).name.partition('lr')[-1]])
 
     save_path = '_'.join([
         output_path,
