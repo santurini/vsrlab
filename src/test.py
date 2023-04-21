@@ -39,7 +39,7 @@ def test(cfg: DictConfig) -> str:
 
     pylogger.info(f"Loading pretrained weights: <{cfg.finetune}>")
     state_dict = get_state_dict(cfg.finetune)
-    model.load_state_dict(state_dict, strict=False)
+    model.load_state_dict(state_dict, strict=True)
     model = model.cuda()
     model.eval()
 
