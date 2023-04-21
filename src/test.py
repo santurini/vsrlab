@@ -18,6 +18,7 @@ from core.utils import get_state_dict, save_test_config
 from core.augmentations import read_video, write_video
 
 import pandas as pd
+from pathlib import Path
 from piqa import PSNR, SSIM, MS_SSIM, LPIPS
 
 pylogger = logging.getLogger(__name__)
@@ -41,7 +42,7 @@ def test(cfg: DictConfig) -> str:
         hr_video, c, r, h, w = read_video(cfg.path_hr + path.name)
         out = model(lr_video.unsqueeze(0)).squeeze(0)
 
-        video_path = os.path.join(cfg.output_path, path.name)
+        video_path = os.path.join(output_path, path.name)
         write_video(video_path, out, codec=c, rate=r, crf=0, height=h, width=w)
 
         metrics = {
@@ -61,6 +62,17 @@ def test(cfg: DictConfig) -> str:
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="test", version_base="1.3")
 def main(config: omegaconf.DictConfig):
     print(config)
+    model = cfg.model_name
+    version = cfg.finetune.stem
+    output_path = ''.join(['sr', Path(cfg.path_lr).name.partition('lr')[-1]])
+
+    save_path = '_'.join([
+        output_path,
+        model,
+        version
+        ])
+
+    print(save_path)
     #test(config)
 
 if __name__ == "__main__":
