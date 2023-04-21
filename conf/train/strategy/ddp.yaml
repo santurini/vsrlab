@@ -1,1 +1,4 @@
 _target_: pytorch_lightning.strategies.DDPStrategy
+parallel_devices:
+  - 0
+  - 1
