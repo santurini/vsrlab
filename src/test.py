@@ -20,8 +20,8 @@ from piqa import PSNR, SSIM, MS_SSIM, LPIPS
 pylogger = logging.getLogger(__name__)
 
 def test(cfg: DictConfig) -> str:
-    os.mkdir(cfg.output_path)
     output_path = save_test_config(cfg)
+    os.mkdir(output_path)
 
     # Instantiate model
     pylogger.info(f"Instantiating <{cfg.nn.module.model['_target_']}>")
