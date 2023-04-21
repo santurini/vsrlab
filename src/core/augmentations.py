@@ -105,7 +105,7 @@ def compress_video(path_hr, path_lr, codec, crf, scale_factor):
     write_video(path_lr, frames_hr, codec, rate, crf, height//scale_factor, width//scale_factor)
 
 def compress_video_folder(folder, codec, crf, scale_factor):
-    os.mkdir(os.path.join(folder, 'lr'))
+    os.mkdir(os.path.join(folder, f'lr_crf_{crf}'))
     paths = Path(folder).glob('hr/*')
     for video in paths:
         file_name = f'lr_crf_{crf}/{video.stem}.mp4'
