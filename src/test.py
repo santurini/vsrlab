@@ -36,6 +36,9 @@ def test(cfg: DictConfig) -> str:
     for path in Path(cfg.path_lr).glob('*'):
         lr_video, *_ = read_video(str(path))
         hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr,path.name))
+
+        lr_video = torch.stack(lr_video)
+        print(lr_video.shape)
         out = model(lr_video.unsqueeze(0)).squeeze(0)
 
         video_path = os.path.join(output_path, path.name)
