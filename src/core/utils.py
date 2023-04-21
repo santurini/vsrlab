@@ -8,6 +8,7 @@ import hydra
 import numpy as np
 from collections import OrderedDict
 import torch
+from itertools import islice
 
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from pytorch_lightning import seed_everything, Callback
@@ -79,3 +80,12 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
         pylogger.info(f"Adding augmentation <{aug['_target_'].split('.')[-1]}>")
         augmentation.append(hydra.utils.instantiate(aug, _recursive_=False))
     return Sequential(*augmentation)
+
+def batched(iterable, n):
+    "Batch data into tuples of length n. The last batch may be shorter."
+    # batched('ABCDEFG', 3) --> ABC DEF G
+    if n < 1:
+        raise ValueError('n must be at least one')
+    it = iter(iterable)
+    while batch := tuple(islice(it, n)):
+        yield batch
