@@ -6,11 +6,12 @@ core:
 defaults:
   - override /nn/module: baby_rr3db
   - override /train/strategy: ddp
-  - override /nn/data: schedule1
+  - override /nn/data: schedule2
 
 finetune: False
 
 train:
+  restore: /home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/testign_schedules/checkpoints/last.ckpt
   trainer:
     devices: 2
 
