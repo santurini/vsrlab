@@ -17,8 +17,13 @@ train:
     devices: 2
     max_steps: 50000
     max_epochs: 15000
+    gradient_clip_val: 1
+    gradient_clip_algorithm: value
 
 nn:
+  module:
+    model:
+      of_loss: 1e-2
   data:
     datasets:
       train:
