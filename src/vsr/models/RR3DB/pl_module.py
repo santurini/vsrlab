@@ -69,7 +69,7 @@ class LitBase(pl.LightningModule):
         )
 
         if self.get_log_flag(batch_idx, self.hparams.log_interval):
-            self.log_images(step_out)
+            self.log_images(step_out, "Train")
 
         return step_out["loss"]
 
@@ -90,7 +90,7 @@ class LitBase(pl.LightningModule):
         )
 
         if self.get_log_flag(batch_idx, self.hparams.log_interval):
-            self.log_images(step_out)
+            self.log_images(step_out, "Val")
 
         return step_out["loss"]
 
