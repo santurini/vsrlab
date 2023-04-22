@@ -16,6 +16,7 @@ train:
   trainer:
     devices: 2
     max_steps: 50000
+    max_epochs: 15000
 
 nn:
   data:
