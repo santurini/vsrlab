@@ -186,7 +186,7 @@ class LitBase(pl.LightningModule):
         hr = out["hr"][0, :, -1, :, :].detach()
         sr = out["sr"][0, :, -1, :, :].detach().clamp(0, 1)
 
-        grid = make_grid([lr, sr, hr], nrow=3, ncol=1)
+        grid = make_grid([lr, sr, hr, sr - lr], nrow=4, ncol=1)
         self.logger.log_image(key='Input Images', images=[grid], caption=[f'Model Output: step {self.global_step}'])
 
     @staticmethod
