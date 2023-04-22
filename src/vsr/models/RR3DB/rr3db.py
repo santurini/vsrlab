@@ -183,8 +183,6 @@ class RR3DBNet(nn.Module):
         super().__init__()
         self.sf = sf
         self.of_loss = of_loss
-        self.gamma = gamma
-        self.iterations = iterations
         self.conv_first = nn.Conv3d(in_nc, nf, 3, 1, 1, bias=False)
         self.rrdbnet = nn.Sequential(*[RRDB(nf, gc, nrb) for _ in range(nb)])
         self.trunk_conv = nn.Conv3d(nf, nf, 3, 1, 1, bias=False)
