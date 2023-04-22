@@ -7,12 +7,12 @@ defaults:
   - override /nn/module: baby_rr3db
   - override /nn/module/scheduler: cosine
   - override /train/strategy: ddp
-  - override /nn/data: easy_schedule
+  - override /nn/data: mid_schedule
 
 finetune: False
 
 train:
-  restore: null
+  restore: /home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/curriculum_learning/checkpoints/last.ckpt
   trainer:
     devices: 2
     max_steps: 50000
