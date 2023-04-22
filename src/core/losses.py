@@ -16,20 +16,6 @@ class WL1Loss(nn.L1Loss):
     def forward(self, x, y):
         return self.loss(x, y) * self.weight
 
-class CharbonnierLoss(nn.Module):
-    def __init__(self, weight=1.0, eps=1e-12):
-        super().__init__()
-        self.eps = eps
-        self.weight = weight
-
-    def forward(self, yhat, y):
-        h = y.shape[-2];
-        w = y.shape[-1]
-        yhat = yhat.view(-1, 3, h, w)
-        y = y.view(-1, 3, h, w)
-        loss = torch.mean(torch.sqrt((yhat - y) ** 2 + self.eps))
-        return loss * self.weight
-
 class PerceptualVGG(nn.Module):
     def __init__(self, layer_name_list):
         super().__init__()

@@ -1,12 +1,11 @@
 # @package _global_
 core:
-  run_id: 'testign_schedules'
+  run_id: 'baby_irr3db_pretrain'
   run_name: "Baby RR3DB - Pretrain"
 
 defaults:
   - override /nn/module: baby_rr3db
   - override /train/strategy: ddp
-  - override /nn/data: schedule1
 
 finetune: False
 

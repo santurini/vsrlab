@@ -68,6 +68,9 @@ class LitBase(pl.LightningModule):
             )
         )
 
+        if self.get_log_flag(batch_idx, self.hparams.log_interval):
+            self.log_images(step_out)
+
         return step_out["loss"]
 
     def validation_step(self, batch, batch_idx):
@@ -180,14 +183,14 @@ class LitBase(pl.LightningModule):
             prog_bar=False
         )
 
-    def log_images(self, out):
+    def log_images(self, out, stage):
         b, t, c, h, w = out["sr"].shape
         lr = resize(out["lr"][0, :, -1, :, :], (h, w)).detach()
         hr = out["hr"][0, :, -1, :, :].detach()
         sr = out["sr"][0, :, -1, :, :].detach().clamp(0, 1)
 
-        grid = make_grid([lr, sr, hr, sr - lr], nrow=4, ncol=1)
-        self.logger.log_image(key='Input Images', images=[grid], caption=[f'Model Output: step {self.global_step}'])
+        grid = make_grid([lr, sr, hr, abs(sr-lr)], nrow=4, ncol=1)
+        self.logger.log_image(key='Input Images', images=[grid], caption=[f'Stage {stage}, Step {self.global_step}'])
 
     @staticmethod
     def get_log_flag(batch_idx, log_interval):

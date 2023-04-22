@@ -1,7 +1,10 @@
+from typing import Union
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange
+from einops.layers.torch import Rearrange
 
 from kornia.geometry.transform import resize
 
@@ -10,10 +13,10 @@ from optical_flow.models.raft.raft import RAFT
 class ResidualDenseBlock(nn.Module):
     def __init__(self, channels: int, growth_channels: int) -> None:
         super().__init__()
-        self.conv1 = nn.Conv3d(channels + growth_channels * 0, growth_channels, 3, 1, 1, padding_mode='reflect', bias=False)
-        self.conv2 = nn.Conv3d(channels + growth_channels * 1, growth_channels, 3, 1, 1, padding_mode='reflect', bias=False)
-        self.conv3 = nn.Conv3d(channels + growth_channels * 2, growth_channels, 3, 1, 1, padding_mode='reflect', bias=False)
-        self.conv4 = nn.Conv3d(channels + growth_channels * 3, growth_channels, 3, 1, 1, padding_mode='reflect', bias=False)
+        self.conv1 = nn.Conv3d(channels + growth_channels * 0, growth_channels, 3, 1, 1, bias=False)
+        self.conv2 = nn.Conv3d(channels + growth_channels * 1, growth_channels, 3, 1, 1, bias=False)
+        self.conv3 = nn.Conv3d(channels + growth_channels * 2, growth_channels, 3, 1, 1, bias=False)
+        self.conv4 = nn.Conv3d(channels + growth_channels * 3, growth_channels, 3, 1, 1, bias=False)
         self.conv5 = nn.Conv3d(channels + growth_channels * 4, channels, 3, 1, 1, bias=False)
         self.selu = nn.SELU()
 
@@ -41,7 +44,7 @@ class RRDB(nn.Module):
 class UpsampleBlock(nn.Module):
     def __init__(self, nf, out_nc, sf):
         super().__init__()
-        self.upconv = nn.Conv3d(nf, out_nc * sf ** 2, 3, 1, 1, padding_mode='reflect', bias=False)
+        self.upconv = nn.Conv3d(nf, out_nc * sf ** 2, 3, 1, 1, bias=False)
         self.pixel_shuffle = nn.PixelShuffle(upscale_factor=sf)
 
     def forward(self, x):
@@ -50,12 +53,28 @@ class UpsampleBlock(nn.Module):
         out = self.pixel_shuffle(out)
         return out.permute(0, 2, 1, 3, 4)
 
+class BiUpsampleBlock(nn.Module):
+    def __init__(self, nf, out_nc, sf):
+        super().__init__()
+        self.excite_conv = nn.Conv3d(nf, 2 * nf, 3, 1, 1, bias=False)
+        self.squeeze_conv = nn.Conv3d(2 * nf, nf, 3, 1, 1, bias=False)
+        self.upconv = nn.Conv3d(nf, out_nc * sf ** 2, 3, 1, 1, bias=False)
+        self.pixel_shuffle = nn.PixelShuffle(upscale_factor=sf)
+
+    def forward(self, x):
+        out = self.excite_conv(x)
+        out = self.squeeze_conv(out) + x
+        out = self.upconv(out)
+        out = out.permute(0, 2, 1, 3, 4)
+        out = self.pixel_shuffle(out)
+        return out.permute(0, 2, 1, 3, 4)
+
 class ConvGRU(nn.Module):
     def __init__(self, fea_dim=64, flow_dim=2):
         super().__init__()
-        self.convz = nn.Conv3d(fea_dim + flow_dim, fea_dim, 3, 1, 1, padding_mode='reflect', bias=False)
-        self.convr = nn.Conv3d(fea_dim + flow_dim, fea_dim, 3, 1, 1, padding_mode='reflect', bias=False)
-        self.convq = nn.Conv3d(fea_dim + flow_dim, fea_dim, 3, 1, 1, padding_mode='reflect', bias=False)
+        self.convz = nn.Conv3d(fea_dim + flow_dim, fea_dim, 3, 1, 1, bias=False)
+        self.convr = nn.Conv3d(fea_dim + flow_dim, fea_dim, 3, 1, 1, bias=False)
+        self.convq = nn.Conv3d(fea_dim + flow_dim, fea_dim, 3, 1, 1, bias=False)
 
     def forward(self, h, x):
         hx = torch.cat([h, x], dim=1)
@@ -87,7 +106,7 @@ class UpdateBlock(nn.Module):
 
         return fea
 
-class RR3DBNet(nn.Module):
+class IRR3DBNet(nn.Module):
     def __init__(
             self,
             in_nc=3, out_nc=3, nf=32, nrb=2, nb=5, gc=64, sf=4,
@@ -98,9 +117,9 @@ class RR3DBNet(nn.Module):
         self.sf = sf
         self.gamma = gamma
         self.iterations = iterations
-        self.conv_first = nn.Conv3d(in_nc, nf, 3, 1, 1, padding_mode='reflect', bias=False)
+        self.conv_first = nn.Conv3d(in_nc, nf, 3, 1, 1, bias=False)
         self.rrdbnet = nn.Sequential(*[RRDB(nf, gc, nrb) for _ in range(nb)])
-        self.trunk_conv = nn.Conv3d(nf, nf, 3, 1, 1, padding_mode='reflect', bias=False)
+        self.trunk_conv = nn.Conv3d(nf, nf, 3, 1, 1, bias=False)
         self.upsample = UpsampleBlock(nf, out_nc, sf)
         self.update = UpdateBlock(raft_small, raft_scale_factor, raft_pretrained, nf)
 
@@ -111,14 +130,14 @@ class RR3DBNet(nn.Module):
         trunk = self.trunk_conv(self.rrdbnet(fea))
         fea = fea + trunk
 
-        out = resize(lr, (self.sf*h, self.sf*w), align_corners=True, antialias=True)
+        out = resize(lr, (self.sf*h, self.sf*w))
 
         for i in range(self.iterations):
             out = out.detach()
 
             fea = self.update(fea, out)
             res = self.upsample(fea)
-            out = out + res
+            out -= res
 
         return out
 
@@ -129,7 +148,7 @@ class RR3DBNet(nn.Module):
         trunk = self.trunk_conv(self.rrdbnet(fea))
         fea = fea + trunk
 
-        out = resize(lr, (self.sf*h, self.sf*w), align_corners=True, antialias=True)
+        out = resize(lr, (self.sf*h, self.sf*w))
 
         total_loss = 0
         for i in range(self.iterations):
@@ -137,7 +156,7 @@ class RR3DBNet(nn.Module):
 
             fea = self.update(fea, out)
             res = self.upsample(fea)
-            out = out + res
+            out -= res
 
             loss = F.l1_loss(out, hr) * self.gamma ** (self.iterations - i - 1)
             total_loss += loss
@@ -148,4 +167,76 @@ class RR3DBNet(nn.Module):
             "hr": hr,
             "loss": total_loss
         }
+
+class RR3DBNet(nn.Module):
+    def __init__(
+            self,
+            in_nc=3,
+            out_nc=3,
+            nf=32,
+            nrb=2,
+            nb=5,
+            gc=64,
+            sf=4,
+            of_loss: Union[float, None] = None
+    ):
+        super().__init__()
+        self.sf = sf
+        self.of_loss = of_loss
+        self.gamma = gamma
+        self.iterations = iterations
+        self.conv_first = nn.Conv3d(in_nc, nf, 3, 1, 1, bias=False)
+        self.rrdbnet = nn.Sequential(*[RRDB(nf, gc, nrb) for _ in range(nb)])
+        self.trunk_conv = nn.Conv3d(nf, nf, 3, 1, 1, bias=False)
+        self.upsample = BiUpsampleBlock(nf, out_nc, sf)
+
+        if of_loss:
+            self.rearrange = Rearrange('b c t h w -> (b t) c h w')
+            self.raft = RAFT(small=False, scale_factor=8, pretrained=True)
+            for param in self.raft.parameters():
+                param.requires_grad = False
+
+    def forward(self, lr):
+
+        fea = self.conv_first(lr)
+        trunk = self.trunk_conv(self.rrdbnet(fea))
+        fea = fea + trunk
+
+        sr = self.upsample(fea)
+
+        return sr
+
+    def train_step(self, lr, hr):
+
+        fea = self.conv_first(lr)
+        trunk = self.trunk_conv(self.rrdbnet(fea))
+        fea = fea + trunk
+
+        sr = self.upsample(fea)
+
+        loss = F.l1_loss(sr, hr)
+
+        out = {
+            "lr": lr,
+            "sr": sr,
+            "hr": hr,
+            "loss": loss
+        }
+
+        if self.of_loss:
+            of_loss = F.l1_loss(
+                self.raft(
+                    self.rearrange(sr[:, :, :-1, :, :]),
+                    self.rearrange(sr[:, :, 1:, :, :])
+                ),
+                self.raft(
+                    self.rearrange(hr[:, :, :-1, :, :]),
+                    self.rearrange(hr[:, :, 1:, :, :])
+                )
+            ) * self.of_loss
+
+            out["of_loss"] = of_loss
+            out["loss"] += of_loss
+
+        return out
 
