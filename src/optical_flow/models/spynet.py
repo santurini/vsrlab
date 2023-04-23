@@ -33,7 +33,7 @@ class Spynet(nn.Module):
             pylogger.info('Loading Spynet pretrained weights')
             state_dict = torch.load(f'{PROJECT_ROOT}/src/optical_flow/weights/pretrained_spynet.pth')
             new_dict = OrderedDict([(key[13:34] + '.0' + key[34:], state_dict[key]) for key in state_dict.keys()])
-            self.load_state_dict(new_dict)
+            self.basic_module.load_state_dict(new_dict)
 
     def compute_flow(self, ref, supp):
         t, _, h, w = ref.size()
