@@ -1,19 +1,21 @@
 # @package _global_
 core:
-  run_id: 'baby_vsr_easy'
-  run_name: "Baby Real Basic - Easy Schedule"
+  run_id: 'baby_vsr_mid'
+  run_name: "Baby Real Basic - Mid Schedule"
 
 defaults:
   - override /nn/module/scheduler: cosine
   - override /train/strategy: ddp
-  - override /nn/data: easy_schedule
+  - override /nn/data: mid_schedule
 
-finetune: False
+finetune: /home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/baby_vsr_easy/checkpoints/last.ckpt
 
 nn:
   module:
+    optimizer:
+      lr: 5e-5
     scheduler:
-      eta_min: 1e-5
+      eta_min: 1e-6
     set_lr: False
 
 train:
