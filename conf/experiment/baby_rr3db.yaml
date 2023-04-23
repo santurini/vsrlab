@@ -16,7 +16,7 @@ train:
   trainer:
     devices: 2
     max_steps: 150000
-    max_epochs: 5000q
+    max_epochs: 5000
     gradient_clip_val: 1
 
 nn:
