@@ -23,7 +23,7 @@ class SpynetModule(nn.Module):
 class Spynet(nn.Module):
     def __init__(
             self,
-            pretrained=f'{PROJECT_ROOT}/src/optical_flow/weights/pretrained_spynet.pth'
+            pretrained: bool = False
     ):
         super().__init__()
         self.basic_module = nn.ModuleList([SpynetModule() for _ in range(6)])
@@ -31,9 +31,8 @@ class Spynet(nn.Module):
         self.register_buffer('std', torch.Tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
         if pretrained:
             pylogger.info('Loading Spynet pretrained weights')
-            state_dict = torch.load(pretrained)
-            new_dict = OrderedDict([(key[13:34] + '.0' + key[34:], state_dict[key]) for key in state_dict.keys()])
-            self.basic_module.load_state_dict(new_dict)
+            state_dict = torch.load(f'{PROJECT_ROOT}/src/optical_flow/weights/pretrained_spynet.pth')
+            self.load_state_dict(state_dict)
 
     def compute_flow(self, ref, supp):
         t, _, h, w = ref.size()
