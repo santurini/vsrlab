@@ -13,7 +13,7 @@ finetune: /home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/baby_vsr
 nn:
   module:
     optimizer:
-      lr: 5e-5
+      lr: 1e-5
     scheduler:
       eta_min: 1e-6
     set_lr: False
