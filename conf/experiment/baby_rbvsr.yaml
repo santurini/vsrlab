@@ -4,6 +4,19 @@ core:
   run_name: "Baby Real Basic - Pretrain 2"
 
 defaults:
-  - override /nn/module/optimizer: deepspeed
-  - override /train/trainer: deepspeed
-  - override /train/strategy: deepspeed
+  - override /nn/module/scheduler: cosine
+  - override /train/strategy: ddp
+  - override /nn/data: easy_schedule
+
+finetune: False
+
+nn:
+  module:
+    set_lr: False
+
+train:
+  trainer:
+    devices: 2
+    max_steps: 100000
+    max_epochs: 1000
+    gradient_clip_val: 1
