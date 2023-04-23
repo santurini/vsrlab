@@ -53,7 +53,7 @@ datasets:
 
       - _target_: kornia.augmentation.RandomGaussianBlur
         kernel_size: 5
-        sigma: [0.5, 3]
+        sigma: [0.5, 1.5]
         same_on_batch: False
         keepdim: True
 
@@ -82,7 +82,7 @@ datasets:
     lr_augmentation:
       - _target_: core.augmentations.RandomVideoCompression
         codec: [ 'libx264', 'h264', 'mpeg4' ]
-        crf: [ 35, 45 ]
+        crf: [ 40 ]
         fps: [ 30 ]
 
       - _target_: kornia.augmentation.Resize
