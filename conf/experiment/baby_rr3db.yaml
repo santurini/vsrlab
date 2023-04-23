@@ -28,3 +28,7 @@ nn:
   module:
     optimizer:
       lr: 5e-5
+    scheduler:
+      T_max: 3000
+      eta_min: 5e-7
+
