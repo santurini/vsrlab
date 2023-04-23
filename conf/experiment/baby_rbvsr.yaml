@@ -1,7 +1,7 @@
 # @package _global_
 core:
-  run_id: 'baby_vsr_default2'
-  run_name: "Baby Real Basic - Pretrain 2"
+  run_id: 'baby_vsr_easy'
+  run_name: "Baby Real Basic - Easy Schedule"
 
 defaults:
   - override /nn/module/scheduler: cosine
@@ -12,6 +12,8 @@ finetune: False
 
 nn:
   module:
+    scheduler:
+      eta_min: 1e-5
     set_lr: False
 
 train:
