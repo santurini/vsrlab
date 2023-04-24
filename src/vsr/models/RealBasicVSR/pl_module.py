@@ -202,6 +202,8 @@ class LitBase(pl.LightningModule):
 class LitGan(LitBase):
     def __init__(self,
                  discriminator: DictConfig,
+                 perceptual_loss: DictConfig,
+                 adversarial_loss: DictConfig
                  *args,
                  **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -210,8 +212,8 @@ class LitGan(LitBase):
 
         self.discriminator = hydra.utils.instantiate(discriminator, _recursive_=False)
 
-        self.perceptual: nn.Module = PerceptualLoss()
-        self.adversarial: nn.Module = AdversarialLoss()
+        self.perceptual: nn.Module = hydra.utils.instantiate(perceptual_loss, _recursive_=False)
+        self.adversarial: nn.Module = hydra.utils.instantiate(adversarial_loss, _recursive_=False)
 
     def training_step(self, batch, batch_idx):
         opt_g, opt_d = self.optimizers()
