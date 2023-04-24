@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from core.modules.conv import ResidualBlock
 from vsr.models.RealBasicVSR.modules.basicvsr import BasicVSR
 
