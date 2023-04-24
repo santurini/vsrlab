@@ -60,7 +60,7 @@ datasets:
 
       - _target_: core.augmentations.RandomVideoCompression
         codec: [ 'libx264', 'h264', 'mpeg4' ]
-        crf: [ 35, 40 ]
+        crf: [ 30, 38 ]
         fps: [ 30 ]
 
 

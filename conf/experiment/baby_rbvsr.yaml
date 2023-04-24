@@ -1,21 +1,23 @@
 # @package _global_
 core:
-  run_id: 'baby_vsr_mid'
-  run_name: "Baby Real Basic - Mid Schedule"
+  run_id: 'baby_vsr_hard'
+  run_name: "Baby Real Basic - Hard Schedule"
 
 defaults:
-  - override /nn/module/scheduler: cosine
+  - override /nn/module/scheduler: cosine_warmup
   - override /train/strategy: ddp
-  - override /nn/data: mid_schedule
+  - override /nn/data: hard_schedule
 
-finetune: /home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/baby_vsr_easy/checkpoints/last.ckpt
+finetune: /home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/baby_vsr_mid/checkpoints/last.ckpt
 
 nn:
   module:
     optimizer:
       lr: 1e-5
     scheduler:
-      eta_min: 1e-6
+      min_lrs_pow: 1
+      first_cycle_steps: 21000
+      warmup_steps: 2000
     set_lr: False
 
 train:
