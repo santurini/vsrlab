@@ -1,0 +1,11 @@
+generator:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  T_max: ${train.trainer.max_epochs}
+  eta_min: 1e-6
+  verbose: False
+
+discriminator:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  T_max: ${train.trainer.max_epochs}
+  eta_min: 1e-6
+  verbose: False
