@@ -186,10 +186,10 @@ class LitBase(pl.LightningModule):
 
     def log_images(self, out, stage):
         b, t, c, h, w = out["sr"].shape
-        lr = resize(out["lr"][0, :, -1, :, :], (h, w)).detach()
-        lq = resize(out["lq"][0, :, -1, :, :], (h, w)).detach()
-        hr = out["hr"][0, :, -1, :, :].detach()
-        sr = out["sr"][0, :, -1, :, :].detach().clamp(0, 1)
+        lr = resize(out["lr"][0, -1, :, :, :], (h, w)).detach()
+        lq = resize(out["lq"][0, -1, :, , :], (h, w)).detach()
+        hr = out["hr"][0, -1, :, , :].detach()
+        sr = out["sr"][0, -1, :, , :].detach().clamp(0, 1)
 
         grid = make_grid([lr, lq, sr, hr], nrow=4, ncol=1)
         self.logger.log_image(key='Prediction Train/Val', images=[grid], caption=[f'Stage {stage}, Step {self.global_step}'])
