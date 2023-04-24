@@ -24,7 +24,7 @@ class RealBasicVSR(nn.Module):
 
         return sr, lr
 
-    def train_step(self, lr):
+    def train_step(self, lr, hr):
         n, t, c, h, w = lr.size()
         lq = lr
         for _ in range(3):  # at most 3 cleaning, determined empirically
