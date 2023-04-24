@@ -42,8 +42,8 @@ class BasicVSR(nn.Module):
         n, t, c, h, w = lrs.size()
 
         flow_forward, flow_backward = self.compute_flow(lrs)
-        flows_forward = flow_forward[-1].view(n, t - 1, 2, h, w)
-        flows_backward = flow_backward[-1].view(n, t - 1, 2, h, w)
+        flows_forward = flow_forward.view(n, t - 1, 2, h, w)
+        flows_backward = flow_backward.view(n, t - 1, 2, h, w)
 
         outputs = []  # backward-propagation
         feat_prop = lrs.new_zeros(n, self.mid_channels, h, w)
@@ -85,7 +85,7 @@ class BasicVSR(nn.Module):
             # (b 3 h w)
             out = self.conv_last(out)
             outputs[i] = out + self.upscale(lrs[:, i, :, :, :])
-        return torch.stack(outputs, dim=1), flow_forward, flow_backward
+        return torch.stack(outputs, dim=1)
 
 def main() -> None:
     model = BasicVSR(4, 1)

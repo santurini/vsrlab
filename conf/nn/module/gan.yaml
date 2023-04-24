@@ -33,4 +33,4 @@ defaults:
   - model: baby_realbasic
   - loss: pixel_loss
   - optimizer: gan_adam
-  - scheduler: gan_cosine_warmup
+  - scheduler: gan_cosine

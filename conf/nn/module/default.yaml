@@ -1,12 +1,7 @@
-_target_: vsr.pl_module.LitVSR
-log_interval: 250
-log_k_images: 5
+_target_: vsr.models.RealBasicVSR.pl_module.LitBase
+log_interval: 200
 
-set_lr:
-  groups:
-    - "spynet"
-  lrs:
-    - 1e-6
+set_lr: False
 
 metric:
   _target_: core.metrics.MetricCollection
@@ -18,6 +13,5 @@ metric:
 
 defaults:
   - model: baby_realbasic
-  - loss: pixel_loss
   - optimizer: adam
-  - scheduler: cosine_warmup
+  - scheduler: cosine

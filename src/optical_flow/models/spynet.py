@@ -44,7 +44,6 @@ class Spynet(nn.Module):
             ref.append(F.avg_pool2d(input=ref[-1], kernel_size=2, stride=2, count_include_pad=False))
             supp.append(F.avg_pool2d(input=supp[-1], kernel_size=2, stride=2, count_include_pad=False))
 
-        flows = []
         ref = ref[::-1];
         supp = supp[::-1]  # start from smallest scale
         flow = ref[0].new_zeros(t, 2, h // 32, w // 32)  # tensor of all zeros with (H, W) of stride 32
@@ -64,9 +63,8 @@ class Spynet(nn.Module):
             )
 
             flow = flow_up + flow_residue
-            flows.append(flow)
 
-        return flows
+        return flow
 
     def forward(self, ref, supp):
         return self.compute_flow(ref, supp)

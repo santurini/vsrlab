@@ -3,37 +3,50 @@ import torch.nn as nn
 from core.modules.conv import ResidualBlock
 from vsr.models.RealBasicVSR.modules.basicvsr import BasicVSR
 
+from kornia.geometry.transform import resize
+
 class RealBasicVSR(nn.Module):
     def __init__(self, cleaning_blocks=20, threshold=1., *args, **kwargs):
         super().__init__()
-        self.name = 'Real Basic VSR'
-        self.cleaner = CleaningModule(kwargs["mid_channels"], cleaning_blocks)
+        self.cleaner = IterativeRefinement(kwargs["mid_channels"], cleaning_blocks)
         self.basicvsr = BasicVSR(*args, **kwargs)
         self.threshold = threshold
 
-    def forward(self, lqs):
-        n, t, c, h, w = lqs.size()
+    def forward(self, lr):
+        n, t, c, h, w = lr.size()
         for _ in range(3):  # at most 3 cleaning, determined empirically
-            lqs = lqs.view(-1, c, h, w)
-            residues = self.cleaner(lqs)
-            lqs = (lqs + residues).view(n, t, c, h, w)
+            lr = lr.view(-1, c, h, w)
+            residues = self.cleaner(lr)
+            lr = (lr + residues).view(n, t, c, h, w)
             if torch.mean(torch.abs(residues)) < self.threshold:
                 break
-        sr, flow_f, flow_b = self.basicvsr(lqs)
-        return sr, lqs, flow_f, flow_b
+        sr  = self.basicvsr(lr)
 
-    def test(self, lqs):
-        n, t, c, h, w = lqs.size()
+        return sr, lr
+
+    def train_step(self, lr):
+        n, t, c, h, w = lr.size()
+        lq = lr
         for _ in range(3):  # at most 3 cleaning, determined empirically
-            lqs = lqs.view(-1, c, h, w)
-            residues = self.cleaner(lqs)
-            lqs = (lqs + residues).view(n, t, c, h, w)
+            lq = lq.view(-1, c, h, w)
+            residues = self.cleaner(lq)
+            lq = (lq + residues).view(n, t, c, h, w)
             if torch.mean(torch.abs(residues)) < self.threshold:
                 break
-        sr, _, _ = self.basicvsr(lqs)
-        return sr
 
-class CleaningModule(nn.Module):
+        sr  = self.basicvsr(lq)
+
+        loss = F.l1_loss(hr, sr) + F.l1_loss(resize(hr, (h, w), antialias=True), lq)
+
+        return {
+            "lr": lr,
+            "lq": lq,
+            "sr": sr,
+            "hr": hr,
+            "loss": loss
+        }
+
+class IterativeRefinement(nn.Module):
     def __init__(self, mid_ch, blocks):
         super().__init__()
         self.resblock = ResidualBlock(3, mid_ch, blocks)

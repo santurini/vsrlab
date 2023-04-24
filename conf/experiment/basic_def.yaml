@@ -1,0 +1,28 @@
+# @package _global_
+core:
+  run_id: 'realbasic_default'
+  run_name: "Real Basic Default"
+
+defaults:
+  - override /train/strategy: ddp
+  - override /nn/data: default
+
+finetune: null
+
+nn:
+  data:
+    dataset:
+      train:
+        path: "/home/aghinassi/Desktop/MergedVSR"
+  module:
+    optimizer:
+      lr: 1e-4
+    scheduler:
+      eta_min: 1e-6
+    set_lr: False
+
+train:
+  trainer:
+    devices: 2
+    max_steps: 63000
+    gradient_clip_val: 1

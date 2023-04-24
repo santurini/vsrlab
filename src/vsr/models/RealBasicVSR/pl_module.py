@@ -6,6 +6,7 @@ import omegaconf
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from core import PROJECT_ROOT
 from core.losses import rmse_loss, AdversarialLoss, PerceptualLoss
 from einops import rearrange
@@ -15,11 +16,10 @@ from torchvision.utils import make_grid
 
 pylogger = logging.getLogger(__name__)
 
-class BaseLit(pl.LightningModule):
+class LitBase(pl.LightningModule):
     def __init__(
             self,
             model: DictConfig,
-            loss: DictConfig,
             metric: DictConfig,
             *args,
             **kwargs
@@ -31,30 +31,31 @@ class BaseLit(pl.LightningModule):
         self.train_metric = metric.clone(postfix='/train')
         self.val_metric = metric.clone(postfix='/val')
 
-        self.loss = hydra.utils.instantiate(loss, _recursive_=True, _convert_="partial")
-
         self.model = hydra.utils.instantiate(model, _recursive_=False)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.model(x)
+    def forward(
+            self,
+            lr: torch.Tensor
+    ):
+        return self.model(lr)
 
     def step(self, lr, hr):
-        sr, lq, _, _ = self(lr)
+        sr, lq = self(lr)
+        loss = F.l1_loss(sr, hr)
 
         args = {
             "lr": lr,
+            "lq": lq,
             "sr": sr,
             "hr": hr,
-            "lq": lq
+            "loss": loss
         }
-
-        args = self.loss(args)
 
         return args
 
     def training_step(self, batch, batch_idx):
         lr, hr = batch
-        step_out = self.step(lr, hr)
+        step_out = self.model.train_step(lr, hr)
 
         self.log_losses(
             step_out,
@@ -63,10 +64,13 @@ class BaseLit(pl.LightningModule):
 
         self.log_dict(
             self.train_metric(
-                rearrange(step_out["sr"].detach().clamp(0, 1), 'b t c h w -> (b t) c h w'),
-                rearrange(hr.detach(), 'b t c h w -> (b t) c h w')
+                rearrange(step_out["sr"].detach().clamp(0, 1), 'b c t h w -> (b t) c h w').contiguous(),
+                rearrange(hr.detach(), 'b c t h w -> (b t) c h w').contiguous()
             )
         )
+
+        if self.get_log_flag(batch_idx, self.hparams.log_interval):
+            self.log_images(step_out, "Train")
 
         return step_out["loss"]
 
@@ -81,13 +85,13 @@ class BaseLit(pl.LightningModule):
 
         self.log_dict(
             self.val_metric(
-                rearrange(step_out["sr"].detach().clamp(0, 1), 'b t c h w -> (b t) c h w'),
-                rearrange(hr.detach(), 'b t c h w -> (b t) c h w')
+                rearrange(step_out["sr"].detach().clamp(0, 1), 'b c t h w -> (b t) c h w').contiguous(),
+                rearrange(hr.detach(), 'b c t h w -> (b t) c h w').contiguous()
             )
         )
 
         if self.get_log_flag(batch_idx, self.hparams.log_interval):
-            self.log_images(step_out)
+            self.log_images(step_out, "Val")
 
         return step_out["loss"]
 
@@ -180,104 +184,24 @@ class BaseLit(pl.LightningModule):
             prog_bar=False
         )
 
-    def log_images(self, out):
+    def log_images(self, out, stage):
         b, t, c, h, w = out["sr"].shape
-        lr = resize(out["lr"][0][-1], (h, w)).detach()
-        lq = resize(out["lq"][0][-1], (h, w)).detach()
-        hr = out["hr"][0][-1].detach()
-        sr = out["sr"][0][-1].detach().clamp(0, 1)
+        lr = resize(out["lr"][0, :, -1, :, :], (h, w)).detach()
+        lq = resize(out["lq"][0, :, -1, :, :], (h, w)).detach()
+        hr = out["hr"][0, :, -1, :, :].detach()
+        sr = out["sr"][0, :, -1, :, :].detach().clamp(0, 1)
 
-        grid = make_grid([lr, hr, lq, sr], nrow=2, ncol=2)
-        self.logger.log_image(key='Input Images', images=[grid], caption=[f'Model Output: step {self.global_step}'])
+        grid = make_grid([lr, lq, sr, hr], nrow=4, ncol=1)
+        self.logger.log_image(key='Prediction Train/Val', images=[grid], caption=[f'Stage {stage}, Step {self.global_step}'])
 
     @staticmethod
     def get_log_flag(batch_idx, log_interval):
         flag = batch_idx % log_interval == 0
         return flag
 
-class FlowLit(BaseLit):
-    def __init__(
-            self,
-            reverse=False,
-            *args,
-            **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.reverse = reverse
-
-        self.teacher = hydra.utils.instantiate(
-            self.hparams.teacher,
-            _recursive_=False
-        ).requires_grad_(False)
-
-    def step(self, lr, hr):
-        sr, lq, flow_f, flow_b = self(lr)
-
-        args = {
-            "lr": lr,
-            "sr": sr,
-            "hr": hr,
-            "lq": lq,
-            "flow_f": flow_f,
-            "flow_b": flow_b
-        }
-
-        args = self.loss(args)
-
-        return args
-
-    def training_step(self, batch, batch_idx):
-        lr, hr = batch
-        step_out = self.step(lr, hr)
-
-        distillation_loss = self.flow_distillation(step_out["flow_f"], step_out["hr"])
-
-        if self.reverse:
-            distillation_loss += self.flow_distillation(step_out["flow_b"], step_out["hr"], reverse=True)
-
-        step_out["distillation_loss"] = distillation_loss
-        step_out["loss"] += distillation_loss
-
-        self.log_losses(
-            step_out,
-            "train",
-        )
-
-        self.log_dict(
-            self.train_metric(
-                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
-                rearrange(hr, 'b t c h w -> (b t) c h w')
-            )
-        )
-
-        return step_out["loss"]
-
-    def flow_distillation(self, flow, hr, reverse=False):
-        b, t, c, h, w = hr.shape
-        img1 = hr[:, :-1, :, :, :].reshape(-1, c, h, w)
-        img2 = hr[:, 1:, :, :, :].reshape(-1, c, h, w)
-
-        if reverse:
-            flow_hr = self.teacher(img1, img2)[-1]
-        else:
-            flow_hr = self.teacher(img2, img1)[-1]
-
-        loss = 0
-        weight = [(0.8) ** (len(flow) - i) for i in range(len(flow))]
-        for i in range(len(flow)):
-            b, c, h, w = flow[i].shape
-            loss += rmse_loss(
-                flow[i],
-                resize(flow_hr, (h, w))
-            ) / (h * w) * weight[i]
-
-        return step_out["loss"]
-
-class GanLit(BaseLit):
+class LitGan(LitBase):
     def __init__(self,
                  discriminator: DictConfig,
-                 perceptual_loss: DictConfig,
-                 adversarial_loss: DictConfig,
                  *args,
                  **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -286,32 +210,30 @@ class GanLit(BaseLit):
 
         self.discriminator = hydra.utils.instantiate(discriminator, _recursive_=False)
 
-        self.perceptual: nn.Module = hydra.utils.instantiate(perceptual_loss, _recursive_=False)
-        self.adversarial: nn.Module = hydra.utils.instantiate(adversarial_loss, _recursive_=False)
+        self.perceptual: nn.Module = PerceptualLoss()
+        self.adversarial: nn.Module = AdversarialLoss()
 
     def training_step(self, batch, batch_idx):
         opt_g, opt_d = self.optimizers()
         self.toggle_optimizer(opt_g)
-        step_out, loss = self.generator_step(batch)
-        self._optim_step(opt_g, loss)
+        step_out = self.generator_step(batch)
+        self._optim_step(opt_g, step_out["loss"])
         self.toggle_optimizer(opt_d)
         loss = self.discriminator_step((step_out["sr"], step_out["hr"]))
         self._optim_step(opt_d, loss)
 
+        if self.get_log_flag(batch_idx, self.hparams.log_interval):
+            self.log_images(step_out, "Train")
+
+        return loss
+
     def generator_step(self, batch):
         lr, hr = batch
         b, t, c, h, w = hr.shape
-        step_out = self.step(lr, hr)
-        perceptual_loss = self.perceptual(
-            step_out["sr"].view(-1, c, h, w),
-            hr.view(-1, c, h, w)
-        )
+        step_out = self.model.train_step(lr, hr)
+        perceptual_loss = self.perceptual(step_out["sr"], hr)
         disc_sr = self.discriminator(step_out["sr"].view(-1, c, h, w))
-        disc_fake_loss = self.adversarial(
-            disc_sr,
-            1,
-            False
-        )
+        disc_fake_loss = self.adversarial(disc_sr, 1, False)
         loss = step_out['loss'] + perceptual_loss + disc_fake_loss
 
         self.log_dict(
@@ -328,24 +250,16 @@ class GanLit(BaseLit):
             ),
         )
 
-        return step_out, loss
+        return loss
 
     def discriminator_step(self, batch):
         sr, hr = batch
         sr = rearrange(sr, 'b t c h w -> (b t) c h w')
         hr = rearrange(hr, 'b t c h w -> (b t) c h w')
         disc_hr = self.discriminator(hr)
-        disc_true_loss = self.adversarial(
-            disc_hr,
-            1,
-            True
-        )
+        disc_true_loss = self.adversarial(disc_hr, 1, True)
         disc_sr = self.discriminator(sr.detach())
-        disc_fake_loss = self.adversarial(
-            disc_sr,
-            0,
-            True
-        )
+        disc_fake_loss = self.adversarial(disc_sr, 0, True)
         loss = disc_fake_loss + disc_true_loss
 
         self.log_dict(
@@ -357,9 +271,9 @@ class GanLit(BaseLit):
         return loss
 
     def _optim_step(self, optimizer, loss):
-        optimizer.zero_grad()
         self.manual_backward(loss)
         optimizer.step()
+        optimizer.zero_grad()
         self.untoggle_optimizer(optimizer)
 
     def configure_optimizers(self):

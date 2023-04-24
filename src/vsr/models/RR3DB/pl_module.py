@@ -200,6 +200,8 @@ class LitBase(pl.LightningModule):
 class LitGan(LitBase):
     def __init__(self,
                  discriminator: DictConfig,
+                 perceptual_loss: DictConfig,
+                 adversarial_loss: DictConfig
                  *args,
                  **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -208,8 +210,8 @@ class LitGan(LitBase):
 
         self.discriminator = hydra.utils.instantiate(discriminator, _recursive_=False)
 
-        self.perceptual: nn.Module = PerceptualLoss()
-        self.adversarial: nn.Module = AdversarialLoss()
+        self.perceptual: nn.Module = hydra.utils.instantiate(perceptual_loss, _recursive_=False)
+        self.adversarial: nn.Module = hydra.utils.instantiate(adversarial_loss, _recursive_=False)
 
     def training_step(self, batch, batch_idx):
         opt_g, opt_d = self.optimizers()
@@ -220,10 +222,15 @@ class LitGan(LitBase):
         loss = self.discriminator_step((step_out["sr"], step_out["hr"]))
         self._optim_step(opt_d, loss)
 
+        if self.get_log_flag(batch_idx, self.hparams.log_interval):
+            self.log_images(step_out, "Train")
+
+        return step_out["loss"]
+
     def generator_step(self, batch):
         lr, hr = batch
         b, t, c, h, w = hr.shape
-        step_out = self.step(lr, hr)
+        step_out = self.model.train_step(lr, hr)
         perceptual_loss = self.perceptual(step_out["sr"], hr)
         disc_sr = self.discriminator(step_out["sr"].view(-1, c, h, w))
         disc_fake_loss = self.adversarial(disc_sr, 1, False)
