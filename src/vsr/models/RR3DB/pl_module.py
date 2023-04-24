@@ -245,8 +245,8 @@ class LitGan(LitBase):
 
         self.log_dict(
             self.train_metric(
-                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
-                rearrange(hr, 'b t c h w -> (b t) c h w')
+                rearrange(step_out["sr"].clamp(0, 1), 'b c t h w -> (b t) c h w'),
+                rearrange(hr, 'b c t h w -> (b t) c h w')
             ),
         )
 
