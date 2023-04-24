@@ -5,7 +5,6 @@ core:
 
 defaults:
   - override /train/strategy: ddp
-  - override /nn/data: default
 
 finetune: null
 
@@ -14,12 +13,6 @@ nn:
     dataset:
       train:
         path: "/home/aghinassi/Desktop/MergedVSR"
-  module:
-    optimizer:
-      lr: 1e-4
-    scheduler:
-      eta_min: 1e-6
-    set_lr: False
 
 train:
   trainer:
