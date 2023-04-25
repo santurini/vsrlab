@@ -10,6 +10,10 @@ defaults:
 finetune: null
 
 nn:
+  data:
+    datasets:
+      train:
+        path: "/home/aghinassi/Desktop/MergedVSR"
   module:
     optimizer:
       lr: 1e-4
