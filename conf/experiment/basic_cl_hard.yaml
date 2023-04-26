@@ -1,13 +1,13 @@
 # @package _global_
 core:
-  run_id: 'realbasic_curriculum_hard'
-  run_name: "Real Basic Curriculum - Mid Schedule"
+  run_id: 'realbasicvsr_curriculum_hard'
+  run_name: "Real Basic Curriculum - Hard Schedule"
 
 defaults:
   - override /train/strategy: ddp
   - override /nn/data: hard_schedule
 
-finetune: /home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasic_curriculum_mid/checkpoints/last.ckpt
+finetune: /home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasicvsr_curriculum_mid/checkpoints/last.ckpt
 
 nn:
   module:
