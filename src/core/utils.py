@@ -84,7 +84,7 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
     augmentation = list()
     for aug in cfg:
         pylogger.info(f"Adding augmentation <{aug['_target_'].split('.')[-1]}>")
-        augmentation.append(hydra.utils.instantiate(aug, _recursive_=False, _convert_="all"))
+        augmentation.append(hydra.utils.instantiate(aug, _recursive_=False))
     return Sequential(*augmentation)
 
 def batched(iterable, n):
