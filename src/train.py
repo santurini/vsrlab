@@ -2,7 +2,7 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-#import logging
+import logging
 from typing import List
 
 import torch
@@ -15,7 +15,7 @@ from pytorch_lightning import Callback
 from core import PROJECT_ROOT
 from core.utils import seed_index_everything, build_callbacks, get_state_dict, save_config
 
-#pylogger = logging.getLogger(__name__)
+pylogger = logging.getLogger(__name__)
 
 def resolve_tuple(*args):
     return tuple(args)
@@ -27,15 +27,15 @@ def run(cfg: DictConfig) -> str:
     seed_index_everything(cfg.train)
 
     # Instantiate datamodule
-    #pylogger.info(f"Instantiating <{cfg.nn.data['_target_']}>")
+    pylogger.info(f"Instantiating <{cfg.nn.data['_target_']}>")
     datamodule: pl.LightningDataModule = hydra.utils.instantiate(cfg.nn.data, _recursive_=False)
 
     # Instantiate model
-    #pylogger.info(f"Instantiating <{cfg.nn.module['_target_']}>")
+    pylogger.info(f"Instantiating <{cfg.nn.module['_target_']}>")
     model: pl.LightningModule = hydra.utils.instantiate(cfg.nn.module, _recursive_=False)
 
     if cfg.finetune:
-        #pylogger.info(f"Loading pretrained weights: <{cfg.finetune}>")
+        pylogger.info(f"Loading pretrained weights: <{cfg.finetune}>")
         state_dict = get_state_dict(cfg.finetune)
         model.load_state_dict(state_dict, strict=False)
 
@@ -46,7 +46,7 @@ def run(cfg: DictConfig) -> str:
 
     strategy = hydra.utils.instantiate(cfg.train.strategy)
 
-    #pylogger.info("Instantiating the <Trainer>")
+    pylogger.info("Instantiating the <Trainer>")
     trainer = pl.Trainer(
         default_root_dir=storage_dir,
         logger=logger,
@@ -55,7 +55,7 @@ def run(cfg: DictConfig) -> str:
         **cfg.train.trainer,
     )
 
-    #pylogger.info("Starting training!")
+    pylogger.info("Starting training!")
     trainer.fit(model=model, datamodule=datamodule, ckpt_path=cfg.train.restore)
 
     # Logger closing to release resources/avoid multi-run conflicts
