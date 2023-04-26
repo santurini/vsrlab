@@ -13,7 +13,7 @@ class RealBasicVSR(nn.Module):
         self.basicvsr = BasicVSR(*args, **kwargs)
         self.threshold = threshold
 
-    @torch.compile
+    @torch.compile()
     def forward(self, lr):
         n, t, c, h, w = lr.size()
         for _ in range(3):  # at most 3 cleaning, determined empirically
