@@ -1,6 +1,6 @@
 # @package _global_
 core:
-  run_id: 'realbasicvsr_default_schedule'
+  run_id: 'realbasicvsr_curriculum_default'
   run_name: "Real Basic Default"
 
 defaults:
