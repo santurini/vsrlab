@@ -73,9 +73,8 @@ datasets:
     scale: ${nn.data.datasets.train.scale}
     size: 0.1
     hr_augmentation:
-      - _target_: kornia.augmentation.CenterCrop
-        size: ${as_tuple:256,256}
-        keepdim: True
+      - _target_: torchvision.transforms.CenterCrop
+        size: 256
 
     lr_augmentation:
       - _target_: kornia.augmentation.Resize
