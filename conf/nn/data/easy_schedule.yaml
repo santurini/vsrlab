@@ -2,7 +2,6 @@ _target_: vsr.data.datamodule.DataModuleVSR
 
 num_workers: 8
 batch_size: 8
-prefetch_factor: 4
 
 datasets:
   train:
