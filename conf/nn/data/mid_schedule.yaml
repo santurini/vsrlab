@@ -46,15 +46,13 @@ datasets:
         keepdim: True
         p: 0.7
 
-      - _target_: kornia.augmentation.Resize
-        size: [ 64, 64 ]
-
       - _target_: core.augmentations.RandomVideoCompression
         codec: [ 'libx264', 'h264', 'mpeg4' ]
-        crf: [ 35, 42 ]
+        crf: [ 38, 42 ]
         fps: [ 30 ]
 
-
+      - _target_: kornia.augmentation.Resize
+        size: [ 64, 64 ]
 
   val:
     _target_: ${nn.data.datasets.train._target_}
@@ -68,10 +66,10 @@ datasets:
         size: 256
 
     lr_augmentation:
-      - _target_: kornia.augmentation.Resize
-        size: [ 64, 64 ]
-
       - _target_: core.augmentations.RandomVideoCompression
         codec: [ 'libx264', 'h264', 'mpeg4' ]
         crf: [ 40 ]
         fps: [ 30 ]
+
+      - _target_: kornia.augmentation.Resize
+        size: [ 64, 64 ]
