@@ -73,10 +73,8 @@ datasets:
     scale: ${nn.data.datasets.train.scale}
     size: 0.1
     hr_augmentation:
-      - _target_: kornia.augmentation.RandomCrop
+      - _target_: kornia.augmentation.CenterCrop
         size: [ 256, 256 ]
-        pad_if_needed: True
-        same_on_batch: True
         keepdim: True
 
     lr_augmentation:
