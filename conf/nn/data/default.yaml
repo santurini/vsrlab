@@ -29,6 +29,12 @@ datasets:
         same_on_batch: True
         keepdim: True
 
+      - _target_: kornia.augmentation.RandomSharpness
+        sharpness: 0.3
+        same_on_batch: True
+        keepdim: True
+        p: 1.0
+
     lr_augmentation:
       - _target_: core.augmentations.RandomJPEGCompression
         quality: [ 50, 95 ]
