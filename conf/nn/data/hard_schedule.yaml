@@ -74,7 +74,7 @@ datasets:
     size: 0.1
     hr_augmentation:
       - _target_: kornia.augmentation.CenterCrop
-        size: [ 256, 256 ]
+        size: ${as_tuple:256,256}
         keepdim: True
 
     lr_augmentation:

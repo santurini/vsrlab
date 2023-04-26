@@ -17,6 +17,11 @@ from core.utils import seed_index_everything, build_callbacks, get_state_dict, s
 
 pylogger = logging.getLogger(__name__)
 
+def resolve_tuple(*args):
+    return tuple(args)
+
+omegaconf.OmegaConf.register_new_resolver("as_tuple", resolve_tuple)
+
 def run(cfg: DictConfig) -> str:
     save_config(cfg)
     seed_index_everything(cfg.train)
