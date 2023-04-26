@@ -34,8 +34,6 @@ def run(cfg: DictConfig) -> str:
     pylogger.info(f"Instantiating <{cfg.nn.module['_target_']}>")
     model: pl.LightningModule = hydra.utils.instantiate(cfg.nn.module, _recursive_=False)
 
-    model = torch.compile(model)
-
     if cfg.finetune:
         pylogger.info(f"Loading pretrained weights: <{cfg.finetune}>")
         state_dict = get_state_dict(cfg.finetune)
