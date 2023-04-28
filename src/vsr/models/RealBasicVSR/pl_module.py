@@ -134,7 +134,8 @@ class LitBase(pl.LightningModule):
         scheduler: Optional[Any] = hydra.utils.instantiate(
             sched_cfg,
             optimizer,
-            _recursive_=True
+            _recursive_=True,
+            _convert_="partial"
         )
 
         return {
