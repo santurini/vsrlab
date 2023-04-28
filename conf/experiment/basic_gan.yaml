@@ -11,6 +11,6 @@ defaults:
 
 nn:
   data:
-    dataset:
+    datasets:
       train:
         path: "/home/aghinassi/Desktop/MergedVSR"
