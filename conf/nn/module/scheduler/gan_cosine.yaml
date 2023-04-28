@@ -1,8 +1,10 @@
 generator:
-  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-  T_max: ${train.trainer.max_steps}
-  eta_min: 5e-5
-  verbose: False
+  _target_: core.schedulers.CosineAnnealingLinearWarmup
+  first_cycle_steps: 100000
+  cycle_mult: 1.0
+  min_lrs: [ 1e-15 ]
+  warmup_steps: 750
+  gamma: 1.0
 
 discriminator:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR

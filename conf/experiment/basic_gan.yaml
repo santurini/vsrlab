@@ -10,16 +10,6 @@ defaults:
   - override /nn/module: gan
 
 nn:
-  module:
-    scheduler:
-      generator:
-        _target_: core.schedulers.CosineAnnealingLinearWarmup
-        first_cycle_steps: 100000
-        cycle_mult: 1.0
-        min_lrs: [ 1e-15 ]
-        warmup_steps: 750
-        gamma: 1.0
-
   data:
     batch_size: 4
     prefetch_factor: 4
