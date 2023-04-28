@@ -1,6 +1,6 @@
 # @package _global_
 core:
-  run_id: 'realbasicvsr_standard_gan'
+  run_id: 'realbasicvsr_finetune'
   run_name: "Real Basic Default - GAN"
 
 finetune: '/home/aghinassi/VSR/checkpoints/realbasicvsr_standard.ckpt'
