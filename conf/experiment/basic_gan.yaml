@@ -10,8 +10,25 @@ defaults:
   - override /nn/module: gan
 
 nn:
+  module:
+    scheduler:
+      generator:
+        _target_: torch.optim.lr_scheduler.ChainedScheduler
+          - _target_: torch.optim.lr_scheduler.LinearWarmup
+            start_factor: 1e-20
+            total_iters: 750
+
+          - _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+            T_max: ${train.trainer.max_steps}
+            eta_min: 1e-5
+            verbose: False
+
   data:
     batch_size: 4
+    prefetch_factor: 4
+    num_workers: 8
     datasets:
       train:
         path: "/home/aghinassi/VSR/MergedVSR"
+
+

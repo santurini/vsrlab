@@ -40,12 +40,11 @@ class LitBase(pl.LightningModule):
         return self.model(lr)
 
     def step(self, lr, hr):
-        sr, lq = self(lr)
+        sr = self(lr)
         loss = F.l1_loss(sr, hr)
 
         args = {
             "lr": lr,
-            "lq": lq,
             "sr": sr,
             "hr": hr,
             "loss": loss
@@ -64,8 +63,8 @@ class LitBase(pl.LightningModule):
 
         self.log_dict(
             self.train_metric(
-                rearrange(step_out["sr"].detach().clamp(0, 1), 'b t c h w -> (b t) c h w').contiguous(),
-                rearrange(hr.detach(), 'b t c h w -> (b t) c h w').contiguous()
+                rearrange(step_out["sr"].detach().clamp(0, 1), 'b c t h w -> (b t) c h w').contiguous(),
+                rearrange(hr.detach(), 'b c t h w -> (b t) c h w').contiguous()
             )
         )
 
@@ -85,8 +84,8 @@ class LitBase(pl.LightningModule):
 
         self.log_dict(
             self.val_metric(
-                rearrange(step_out["sr"].detach().clamp(0, 1), 'b t c h w -> (b t) c h w').contiguous(),
-                rearrange(hr.detach(), 'b t c h w -> (b t) c h w').contiguous()
+                rearrange(step_out["sr"].detach().clamp(0, 1), 'b c t h w -> (b t) c h w').contiguous(),
+                rearrange(hr.detach(), 'b c t h w -> (b t) c h w').contiguous()
             )
         )
 
@@ -134,7 +133,7 @@ class LitBase(pl.LightningModule):
         scheduler: Optional[Any] = hydra.utils.instantiate(
             sched_cfg,
             optimizer,
-            _recursive_=True,
+            _recursive_=False,
             _convert_="partial"
         )
 
@@ -186,13 +185,12 @@ class LitBase(pl.LightningModule):
 
     def log_images(self, out, stage):
         b, t, c, h, w = out["sr"].shape
-        lr = resize(out["lr"][0, -1, :, :, :], (h, w)).detach()
-        lq = resize(out["lq"][0, -1, :, :, :], (h, w)).detach()
-        hr = out["hr"][0, -1, :, :, :].detach()
-        sr = out["sr"][0, -1, :, :, :].detach().clamp(0, 1)
+        lr = resize(out["lr"][0, :, -1, :, :], (h, w)).detach()
+        hr = out["hr"][0, :, -1, :, :].detach()
+        sr = out["sr"][0, :, -1, :, :].detach().clamp(0, 1)
 
-        grid = make_grid([lr, lq, sr, hr], nrow=4, ncol=1)
-        self.logger.log_image(key='Prediction Train/Val', images=[grid], caption=[f'Stage {stage}, Step {self.global_step}'])
+        grid = make_grid([lr, sr, hr], nrow=3, ncol=1)
+        self.logger.log_image(key='Input Images', images=[grid], caption=[f'Stage {stage}, Step {self.global_step}'])
 
     @staticmethod
     def get_log_flag(current_epoch, log_interval):
@@ -203,7 +201,7 @@ class LitGan(LitBase):
     def __init__(self,
                  discriminator: DictConfig,
                  perceptual_loss: DictConfig,
-                 adversarial_loss: DictConfig,
+                 adversarial_loss: DictConfig
                  *args,
                  **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -227,7 +225,7 @@ class LitGan(LitBase):
         if self.get_log_flag(self.current_epoch, self.hparams.log_interval):
             self.log_images(step_out, "Train")
 
-        return loss
+        return step_out["loss"]
 
     def generator_step(self, batch):
         lr, hr = batch
@@ -247,14 +245,12 @@ class LitGan(LitBase):
 
         self.log_dict(
             self.train_metric(
-                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
-                rearrange(hr, 'b t c h w -> (b t) c h w')
+                rearrange(step_out["sr"].clamp(0, 1), 'b c t h w -> (b t) c h w'),
+                rearrange(hr, 'b c t h w -> (b t) c h w')
             ),
         )
 
-        step_out["loss"] = loss
-
-        return step_out
+        return loss
 
     def discriminator_step(self, batch):
         sr, hr = batch
@@ -300,7 +296,7 @@ class LitGan(LitBase):
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
 def main(cfg: omegaconf.DictConfig) -> None:
     _: pl.LightningModule = hydra.utils.instantiate(
-        cfg.nn.module,
+        cfg.cfg.nn.module,
         _recursive_=False,
     )
 

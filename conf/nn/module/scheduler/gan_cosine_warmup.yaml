@@ -1,4 +1,4 @@
-generator: &defaults
+generator:
   _target_: core.schedulers.CosineAnnealingLinearWarmup
   first_cycle_steps: 2000
   cycle_mult: 1.0
