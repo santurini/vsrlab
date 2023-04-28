@@ -1,7 +1,5 @@
-_target_: vsr.models.RealBasicVSR.pl_module.GanLit
+_target_: vsr.models.RealBasicVSR.pl_module.LitGan
 log_interval: 5
-
-d_step_frequency: 1
 
 set_lr: false
 
@@ -31,6 +29,5 @@ adversarial_loss:
 
 defaults:
   - model: baby_realbasic
-  - loss: pixel_loss
   - optimizer: gan_adam
   - scheduler: gan_cosine
