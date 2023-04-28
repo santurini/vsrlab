@@ -252,7 +252,9 @@ class LitGan(LitBase):
             ),
         )
 
-        return loss
+        step_out["loss"] = loss
+
+        return step_out
 
     def discriminator_step(self, batch):
         sr, hr = batch
