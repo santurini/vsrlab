@@ -11,6 +11,7 @@ defaults:
 
 nn:
   data:
+    batch_size: 4
     datasets:
       train:
         path: "/home/aghinassi/VSR/MergedVSR"
