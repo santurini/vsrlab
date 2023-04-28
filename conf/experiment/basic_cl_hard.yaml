@@ -20,5 +20,5 @@ nn:
 train:
   trainer:
     devices: 2
-    max_steps: 20000
+    max_steps: 40000
     gradient_clip_val: 1
