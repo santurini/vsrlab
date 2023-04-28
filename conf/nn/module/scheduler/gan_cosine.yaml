@@ -3,7 +3,7 @@ generator:
   schedulers:
     - _target_: torch.optim.lr_scheduler.LinearLR
       start_factor: 1e-15
-      total_iters: 750
+      total_iters: 1000
 
     - _target_: torch.optim.lr_scheduler.CosineAnnealingLR
       T_max: ${train.trainer.max_steps}
