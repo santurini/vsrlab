@@ -1,5 +1,5 @@
 _target_: vsr.models.RealBasicVSR.pl_module.LitBase
-log_interval: 250
+log_interval: 5
 
 set_lr: False
 
