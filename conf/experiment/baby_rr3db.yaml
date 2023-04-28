@@ -1,34 +1,26 @@
 # @package _global_
 core:
-  run_id: 'curriculum_learning'
-  run_name: "Baby RR3DB - Curriculum"
+  run_id: 'rr3db_standard'
+  run_name: "Baby RR3DB Default"
 
 defaults:
-  - override /nn/module: baby_rr3db
-  - override /nn/module/scheduler: cosine
   - override /train/strategy: ddp
-  - override /nn/data: hard_schedule
+  - override /nn/module/model: baby_rr3db
 
-finetune: False
-
-train:
-  restore: /home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/curriculum_learning/checkpoints/last.ckpt
-  trainer:
-    devices: 2
-    max_steps: 150000
-    max_epochs: 5000
-    gradient_clip_val: 1
+finetune: null
 
 nn:
+  module:
+    _target_: vsr.models.RR3DB.pl_module.LitBase
   data:
     datasets:
       train:
         _target_: vsr.models.RR3DB.dataset.DatasetVSR
+        path: "/home/aghinassi/Desktop/MergedVSR"
 
-  module:
-    optimizer:
-      lr: 5e-5
-    scheduler:
-      T_max: 3000
-      eta_min: 5e-7
+train:
+  trainer:
+    devices: 2
+    max_steps: 60000
+    gradient_clip_val: 1
 
