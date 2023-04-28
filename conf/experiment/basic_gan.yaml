@@ -3,7 +3,7 @@ core:
   run_id: 'realbasicvsr_gan'
   run_name: "Real Basic Default - GAN"
 
-finetune: '/home/aghinassi/VSR/checkpoints/realbasicvsr_default.ckpt'
+finetune: '/home/aghinassi/VSR/checkpoints/realbasicvsr_standard.ckpt'
 
 defaults:
   - override /nn/data: default
