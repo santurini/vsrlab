@@ -13,4 +13,4 @@ nn:
   data:
     datasets:
       train:
-        path: "/home/aghinassi/Desktop/MergedVSR"
+        path: "/home/aghinassi/VSR/MergedVSR"
