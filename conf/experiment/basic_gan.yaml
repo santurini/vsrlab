@@ -14,7 +14,7 @@ nn:
     scheduler:
       generator:
        _target_: torch.optim.lr_scheduler.ChainedScheduler
-      _args_:
+      schedulers:
         - _target_: torch.optim.lr_scheduler.LinearLR
           start_factor: 1e-20
           total_iters: 750
