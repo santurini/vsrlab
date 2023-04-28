@@ -70,7 +70,7 @@ class LitBase(pl.LightningModule):
             )
         )
 
-        if self.get_log_flag(self.current_epoch, self.hparams.log_interval):
+        if self.get_log_flag(self.global_step, self.hparams.log_interval):
             self.log_images(step_out, "Train")
 
         return step_out["loss"]
@@ -91,7 +91,7 @@ class LitBase(pl.LightningModule):
             )
         )
 
-        if self.get_log_flag(self.current_epoch, self.hparams.log_interval):
+        if self.get_log_flag(self.global_step, self.hparams.log_interval):
             self.log_images(step_out, "Val")
 
         return step_out["loss"]
@@ -195,8 +195,8 @@ class LitBase(pl.LightningModule):
         self.logger.log_image(key='Prediction Train/Val', images=[grid], caption=[f'Stage {stage}, Step {self.global_step}'])
 
     @staticmethod
-    def get_log_flag(current_epoch, log_interval):
-        flag = current_epoch % log_interval == 0
+    def get_log_flag(idx, log_interval):
+        flag = idx % log_interval == 0
         return flag
 
 class LitGan(LitBase):
@@ -224,7 +224,7 @@ class LitGan(LitBase):
         loss = self.discriminator_step((step_out["sr"], step_out["hr"]))
         self._optim_step(opt_d, loss)
 
-        if self.get_log_flag(self.current_epoch, self.hparams.log_interval):
+        if self.get_log_flag(self.global_step, self.hparams.log_interval):
             self.log_images(step_out, "Train")
 
         return loss
