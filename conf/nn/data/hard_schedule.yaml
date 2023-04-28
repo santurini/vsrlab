@@ -51,6 +51,7 @@ datasets:
         sigma: [0.5, 1.5]
         same_on_batch: False
         keepdim: True
+        p: 0.6
 
       - _target_: core.augmentations.RandomJPEGCompression
         quality: [ 50, 90 ]
