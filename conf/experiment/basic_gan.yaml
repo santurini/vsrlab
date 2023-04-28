@@ -20,7 +20,7 @@ nn:
           total_iters: 500
 
         - _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-          T_max: ${ train.trainer.max_steps }
+          T_max: 60000
           eta_min: 1e-5
           verbose: False
 
@@ -31,5 +31,11 @@ nn:
     datasets:
       train:
         path: "/home/aghinassi/VSR/MergedVSR"
+        trainer:
+          devices: 2
+          max_steps: 60000
+          gradient_clip_val: 1
+
+
 
 
