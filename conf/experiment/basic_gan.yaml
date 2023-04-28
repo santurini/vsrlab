@@ -14,19 +14,15 @@ nn:
     scheduler:
       generator:
        _target_: torch.optim.lr_scheduler.ChainedScheduler
-      schedulers: [
-        {
-          _target_: torch.optim.lr_scheduler.LinearLR,
-          start_factor: 1e-20,
-          total_iters: 750,
-        },
-        ,{
-          _target_: torch.optim.lr_scheduler.CosineAnnealingLR,
-          T_max: ${ train.trainer.max_steps },
-          eta_min: 1e-5,
-          verbose: False,
-        }
-      ]
+      schedulers:
+        - _target_: torch.optim.lr_scheduler.LinearLR
+          start_factor: 1e-20
+          total_iters: 500
+
+        - _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+          T_max: ${ train.trainer.max_steps }
+          eta_min: 1e-5
+          verbose: False
 
   data:
     batch_size: 4
