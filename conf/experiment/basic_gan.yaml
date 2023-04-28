@@ -13,16 +13,12 @@ nn:
   module:
     scheduler:
       generator:
-       _target_: torch.optim.lr_scheduler.ChainedScheduler
-      schedulers:
-        - _target_: torch.optim.lr_scheduler.LinearLR
-          start_factor: 1e-20
-          total_iters: 500
-
-        - _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-          T_max: 60000
-          eta_min: 1e-5
-          verbose: False
+        _target_: core.schedulers.CosineAnnealingLinearWarmup
+        first_cycle_steps: 100000
+        cycle_mult: 1.0
+        min_lrs: [ 1e-15 ]
+        warmup_steps: 750
+        gamma: 1.0
 
   data:
     batch_size: 4
