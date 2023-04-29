@@ -189,7 +189,7 @@ class LitBase(pl.LightningModule):
         sr = out["sr"][0, :, -1, :, :].detach().clamp(0, 1)
 
         grid = make_grid([lr, sr, hr], nrow=3, ncol=1)
-        self.logger.log_image(key='Input Images', images=[grid], caption=[f'Stage {stage}, Step {self.global_step}'])
+        self.logger.log_image(key='Prediction Train', images=[grid], caption=[f'Stage {stage}, Step {self.global_step}'])
 
     @staticmethod
     def get_log_flag(current_epoch, log_interval):
