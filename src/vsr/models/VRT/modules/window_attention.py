@@ -1,13 +1,4 @@
 def window_partition(x, window_size):
-    """ Partition the input into windows. Attention will be conducted within the windows.
-
-    Args:
-        x: (B, D, H, W, C)
-        window_size (tuple[int]): window size
-
-    Returns:
-        windows: (B*num_windows, window_size*window_size, C)
-    """
     B, D, H, W, C = x.shape
     x = x.view(B, D // window_size[0], window_size[0], H // window_size[1], window_size[1], W // window_size[2],
                window_size[2], C)
@@ -17,17 +8,6 @@ def window_partition(x, window_size):
 
 
 def window_reverse(windows, window_size, B, D, H, W):
-    """ Reverse windows back to the original input. Attention was conducted within the windows.
-
-    Args:
-        windows: (B*num_windows, window_size, window_size, C)
-        window_size (tuple[int]): Window size
-        H (int): Height of image
-        W (int): Width of image
-
-    Returns:
-        x: (B, D, H, W, C)
-    """
     x = windows.view(B, D // window_size[0], H // window_size[1], W // window_size[2], window_size[0], window_size[1],
                      window_size[2], -1)
     x = x.permute(0, 1, 4, 2, 5, 3, 6, 7).contiguous().view(B, D, H, W, -1)
@@ -36,8 +16,6 @@ def window_reverse(windows, window_size, B, D, H, W):
 
 
 def get_window_size(x_size, window_size, shift_size=None):
-    """ Get the window size and the shift size """
-
     use_window_size = list(window_size)
     if shift_size is not None:
         use_shift_size = list(shift_size)
@@ -55,8 +33,6 @@ def get_window_size(x_size, window_size, shift_size=None):
 
 @lru_cache()
 def compute_mask(D, H, W, window_size, shift_size, device):
-    """ Compute attnetion mask for input of size (D, H, W). @lru_cache caches each stage results. """
-
     img_mask = torch.zeros((1, D, H, W, 1), device=device)  # 1 Dp Hp Wp 1
     cnt = 0
     for d in slice(-window_size[0]), slice(-window_size[0], -shift_size[0]), slice(-shift_size[0], None):
@@ -72,15 +48,6 @@ def compute_mask(D, H, W, window_size, shift_size, device):
     return attn_mask
 
 class Mlp_GEGLU(nn.Module):
-    """ Multilayer perceptron with gated linear unit (GEGLU). Ref. "GLU Variants Improve Transformer".
-
-    Args:
-        x: (B, D, H, W, C)
-
-    Returns:
-        x: (B, D, H, W, C)
-    """
-
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
         super().__init__()
         out_features = out_features or in_features
@@ -189,7 +156,8 @@ class WindowAttention(nn.Module):
 
         return x
 
-    def get_position_index(self, window_size):
+    @staticmethod
+    def get_position_index(window_size):
         ''' Get pair-wise relative position index for each token inside the window. '''
 
         coords_d = torch.arange(window_size[0])
@@ -209,7 +177,8 @@ class WindowAttention(nn.Module):
 
         return relative_position_index
 
-    def get_sine_position_encoding(self, HW, num_pos_feats=64, temperature=10000, normalize=False, scale=None):
+    @staticmethod
+    def get_sine_position_encoding(HW, num_pos_feats=64, temperature=10000, normalize=False, scale=None):
         """ Get sine position encoding """
 
         if scale is not None and normalize is False:
