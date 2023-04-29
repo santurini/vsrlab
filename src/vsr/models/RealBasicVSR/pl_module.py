@@ -224,6 +224,10 @@ class LitGan(LitBase):
         loss = self.discriminator_step((step_out["sr"], step_out["hr"]))
         self._optim_step(opt_d, loss)
 
+        sch1, sch2 = self.lr_schedulers()
+        sch1.step()
+        sch2.step()
+
         if self.get_log_flag(self.global_step, self.hparams.log_interval):
             self.log_images(step_out, "Train")
 
@@ -275,10 +279,11 @@ class LitGan(LitBase):
         return loss
 
     def _optim_step(self, optimizer, loss):
-        self.manual_backward(loss)
-        clip_grad_norm_(self.model.parameters(), 1.0)
-        optimizer.step()
         optimizer.zero_grad()
+        self.manual_backward(loss)
+        self.clip_gradients(optimizer, gradient_clip_val=1.0, gradient_clip_algorithm="norm")
+        optimizer.step()
+
         self.untoggle_optimizer(optimizer)
 
     def configure_optimizers(self):
