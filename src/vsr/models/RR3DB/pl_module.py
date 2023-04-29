@@ -200,7 +200,7 @@ class LitGan(LitBase):
     def __init__(self,
                  discriminator: DictConfig,
                  perceptual_loss: DictConfig,
-                 adversarial_loss: DictConfig
+                 adversarial_loss: DictConfig,
                  *args,
                  **kwargs) -> None:
         super().__init__(*args, **kwargs)
