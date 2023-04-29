@@ -1,14 +1,11 @@
 generator:
-  - _target_: torch.optim.lr_scheduler.LinearLR
-    start_factor: 1e-10
-    total_iters: 1000
-
-  - _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-    T_max: ${train.trainer.max_steps}
-    eta_min: 3e-5
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  T_max: ${train.trainer.max_steps}
+  eta_min: 1e-5
+  verbose: False
 
 discriminator:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
   T_max: ${train.trainer.max_steps}
-  eta_min: 1e-5
+  eta_min: 5e-5
   verbose: False
