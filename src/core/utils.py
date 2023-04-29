@@ -80,6 +80,33 @@ def build_callbacks(cfg: ListConfig) -> List[Callback]:
         callbacks.append(hydra.utils.instantiate(callback, _recursive_=False))
     return callbacks
 
+def build_scheduler(
+        optimizer,
+        scheduler: Union[ListConfig, DictConfig]
+):
+    if isinstance(scheduler, DictConfig):
+        return hydra.utils.instantiate(
+            scheduler,
+            optimizer,
+            _recursive_=False
+        )
+
+    if isinstance(scheduler, ListConfig):
+        chained_scheduler = []
+        for sched in scheduler:
+            chained_scheduler.append(
+                hydra.utils.instantiate(
+                sched,
+                optimizer,
+                _recursive_=False
+                )
+            )
+
+        return torch.optim.lr_scheduler.ChainedScheduler(
+            chained_scheduler
+        )
+
+
 def build_transform(cfg: ListConfig) -> List[Sequential]:
     augmentation = list()
     for aug in cfg:

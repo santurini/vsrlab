@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from core import PROJECT_ROOT
+from core.utils import build_scheduler
 from core.losses import rmse_loss, AdversarialLoss, PerceptualLoss
 from einops import rearrange
 from kornia.geometry.transform import resize
@@ -130,11 +131,9 @@ class LitBase(pl.LightningModule):
         if sched_cfg is None:
             return optimizer
 
-        scheduler: Optional[Any] = hydra.utils.instantiate(
-            sched_cfg,
+        scheduler: Optional[Any] = build_scheduler(
             optimizer,
-            _recursive_=False,
-            _convert_="partial"
+            sched_cfg
         )
 
         return {
