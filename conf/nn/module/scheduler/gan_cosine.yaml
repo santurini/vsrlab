@@ -10,5 +10,5 @@ generator:
 discriminator:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
   T_max: ${train.trainer.max_steps}
-  eta_min: 1e-4
+  eta_min: 1e-5
   verbose: False
