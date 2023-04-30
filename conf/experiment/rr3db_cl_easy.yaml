@@ -1,7 +1,7 @@
 # @package _global_
 core:
   run_id: 'rr3db_curriculum_easy'
-  run_name: "RR3DB (OF) Curriculum - Easy Schedule"
+  run_name: "RR3DB (OF + Perceptual) Curriculum - Easy Schedule"
 
 defaults:
   - override /train/strategy: ddp
