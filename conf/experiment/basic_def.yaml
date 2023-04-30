@@ -10,7 +10,7 @@ finetune: null
 nn:
   module:
     model:
-      optical_flow: "raft"
+      optical_flow: "irr"
   data:
     datasets:
       train:
@@ -18,6 +18,6 @@ nn:
 
 train:
   trainer:
-    devices: 1
+    devices: 2
     max_steps: 60000
     gradient_clip_val: 1

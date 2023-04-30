@@ -60,7 +60,7 @@ class RAFT(nn.Module):
 
         return coords0, coords1
 
-    def forward(self, supp, ref, iters=12):
+    def forward(self, ref, supp, iters=12):
         supp = supp.contiguous()
         ref = ref.contiguous()
 
@@ -83,7 +83,5 @@ class RAFT(nn.Module):
             coords1 = coords1 + delta_flow
 
         flow_up = upflow(coords1-coords0, scale_factor=self.scale_factor)
-
-        print(torch.isnan(flow_up).sum())
             
         return flow_up

@@ -27,10 +27,8 @@ class BasicVSR(nn.Module):
             self.optical_flow = Spynet(pretrained_flow)
         elif optical_flow == "irr":
             self.optical_flow = IRRPWCNet(pretrained_flow, [-1])
-        elif optical_flow == "raft":
-            self.optical_flow = RAFT(small=True, scale_factor=8, pretrained=pretrained_flow)
         else:
-            raise Exception("Not a valid optical flow, possible options are: raft, spynet, irr")
+            raise Exception("Not a valid optical flow, possible options are: spynet, irr")
 
         if not train_flow:
             pylogger.info('Setting Optical Flow weights to no_grad')
@@ -38,18 +36,6 @@ class BasicVSR(nn.Module):
                 param.requires_grad = False
 
     def compute_flow_spynet(self, lrs):
-        n, t, c, h, w = lrs.size()
-        lrs_1 = lrs[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
-        lrs_2 = lrs[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
-        flow_backward = self.optical_flow(lrs_1, lrs_2)
-        if self.is_mirror:
-            flow_forward = None
-        else:
-            flow_forward = self.optical_flow(lrs_2, lrs_1)
-
-        return flow_forward, flow_backward
-
-    def compute_flow_raft(self, lrs):
         n, t, c, h, w = lrs.size()
         lrs_1 = lrs[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
         lrs_2 = lrs[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
