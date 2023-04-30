@@ -21,7 +21,10 @@ class PerceptualVGG(nn.Module):
         super().__init__()
         self.layer_name_list = layer_name_list
         num_layers = max(map(int, self.layer_name_list)) + 1
-        self.vgg_layers = models.vgg19(pretrained=True).features.requires_grad_(False)[:num_layers]
+        self.vgg_layers = models.vgg19(pretrained=True).features[:num_layers]
+
+        for p in self.vgg_layers.parameters():
+            p.requires_grad = False
 
     def forward(self, x):
         output = {}
