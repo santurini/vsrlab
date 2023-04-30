@@ -1,8 +1,13 @@
 import math
+import logging
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+from core import PROJECT_ROOT
+
+pylogger = logging.getLogger(__name__)
 
 def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corners=True, use_pad_mask=False):
     """Warp an image or feature map with optical flow.
@@ -69,6 +74,7 @@ class SpyNet(nn.Module):
         self.return_levels = return_levels
         self.basic_module = nn.ModuleList([BasicModule() for _ in range(6)])
         if pretrained:
+            pylogger.info('Loading Spynet pretrained weights')
             load_path = f'{PROJECT_ROOT}/src/vsr/models/VRT/weights/spynet_sintel_final-3d2a1287.pth'
             self.load_state_dict(torch.load(load_path, map_location=lambda storage, loc: storage)['params'])
 

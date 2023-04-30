@@ -88,6 +88,8 @@ class VRT(nn.Module):
                  drop_path_rate=0.2,
                  norm_layer=nn.LayerNorm,
                  optical_flow="spynet",
+                 optical_flow_pretrained=True,
+                 optical_flow_train=False,
                  pa_frames=2,
                  deformable_groups=6,
                  recal_all_flows=False,
@@ -119,9 +121,10 @@ class VRT(nn.Module):
 
         pylogger.info(f'Initialized Optical Flow module as: <{self.optical_flow.__class__.__name__}>')
 
-        for p in self.optical_flow.parameters():
-            p.requires_grad = False
+        if not optical_flow_train:
             pylogger.info(f'Freezing Optical Flow parameters')
+            for p in self.optical_flow.parameters():
+                p.requires_grad = False
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
         reshapes = ['none', 'down', 'down', 'down', 'up', 'up', 'up']
@@ -191,22 +194,6 @@ class VRT(nn.Module):
             nn.LeakyReLU(inplace=True))
         self.upsample = Upsample(upscale, num_feat)
         self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
-
-    def init_weights(self, pretrained=None, strict=True):
-        """Init weights for models.
-
-        Args:
-            pretrained (str, optional): Path for pretrained weights. If given
-                None, pretrained weights will not be loaded. Defaults: None.
-            strict (boo, optional): Whether strictly load the pretrained model.
-                Defaults to True.
-        """
-        if isinstance(pretrained, str):
-            logger = get_root_logger()
-            load_checkpoint(self, pretrained, strict=strict, logger=logger)
-
-        elif pretrained is not None:
-            raise TypeError(f'"pretrained" must be a str or None. But received {type(pretrained)}.')
 
     def forward(self, lr):
         # x: (N, D, C, H, W)

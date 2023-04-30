@@ -6,7 +6,7 @@ import torch.utils.checkpoint as checkpoint
 from einops import rearrange
 
 from vsr.models.VRT.modules.window_attention import *
-from vsr.models.VRT.modules.drop_path import DropPath
+from vsr.models.VRT.modules.stochastic_depth import DropPath
 
 class TMSA(nn.Module):
     """ Temporal Mutual Self Attention (TMSA).
