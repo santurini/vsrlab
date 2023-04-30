@@ -4,16 +4,17 @@ core:
   run_name: "RR3DB (OF) Curriculum - Easy Schedule"
 
 defaults:
-  - override /train/strategy: deepspeed
+  - override /train/strategy: ddp
   - override /nn/data: easy_schedule
   - override /nn/module/model: baby_rr3db
-  - override /nn/module/optimizer: deepspeed
 
 finetune: null
 
 nn:
   data:
     batch_size: 4
+    num_workers: 16
+    prefetch_factor: 8
     datasets:
       train:
         _target_: vsr.models.RR3DB.dataset.DatasetVSR
