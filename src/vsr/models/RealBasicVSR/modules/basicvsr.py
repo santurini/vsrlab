@@ -77,7 +77,6 @@ class BasicVSR(nn.Module):
         flow_forward, flow_backward = getattr(self, f'compute_flow_{self.optical_flow_name}')(lrs)
         flows_forward = flow_forward.view(n, t - 1, 2, h, w)
         flows_backward = flow_backward.view(n, t - 1, 2, h, w)
-        print(flows_forward.shape)
 
         outputs = []  # backward-propagation
         feat_prop = lrs.new_zeros(n, self.mid_channels, h, w)

@@ -36,6 +36,8 @@ class RealBasicVSR(nn.Module):
 
         sr  = self.basicvsr(lq)
 
+        print(torch.isnan(sr).sum())
+
         loss = F.l1_loss(hr, sr) + F.l1_loss(resize(hr, (h, w), antialias=True), lq)
 
         return {
