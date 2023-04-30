@@ -172,7 +172,8 @@ class WindowAttention(nn.Module):
 
     def attention(self, q, k, v, mask, x_shape, relative_position_encoding=True):
         B_, N, C = x_shape
-        attn = (q * self.scale) @ k.transpose(int(-2), int(-1))
+        attn = (q * self.scale) @ k.transpose(-2, -1)
+        print('AOoOOOOOOOOOOOO')
 
         if relative_position_encoding:
             relative_position_bias = self.relative_position_bias_table[
