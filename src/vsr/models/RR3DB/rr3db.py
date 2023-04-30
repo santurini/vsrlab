@@ -198,6 +198,8 @@ class RR3DBNet(nn.Module):
 
         if perceptual_loss:
             self.perceptual = PerceptualLoss(perceptual_loss)
+            for param in self.perceptual.parameters():
+                param.requires_grad = False
             self.perceptual_loss = True
 
     def forward(self, lr):
