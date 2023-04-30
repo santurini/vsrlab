@@ -190,7 +190,7 @@ class RR3DBNet(nn.Module):
 
         if of_loss:
             self.rearrange = Rearrange('b c t h w -> (b t) c h w')
-            self.raft = RAFT(small=False, scale_factor=8, pretrained=True)
+            self.raft = RAFT(small=True, scale_factor=8, pretrained=True)
             for param in self.raft.parameters():
                 param.requires_grad = False
 
