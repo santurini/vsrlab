@@ -1,4 +1,5 @@
 import logging
+from  collections import OrderedDict
 
 import torch
 import torch.nn as nn
@@ -46,7 +47,9 @@ class IRRPWCNet(nn.Module):
         if pretrained:
             pylogger.info('Loading IRR pretrained weights')
             load_path = f'{PROJECT_ROOT}/src/optical_flow/weights/irr-sintel.ckpt'
-            self.load_state_dict(torch.load(load_path, map_location=lambda storage, loc: storage)['state_dict'], strict=True)
+            state_dict = torch.load(load_path, map_location=lambda storage, loc: storage)['state_dict']
+            new_dict = OrderedDict([(k.partition('_model.')[-1], v) for k, v in state_dict.items()])
+            self.load_state_dict(new_dict, strict=True)
 
         else:
             initialize_msra(self.modules())
