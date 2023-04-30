@@ -1,7 +1,6 @@
 # @package _global_
 core:
-  run_id: 'realbasicvsr_standard'
-  run_name: "Real Basic Default"
+  run_name: "Real Basic Default - IRR"
 
 defaults:
   - override /train/strategy: ddp
