@@ -223,21 +223,21 @@ class RR3DBNet(nn.Module):
         loss = F.l1_loss(sr, hr)
 
         out = {
-            "lr": lr,
-            "sr": sr,
-            "hr": hr,
+            "lr": lr.detach().cpu(),
+            "sr": sr.detach().cpu(),
+            "hr": hr.detach().cpu(),
             "loss": loss
         }
 
         if self.of_loss:
             of_loss = F.l1_loss(
                 self.raft(
-                    self.rearrange(sr[:, :, :-1, :, :]),
-                    self.rearrange(sr[:, :, 1:, :, :])
+                    self.rearrange(out["sr"][:, :, :-1, :, :]),
+                    self.rearrange(out["sr"][:, :, 1:, :, :])
                 ),
                 self.raft(
-                    self.rearrange(hr[:, :, :-1, :, :]),
-                    self.rearrange(hr[:, :, 1:, :, :])
+                    self.rearrange(out["hr"][:, :, :-1, :, :]),
+                    self.rearrange(out["hr"][:, :, 1:, :, :])
                 )
             ) * self.of_loss
 
@@ -245,7 +245,7 @@ class RR3DBNet(nn.Module):
             out["loss"] += of_loss
 
         if self.perceptual_loss:
-            perceptual_loss = self.perceptual(sr, hr)
+            perceptual_loss = self.perceptual(out["sr"], out["hr"])
             out["perceptual_loss"] = perceptual_loss
             out["loss"] += perceptual_loss
 
