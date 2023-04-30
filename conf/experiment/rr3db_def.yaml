@@ -4,7 +4,8 @@ core:
   run_name: "Baby RR3DB Default"
 
 defaults:
-  - override /train/strategy: ddp
+  - override /train/strategy: deepspeed
+  - override /nn/module/optimizer: deepspeed
   - override /nn/module/model: baby_rr3db
 
 finetune: null
