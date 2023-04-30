@@ -52,11 +52,6 @@ class RAFT(nn.Module):
                 new_dict = OrderedDict([(k.partition('module.')[-1], v) for k, v in state_dict.items()])
                 self.load_state_dict(new_dict)
 
-    def freeze_bn(self):
-        for m in self.modules():
-            if isinstance(m, nn.BatchNorm2d):
-                m.eval()
-
     @staticmethod
     def initialize_flow(img):
         N, C, H, W = img.shape
@@ -65,7 +60,7 @@ class RAFT(nn.Module):
 
         return coords0, coords1
 
-    def forward(self, ref, supp, iters=12):
+    def forward(self, supp, ref, iters=12):
         supp = supp.contiguous()
         ref = ref.contiguous()
 
