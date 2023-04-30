@@ -4,9 +4,10 @@ core:
   run_name: "RR3DB (OF) Curriculum - Easy Schedule"
 
 defaults:
-  - override /train/strategy: ddp
+  - override /train/strategy: deepspeed
   - override /nn/data: easy_schedule
   - override /nn/module/model: baby_rr3db
+  - override /nn/module/optimizer: deepspeed
 
 finetune: null
 
