@@ -8,6 +8,7 @@ from einops.layers.torch import Rearrange
 
 from kornia.geometry.transform import resize
 
+from core.losses import PerceptualLoss
 from optical_flow.models.raft.raft import RAFT
 
 class ResidualDenseBlock(nn.Module):
