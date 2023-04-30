@@ -31,7 +31,7 @@ class Spynet(nn.Module):
         self.register_buffer('std', torch.Tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
         if pretrained:
             pylogger.info('Loading Spynet pretrained weights')
-            state_dict = torch.load(f'{PROJECT_ROOT}/src/optical_flow/weights/pretrained_spynet.pth')
+            state_dict = torch.load(f'{PROJECT_ROOT}/src/optical_flow/weights/spynet-sintel.pth')
             new_dict = OrderedDict([(key[13:34] + '.0' + key[34:], state_dict[key]) for key in state_dict.keys()])
             self.basic_module.load_state_dict(new_dict)
 
