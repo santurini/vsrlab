@@ -88,5 +88,7 @@ class RAFT(nn.Module):
             coords1 = coords1 + delta_flow
 
         flow_up = upflow(coords1-coords0, scale_factor=self.scale_factor)
+
+        print(torch.isnan(flow_up).sum())
             
         return flow_up

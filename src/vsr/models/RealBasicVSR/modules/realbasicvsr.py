@@ -22,8 +22,6 @@ class RealBasicVSR(nn.Module):
                 break
         sr  = self.basicvsr(lr)
 
-        print(torch.isnan(sr).sum())
-
         return sr, lr
 
     def train_step(self, lr, hr):
