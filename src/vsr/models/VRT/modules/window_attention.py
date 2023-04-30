@@ -153,7 +153,7 @@ class WindowAttention(nn.Module):
 
         # self attention
         B_, N, C = x.shape
-        qkv = self.qkv_self(x).reshape(B_, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
+        qkv = self.qkv_self(x).reshape(B_, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4).type_as(x)
         q, k, v = qkv[0], qkv[1], qkv[2]  # B_, nH, N, C
         x_out = self.attention(q, k, v, mask, (B_, N, C), relative_position_encoding=True)
 
