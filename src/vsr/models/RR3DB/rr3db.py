@@ -178,7 +178,8 @@ class RR3DBNet(nn.Module):
             nb=5,
             gc=64,
             sf=4,
-            of_loss: Union[float, None] = None
+            of_loss: Union[float, None] = None,
+            perceptual_loss: Union[float, None] = None,
     ):
         super().__init__()
         self.sf = sf
@@ -193,6 +194,9 @@ class RR3DBNet(nn.Module):
             self.raft = RAFT(small=True, scale_factor=8, pretrained=True)
             for param in self.raft.parameters():
                 param.requires_grad = False
+
+        if perceptual_loss:
+            self.perceptual = PerceptualLoss(perceptual_loss)
 
     def forward(self, lr):
 
@@ -235,6 +239,11 @@ class RR3DBNet(nn.Module):
 
             out["of_loss"] = of_loss
             out["loss"] += of_loss
+
+        if perceptual:
+            perceptual_loss = self.perceptual(sr, hr)
+            out["perceptual_loss"] = perceptual_loss
+            out["loss"] += perceptual_loss
 
         return out
 

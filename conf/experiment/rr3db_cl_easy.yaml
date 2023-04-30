@@ -21,6 +21,7 @@ nn:
     _target_: vsr.models.RR3DB.pl_module.LitBase
     model:
       of_loss: 0.15
+      perceptual_loss: 0.1
     optimizer:
       lr: 1e-4
     scheduler:

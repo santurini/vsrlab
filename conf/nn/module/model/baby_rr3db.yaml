@@ -7,3 +7,4 @@ nb: 4
 gc: 16
 sf: 4
 of_loss: null
+perceptual_loss: null
