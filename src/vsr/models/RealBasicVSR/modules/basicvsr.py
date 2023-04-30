@@ -59,6 +59,8 @@ class BasicVSR(nn.Module):
         else:
             flow_forward = self.optical_flow(lrs_2, lrs_1)
 
+        print(flow_forward.shape)
+
         return flow_forward, flow_backward
 
     def compute_flow_irr(self, lrs):
