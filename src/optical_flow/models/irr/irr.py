@@ -49,7 +49,7 @@ class IRRPWCNet(nn.Module):
             load_path = f'{PROJECT_ROOT}/src/optical_flow/weights/irr-sintel.ckpt'
             state_dict = torch.load(load_path, map_location=lambda storage, loc: storage)['state_dict']
             new_dict = OrderedDict([(k.partition('_model.')[-1], v) for k, v in state_dict.items()])
-            self.load_state_dict(new_dict, strict=True)
+            self.load_state_dict(new_dict, strict=False)
 
         else:
             initialize_msra(self.modules())
