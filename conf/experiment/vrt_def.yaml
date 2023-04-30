@@ -1,0 +1,31 @@
+# @package _global_
+core:
+  run_id: "vrt_default"
+  run_name: "VRT Default"
+
+defaults:
+  - override /train/strategy: ddp
+  - override /nn/module/model: baby_vrt
+
+finetune: null
+
+nn:
+  module:
+    _target_: vsr.models.VRT.pl_module.LitBase
+    optimizer:
+      lr: 4e-4
+      betas: [ 0.9, 0.99 ]
+    scheduler:
+      eta_min: 1e-7
+  data:
+    batch_size: 4
+    datasets:
+      train:
+        path: "/home/aghinassi/Desktop/MergedVSR"
+        seq: 6
+
+train:
+  trainer:
+    devices: 1
+    max_steps: 100000
+    gradient_clip_val: 1

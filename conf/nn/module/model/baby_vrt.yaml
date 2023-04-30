@@ -1,0 +1,26 @@
+_target_: vsr.models.VRT.vrt.VRT
+upscale: 4
+in_chans: 3
+out_chans: 3
+img_size: [6, 64, 64]
+window_size: [6, 8, 8]
+depths: [4, 4, 4, 4, 4, 4, 4, 2, 2]
+indep_reconsts: [11, 12]
+embed_dims: [32, 32, 32, 32, 32, 32, 32, 64, 64]
+num_heads: [4, 4, 4, 4, 4, 4, 4, 4, 4]
+mul_attn_ratio: 0.75
+mlp_ratio: 2.0
+qkv_bias: True
+qk_scale: None
+drop_path_rate: 0.2
+norm_layer: nn.LayerNorm
+optical_flow: "spynet"
+optical_flow_pretrained: True
+optical_flow_train: False
+pa_frames: 2
+deformable_groups: 4
+recal_all_flows: False
+use_checkpoint_attn: False
+use_checkpoint_ffn: False
+no_checkpoint_attn_blocks: []
+no_checkpoint_ffn_blocks: []

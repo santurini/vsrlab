@@ -242,13 +242,5 @@ class RR3DBNet(nn.Module):
             out["of_loss"] = of_loss
             out["loss"] += of_loss
 
-        if self.perceptual_loss:
-            perceptual_loss = self.perceptual(
-                sr.detach(),
-                hr.detach()
-            )
-            out["perceptual_loss"] = perceptual_loss
-            out["loss"] += perceptual_loss
-
         return out
 

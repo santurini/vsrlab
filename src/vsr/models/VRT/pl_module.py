@@ -8,12 +8,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from core import PROJECT_ROOT
+from core.utils import build_scheduler
+from core.losses import CharbonnierLoss
 from einops import rearrange
 from kornia.geometry.transform import resize
 from omegaconf import DictConfig
 from torchvision.utils import make_grid
 
 pylogger = logging.getLogger(__name__)
+
+loss_fn = CharbonnierLoss()
 
 class LitBase(pl.LightningModule):
     def __init__(
@@ -39,8 +43,8 @@ class LitBase(pl.LightningModule):
         return self.model(lr)
 
     def step(self, lr, hr):
-        sr = self(lr)
-        loss = F.l1_loss(sr, hr)
+        sr, lq = self(lr)
+        loss = loss_fn(sr, hr)
 
         args = {
             "lr": lr,
@@ -62,12 +66,12 @@ class LitBase(pl.LightningModule):
 
         self.log_dict(
             self.train_metric(
-                rearrange(step_out["sr"].detach().clamp(0, 1), 'b c t h w -> (b t) c h w').contiguous(),
-                rearrange(hr.detach(), 'b c t h w -> (b t) c h w').contiguous()
+                rearrange(step_out["sr"].detach().clamp(0, 1), 'b t c h w -> (b t) c h w').contiguous(),
+                rearrange(hr.detach(), 'b t c h w -> (b t) c h w').contiguous()
             )
         )
 
-        if self.get_log_flag(self.current_epoch, self.hparams.log_interval):
+        if self.get_log_flag(self.global_step, self.hparams.log_interval):
             self.log_images(step_out, "Train")
 
         return step_out["loss"]
@@ -83,12 +87,12 @@ class LitBase(pl.LightningModule):
 
         self.log_dict(
             self.val_metric(
-                rearrange(step_out["sr"].detach().clamp(0, 1), 'b c t h w -> (b t) c h w').contiguous(),
-                rearrange(hr.detach(), 'b c t h w -> (b t) c h w').contiguous()
+                rearrange(step_out["sr"].detach().clamp(0, 1), 'b t c h w -> (b t) c h w').contiguous(),
+                rearrange(hr.detach(), 'b t c h w -> (b t) c h w').contiguous()
             )
         )
 
-        if self.get_log_flag(self.current_epoch, self.hparams.log_interval):
+        if self.get_log_flag(self.global_step, self.hparams.log_interval):
             self.log_images(step_out, "Val")
 
         return step_out["loss"]
@@ -129,11 +133,9 @@ class LitBase(pl.LightningModule):
         if sched_cfg is None:
             return optimizer
 
-        scheduler: Optional[Any] = hydra.utils.instantiate(
-            sched_cfg,
+        scheduler: Optional[Any] = build_scheduler(
             optimizer,
-            _recursive_=False,
-            _convert_="partial"
+            sched_cfg
         )
 
         return {
@@ -184,23 +186,23 @@ class LitBase(pl.LightningModule):
 
     def log_images(self, out, stage):
         b, t, c, h, w = out["sr"].shape
-        lr = resize(out["lr"][0, :, -1, :, :], (h, w)).detach()
-        hr = out["hr"][0, :, -1, :, :].detach()
-        sr = out["sr"][0, :, -1, :, :].detach().clamp(0, 1)
+        lr = resize(out["lr"][0, -1, :, :, :], (h, w)).detach()
+        hr = out["hr"][0, -1, :, :, :].detach()
+        sr = out["sr"][0, -1, :, :, :].detach().clamp(0, 1)
 
         grid = make_grid([lr, sr, hr], nrow=3, ncol=1)
-        self.logger.log_image(key='Input Images', images=[grid], caption=[f'Stage {stage}, Step {self.global_step}'])
+        self.logger.log_image(key='Prediction Train/Val', images=[grid], caption=[f'Stage {stage}, Step {self.global_step}'])
 
     @staticmethod
-    def get_log_flag(current_epoch, log_interval):
-        flag = current_epoch % log_interval == 0
+    def get_log_flag(idx, log_interval):
+        flag = idx % log_interval == 0
         return flag
 
 class LitGan(LitBase):
     def __init__(self,
                  discriminator: DictConfig,
                  perceptual_loss: DictConfig,
-                 adversarial_loss: DictConfig
+                 adversarial_loss: DictConfig,
                  *args,
                  **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -221,10 +223,14 @@ class LitGan(LitBase):
         loss = self.discriminator_step((step_out["sr"], step_out["hr"]))
         self._optim_step(opt_d, loss)
 
-        if self.get_log_flag(self.current_epoch, self.hparams.log_interval):
+        sch1, sch2 = self.lr_schedulers()
+        sch1.step()
+        sch2.step()
+
+        if self.get_log_flag(self.global_step, self.hparams.log_interval):
             self.log_images(step_out, "Train")
 
-        return step_out["loss"]
+        return loss
 
     def generator_step(self, batch):
         lr, hr = batch
@@ -244,12 +250,14 @@ class LitGan(LitBase):
 
         self.log_dict(
             self.train_metric(
-                rearrange(step_out["sr"].clamp(0, 1), 'b c t h w -> (b t) c h w'),
-                rearrange(hr, 'b c t h w -> (b t) c h w')
+                rearrange(step_out["sr"].clamp(0, 1), 'b t c h w -> (b t) c h w'),
+                rearrange(hr, 'b t c h w -> (b t) c h w')
             ),
         )
 
-        return loss
+        step_out["loss"] = loss
+
+        return step_out
 
     def discriminator_step(self, batch):
         sr, hr = batch
@@ -270,9 +278,10 @@ class LitGan(LitBase):
         return loss
 
     def _optim_step(self, optimizer, loss):
-        self.manual_backward(loss)
-        optimizer.step()
         optimizer.zero_grad()
+        self.manual_backward(loss)
+        self.clip_gradients(optimizer, gradient_clip_val=1.0, gradient_clip_algorithm="norm")
+        optimizer.step()
         self.untoggle_optimizer(optimizer)
 
     def configure_optimizers(self):
@@ -295,7 +304,7 @@ class LitGan(LitBase):
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
 def main(cfg: omegaconf.DictConfig) -> None:
     _: pl.LightningModule = hydra.utils.instantiate(
-        cfg.cfg.nn.module,
+        cfg.nn.module,
         _recursive_=False,
     )
 

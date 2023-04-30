@@ -39,7 +39,6 @@ class Upsample(nn.Sequential):
 
         super().__init__(*m)
 
-
 class VRT(nn.Module):
     """ Video Restoration Transformer (VRT).
         A PyTorch impl of : `VRT: A Video Restoration Transformer`  -
