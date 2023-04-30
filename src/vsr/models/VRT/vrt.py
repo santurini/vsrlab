@@ -92,7 +92,7 @@ class VRT(nn.Module):
                  optical_flow_pretrained=True,
                  optical_flow_train=False,
                  pa_frames=2,
-                 deformable_groups=6,
+                 deformable_groups=4,
                  recal_all_flows=False,
                  use_checkpoint_attn=False,
                  use_checkpoint_ffn=False,
