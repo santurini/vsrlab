@@ -41,11 +41,9 @@ def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corne
     return output
 
 class BasicModule(nn.Module):
-    """Basic Module for SpyNet.
-    """
-
+    """Basic Module for SpyNet"""
     def __init__(self):
-        super(BasicModule, self).__init__()
+        super().__init__()
 
         self.basic_module = nn.Sequential(
             nn.Conv2d(in_channels=8, out_channels=32, kernel_size=7, stride=1, padding=3), nn.ReLU(inplace=False),

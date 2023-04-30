@@ -1,3 +1,5 @@
+import logging
+
 import torch
 import torch.nn as nn
 from optical_flow.models.irr.irr_modules import RefineFlow
@@ -5,6 +7,8 @@ from optical_flow.models.irr.pwc_modules import (
     conv, upsample2d_as, rescale_flow, initialize_msra, compute_cost_volume,
     WarpingLayer, FeatureExtractor, ContextNetwork, FlowEstimatorDense
 )
+
+pylogger = logging.getLogger(__name__)
 
 class IRRPWCNet(nn.Module):
     def __init__(self, pretrained=False, return_levels=[-1, -2, -3, -4]):
@@ -38,8 +42,10 @@ class IRRPWCNet(nn.Module):
                             "stride1": 1, "stride2": 1, "corr_multiply": 1}
 
         if pretrained:
+            pylogger.info('Loading IRR pretrained weights')
             load_path = f'{PROJECT_ROOT}/src/optical_flow/weights/irr-pwc_sintel.ckpt'
             self.load_state_dict(torch.load(load_path, map_location=lambda storage, loc: storage)['params'], strict=False)
+
         else:
             initialize_msra(self.modules())
 

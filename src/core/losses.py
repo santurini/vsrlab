@@ -7,6 +7,16 @@ from torchvision import models
 
 LAYER_WEIGHTS = {'2': 0.1, '7': 0.1, '16': 0.8, '25': 0.9, '34': 1.0}
 
+class CharbonnierLoss(nn.Module):
+    def __init__(self, eps=1e-9):
+        super().__init__()
+        self.eps = eps
+
+    def forward(self, x, y):
+        diff = x - y
+        loss = torch.mean(torch.sqrt((diff * diff) + self.eps))
+        return loss
+
 class WL1Loss(nn.L1Loss):
     def __init__(self, weight=1.0, *args, **kwargs):
         super().__init__(*args, **kwargs)

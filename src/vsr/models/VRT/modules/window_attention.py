@@ -213,7 +213,6 @@ class WindowAttention(nn.Module):
     @staticmethod
     def get_sine_position_encoding(HW, num_pos_feats=64, temperature=10000, normalize=False, scale=None):
         """ Get sine position encoding """
-
         if scale is not None and normalize is False:
             raise ValueError("normalize should be True if scale is passed")
 

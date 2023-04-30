@@ -1,9 +1,20 @@
+import logging
+
 import torch
 import torch.nn as nn
 from einops import rearrange
 from einops.layers.torch import Rearrange
 
 from optical_flow.models.irr.irr import IRRPWCNet
+from core.losses import CharbonnierLoss
+
+from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
+from vsr.models.VRT.modules.stage import Stage
+from vsr.models.VRT.modules.tmsa import RTMSA
+
+pylogger = logging.getLogger(__name__)
+
+loss_fn = CharbonnierLoss()
 
 class VRT(nn.Module):
     """ Video Restoration Transformer (VRT).
@@ -43,19 +54,19 @@ class VRT(nn.Module):
                  out_chans=3,
                  img_size=[6, 64, 64],
                  window_size=[6, 8, 8],
-                 depths=[8, 8, 8, 8, 8, 8, 8, 4, 4, 4, 4, 4, 4],
+                 depths=[4, 4, 4, 4, 4, 4, 4, 2, 2],
                  indep_reconsts=[11, 12],
-                 embed_dims=[120, 120, 120, 120, 120, 120, 120, 180, 180, 180, 180, 180, 180],
-                 num_heads=[6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+                 embed_dims=[32, 32, 32, 32, 32, 32, 32, 64, 64],
+                 num_heads=[4, 4, 4, 4, 4, 4, 4, 4, 4],
                  mul_attn_ratio=0.75,
-                 mlp_ratio=2.,
+                 mlp_ratio=2.0,
                  qkv_bias=True,
                  qk_scale=None,
                  drop_path_rate=0.2,
                  norm_layer=nn.LayerNorm,
-                 optical_flow_pretrained=True,
+                 optical_flow="spynet",
                  pa_frames=2,
-                 deformable_groups=16,
+                 deformable_groups=6,
                  recal_all_flows=False,
                  use_checkpoint_attn=False,
                  use_checkpoint_ffn=False,
@@ -81,8 +92,11 @@ class VRT(nn.Module):
         elif optical_flow == "irr":
             self.optical_flow = IRRPWCNet(optical_flow_pretrained, [-1, -2, -3, -4])
 
+        pylogger.info(f'Initialized Optical Flow module as: <{self.optical_flow.__class__.__name__}>')
+
         for p in self.optical_flow.parameters():
             p.requires_grad = False
+            pylogger.info(f'Freezing Optical Flow parameters')
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
         reshapes = ['none', 'down', 'down', 'down', 'up', 'up', 'up']
@@ -169,18 +183,38 @@ class VRT(nn.Module):
         elif pretrained is not None:
             raise TypeError(f'"pretrained" must be a str or None. But received {type(pretrained)}.')
 
-    def forward(self, x):
+    def forward(self, lr):
         # x: (N, D, C, H, W)
-
-        # main network
-        x_lq = x.clone()
+        x_lq = lr.clone()
 
         # calculate flows
-        flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(x)
+        flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(lr)
 
         # warp input
-        x_backward, x_forward = self.get_aligned_image(x,  flows_backward[0], flows_forward[0])
-        x = torch.cat([x, x_backward, x_forward], 2)
+        x_backward, x_forward = self.get_aligned_image(lr,  flows_backward[0], flows_forward[0])
+        x = torch.cat([lr, x_backward, x_forward], 2)
+
+        # video sr
+        x = self.conv_first(x.transpose(1, 2))
+        x = x + self.conv_after_body(self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)).transpose(1, 4)
+        x = self.conv_last(self.upsample(self.conv_before_upsample(x))).transpose(1, 2)
+
+        _, _, C, H, W = x.shape
+        upscale = torch.nn.functional.interpolate(x_lq, size=(C, H, W), mode='trilinear', align_corners=False)
+        sr = x + upscale
+
+        return sr, lr
+
+    def train_step(self, lr, hr):
+        # x: (N, D, C, H, W)
+        x_lq = lr.clone()
+
+        # calculate flows
+        flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(lr)
+
+        # warp input
+        x_backward, x_forward = self.get_aligned_image(lr,  flows_backward[0], flows_forward[0])
+        x = torch.cat([lr, x_backward, x_forward], 2)
 
         # video sr
         x = self.conv_first(x.transpose(1, 2))
@@ -190,7 +224,37 @@ class VRT(nn.Module):
         _, _, C, H, W = x.shape
         upscale = torch.nn.functional.interpolate(x_lq, size=(C, H, W), mode='trilinear', align_corners=False)
 
-        return x + upscale
+        sr = x + upscale
+
+        loss = loss_fn(sr, hr)
+
+        return {
+            "lr": lr,
+            "sr": sr,
+            "hr": hr,
+            "loss": loss
+        }
+
+    def forward_features(self, x, flows_backward, flows_forward):
+        '''Main network for feature extraction.'''
+
+        x1 = self.stage1(x, flows_backward[0::4], flows_forward[0::4])
+        x2 = self.stage2(x1, flows_backward[1::4], flows_forward[1::4])
+        x3 = self.stage3(x2, flows_backward[2::4], flows_forward[2::4])
+        x4 = self.stage4(x3, flows_backward[3::4], flows_forward[3::4])
+        x = self.stage5(x4, flows_backward[2::4], flows_forward[2::4])
+        x = self.stage6(x + x3, flows_backward[1::4], flows_forward[1::4])
+        x = self.stage7(x + x2, flows_backward[0::4], flows_forward[0::4])
+        x = x + x1
+
+        for layer in self.stage8:
+            x = layer(x)
+
+        x = rearrange(x, 'n c d h w -> n d h w c')
+        x = self.norm(x)
+        x = rearrange(x, 'n d h w c -> n c d h w')
+
+        return x
 
     def get_flows_spynet(self, x):
         '''Get flow between frames t and t+1 from x.'''
@@ -242,47 +306,11 @@ class VRT(nn.Module):
 
         return [torch.stack(x_backward, 1), torch.stack(x_forward, 1)]
 
-    def forward_features(self, x, flows_backward, flows_forward):
-        '''Main network for feature extraction.'''
+@torch.no_grad()
+def main() -> None:
+    model = VRT()
+    x = torch.rand(2, 6, 3, 64, 64)
+    print(model(x).shape)
 
-        x1 = self.stage1(x, flows_backward[0::4], flows_forward[0::4])
-        x2 = self.stage2(x1, flows_backward[1::4], flows_forward[1::4])
-        x3 = self.stage3(x2, flows_backward[2::4], flows_forward[2::4])
-        x4 = self.stage4(x3, flows_backward[3::4], flows_forward[3::4])
-        x = self.stage5(x4, flows_backward[2::4], flows_forward[2::4])
-        x = self.stage6(x + x3, flows_backward[1::4], flows_forward[1::4])
-        x = self.stage7(x + x2, flows_backward[0::4], flows_forward[0::4])
-        x = x + x1
-
-        for layer in self.stage8:
-            x = layer(x)
-
-        x = rearrange(x, 'n c d h w -> n d h w c')
-        x = self.norm(x)
-        x = rearrange(x, 'n d h w c -> n c d h w')
-
-        return x
-
-
-m = VRT(
-    upscale=4,
-    in_chans=3,
-    out_chans=3,
-    img_size=[6, 64, 64],
-    window_size=[6, 8, 8],
-    depths=[4, 4, 4, 4, 4, 4, 4, 2, 2],
-    indep_reconsts=[11, 12],
-    embed_dims=[32, 32, 32, 32, 32, 32, 32, 64, 64],
-    num_heads=[4, 4, 4, 4, 4, 4, 4, 4, 4],
-    mul_attn_ratio=0.75,
-    mlp_ratio=2.0,
-    qkv_bias=True,
-    qk_scale=None,
-    drop_path_rate=0.2,
-    norm_layer=nn.LayerNorm,
-    spynet_path="model_zoo/vrt/spynet_sintel_final-3d2a1287.pth",
-    pa_frames=2,
-    deformable_groups=4
-).cuda()
-
-input = torch.rand(2, 6, 3, 64, 64).cuda()
+if __name__ == "__main__":
+    main()
