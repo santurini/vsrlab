@@ -308,14 +308,14 @@ class VRT(nn.Module):
         for i in range(n - 1, 0, -1):
             x_i = x[:, i, ...]
             flow = flows_backward[:, i - 1, ...]
-            x_backward.insert(0, flow_warp(x_i, flow.permute(0, 2, 3, 1), 'bilinear')) # frame i+1 aligned towards i
+            x_backward.insert(0, flow_warp(x_i, flow.permute(0, 2, 3, 1), 'nearest4')) # frame i+1 aligned towards i
 
         # forward
         x_forward = [torch.zeros_like(x[:, 0, ...]).repeat(1, 4, 1, 1)]
         for i in range(0, n - 1):
             x_i = x[:, i, ...]
             flow = flows_forward[:, i, ...]
-            x_forward.append(flow_warp(x_i, flow.permute(0, 2, 3, 1), 'bilinear')) # frame i-1 aligned towards i
+            x_forward.append(flow_warp(x_i, flow.permute(0, 2, 3, 1), 'nearest4')) # frame i-1 aligned towards i
 
         return [torch.stack(x_backward, 1), torch.stack(x_forward, 1)]
 
