@@ -15,7 +15,6 @@ class BasicVSR(nn.Module):
         super().__init__()
         self.is_mirror = is_mirror
         self.mid_channels = mid_channels
-        self.spynet = Spynet(pretrained_flow)
         self.backward_resblocks = ResidualBlock(mid_channels + 3, mid_channels, res_blocks)
         self.forward_resblocks = ResidualBlock(mid_channels + 3, mid_channels, res_blocks)
         self.point_conv = nn.Sequential(nn.Conv2d(mid_channels * 2, mid_channels, 1, 1), nn.LeakyReLU(0.1))
