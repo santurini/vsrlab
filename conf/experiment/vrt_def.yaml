@@ -4,9 +4,8 @@ core:
   run_name: "VRT Default"
 
 defaults:
-  - override /train/strategy: deepspeed
+  - override /train/strategy: ddp
   - override /nn/module/model: baby_vrt
-  - override /nn/module/optimizer: deepspeed
 
 finetune: null
 
