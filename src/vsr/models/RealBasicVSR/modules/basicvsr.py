@@ -62,7 +62,7 @@ class BasicVSR(nn.Module):
 
         return flow_forward, flow_backward
 
-    def compute_flow_irr(self, x):
+    def compute_flow_irr(self, lrs):
         '''Get flow between frames t and t+1 from x.'''
         n, t, c, h, w = lrs.size()
         lrs_1 = lrs[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
