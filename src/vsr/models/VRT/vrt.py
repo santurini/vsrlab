@@ -16,6 +16,27 @@ pylogger = logging.getLogger(__name__)
 
 loss_fn = CharbonnierLoss()
 
+class Upsample(nn.Sequential):
+    """Upsample module for video SR.
+
+    Args:
+        scale (int): Scale factor. Supported scales: 2^n and 3.
+        num_feat (int): Channel number of intermediate features.
+    """
+
+    def __init__(self, scale, num_feat):
+        assert (scale & (scale - 1)) == 0, f'scale {scale} is not supported. ' 'Supported scales: 2^n and 3.'
+
+        m = []
+        for _ in range(int(math.log(scale, 2))):
+            m.append(nn.Conv3d(num_feat, 4 * num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
+            m.append(Rearrange('b c d h w -> b d c h w'))
+            m.append(nn.PixelShuffle(2))
+            m.append(Rearrange('b d c h w -> b c d h w'))
+            m.append(nn.LeakyReLU(negative_slope=0.1, inplace=True))
+            m.append(nn.Conv3d(num_feat, num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
+
+        super().__init__(*m)
 
 
 class VRT(nn.Module):

@@ -9,6 +9,9 @@ defaults:
 finetune: null
 
 nn:
+  module:
+    model:
+      optical_flow: "irr"
   data:
     datasets:
       train:
