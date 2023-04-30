@@ -222,14 +222,14 @@ class WindowAttention(nn.Module):
             scale = 2 * math.pi
 
         not_mask = torch.ones([1, HW[0], HW[1]])
-        y_embed = not_mask.cumsum(1, dtype=torch.float32)
-        x_embed = not_mask.cumsum(2, dtype=torch.float32)
+        y_embed = not_mask.cumsum(1)
+        x_embed = not_mask.cumsum(2)
         if normalize:
             eps = 1e-6
             y_embed = y_embed / (y_embed[:, -1:, :] + eps) * scale
             x_embed = x_embed / (x_embed[:, :, -1:] + eps) * scale
 
-        dim_t = torch.arange(num_pos_feats, dtype=torch.float32)
+        dim_t = torch.arange(num_pos_feats)
         dim_t = temperature ** (2 * (dim_t // 2) / num_pos_feats)
 
         # BxCxHxW
