@@ -59,7 +59,6 @@ class VRT(nn.Module):
         qkv_bias (bool): If True, add a learnable bias to query, key, value. Default: True.
         qk_scale (float): Override default qk scale of head_dim ** -0.5 if set.
         drop_path_rate (float): Stochastic depth rate. Default: 0.2.
-        norm_layer (obj): Normalization layer. Default: nn.LayerNorm.
         optical_flow_path (str): Pretrained optical_flow model path.
         pa_frames (float): Number of warpped frames. Default: 2.
         deformable_groups (float): Number of deformable groups. Default: 16.
@@ -86,7 +85,6 @@ class VRT(nn.Module):
                  qkv_bias=True,
                  qk_scale=None,
                  drop_path_rate=0.2,
-                 norm_layer=nn.LayerNorm,
                  optical_flow="spynet",
                  optical_flow_pretrained=True,
                  optical_flow_train=False,
@@ -148,7 +146,7 @@ class VRT(nn.Module):
                         qkv_bias=qkv_bias,
                         qk_scale=qk_scale,
                         drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
-                        norm_layer=norm_layer,
+                        norm_layer=nn.LayerNorm,
                         pa_frames=pa_frames,
                         deformable_groups=deformable_groups,
                         reshape=reshapes[i],
@@ -178,13 +176,13 @@ class VRT(nn.Module):
                       mlp_ratio=mlp_ratio,
                       qkv_bias=qkv_bias, qk_scale=qk_scale,
                       drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
-                      norm_layer=norm_layer,
+                      norm_layer=nn.LayerNorm,
                       use_checkpoint_attn=use_checkpoint_attns[i],
                       use_checkpoint_ffn=use_checkpoint_ffns[i]
                       )
             )
 
-        self.norm = norm_layer(embed_dims[-1])
+        self.norm = nn.LayerNorm(embed_dims[-1])
         self.conv_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
 
         # reconstruction
