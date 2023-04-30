@@ -1,6 +1,7 @@
 import math
-import torch
 import warnings
+
+import torch
 
 def norm_cdf(x):
     # Computes standard normal cumulative distribution function

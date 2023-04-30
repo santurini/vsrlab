@@ -1,14 +1,12 @@
 import torch
 import torch.nn as nn
-
+from optical_flow.models.irr.irr_modules import RefineFlow
 from optical_flow.models.irr.pwc_modules import (
     conv, upsample2d_as, rescale_flow, initialize_msra, compute_cost_volume,
     WarpingLayer, FeatureExtractor, ContextNetwork, FlowEstimatorDense
 )
 
-from optical_flow.models.irr.irr_modules import RefineFlow
-
-class PWCNet(nn.Module):
+class IRRPWCNet(nn.Module):
     def __init__(self, pretrained=False, return_levels=[-1, -2, -3, -4]):
         super().__init__()
         self._div_flow = 0.05

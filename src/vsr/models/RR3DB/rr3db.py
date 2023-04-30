@@ -3,12 +3,10 @@ from typing import Union
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from core.losses import PerceptualLoss
 from einops import rearrange
 from einops.layers.torch import Rearrange
-
 from kornia.geometry.transform import resize
-
-from core.losses import PerceptualLoss
 from optical_flow.models.raft.raft import RAFT
 
 class ResidualDenseBlock(nn.Module):

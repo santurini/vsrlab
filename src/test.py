@@ -1,5 +1,4 @@
 import os
-import av
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -7,7 +6,6 @@ warnings.filterwarnings("ignore")
 import logging
 
 import torch
-import torch.nn.functional as F
 from torchvision.transforms.functional import to_pil_image, to_tensor
 import hydra
 import omegaconf
@@ -15,7 +13,7 @@ from omegaconf import DictConfig
 
 from core import PROJECT_ROOT
 from core.utils import get_model_state_dict, save_test_config, batched
-from core.augmentations import read_video, write_video
+from core.augmentations import read_video
 
 import pandas as pd
 from pathlib import Path

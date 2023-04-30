@@ -1,9 +1,8 @@
-from __future__ import absolute_import, division, print_function
+import logging
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as tf
-import logging
 
 def conv(in_planes, out_planes, kernel_size=3, stride=1, dilation=1, isReLU=True):
     if isReLU:

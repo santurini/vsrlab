@@ -2,9 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from core.modules.conv import ResidualBlock
-from vsr.models.RealBasicVSR.modules.basicvsr import BasicVSR
-
 from kornia.geometry.transform import resize
+from vsr.models.RealBasicVSR.modules.basicvsr import BasicVSR
 
 class RealBasicVSR(nn.Module):
     def __init__(self, cleaning_blocks=20, threshold=1., *args, **kwargs):

@@ -1,18 +1,9 @@
-import os
-import warnings
 import math
-import torch
-import torch.nn as nn
-import torchvision
-import torch.nn.functional as F
-import torch.utils.checkpoint as checkpoint
-from distutils.version import LooseVersion
-from torch.nn.modules.utils import _pair, _single
-import numpy as np
 from functools import reduce, lru_cache
 from operator import mul
-from einops import rearrange
-from einops.layers.torch import Rearrange
+
+import torch
+import torch.nn as nn
 
 def window_partition(x, window_size):
     """ Partition the input into windows. Attention will be conducted within the windows.

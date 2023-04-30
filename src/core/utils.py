@@ -1,15 +1,12 @@
 import logging
 import os
-import yaml
+from itertools import islice
 from pathlib import Path
-from typing import List, Optional, Union, Dict, Any
+from typing import List, Optional, Union
 
 import hydra
 import numpy as np
-from collections import OrderedDict
 import torch
-from itertools import islice
-
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from pytorch_lightning import seed_everything, Callback
 from torch.nn import Sequential

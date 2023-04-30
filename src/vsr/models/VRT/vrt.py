@@ -1,3 +1,10 @@
+import torch
+import torch.nn as nn
+from einops import rearrange
+from einops.layers.torch import Rearrange
+
+from optical_flow.models.irr.irr import IRRPWCNet
+
 class VRT(nn.Module):
     """ Video Restoration Transformer (VRT).
         A PyTorch impl of : `VRT: A Video Restoration Transformer`  -
@@ -68,10 +75,11 @@ class VRT(nn.Module):
         self.conv_first = nn.Conv3d(conv_first_in_chans, embed_dims[0], kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
         # main body
+        self.optical_flow_name = optical_flow
         if optical_flow == "spynet":
             self.optical_flow = SpyNet(optical_flow_pretrained, [2, 3, 4, 5])
         elif optical_flow == "irr":
-            self.optical_flow = IRR(optical_flow_pretrained, [2, 3, 4, 5])
+            self.optical_flow = IRRPWCNet(optical_flow_pretrained, [-1, -2, -3, -4])
 
         for p in self.optical_flow.parameters():
             p.requires_grad = False
@@ -168,7 +176,7 @@ class VRT(nn.Module):
         x_lq = x.clone()
 
         # calculate flows
-        flows_backward, flows_forward = self.get_flows(x)
+        flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(x)
 
         # warp input
         x_backward, x_forward = self.get_aligned_image(x,  flows_backward[0], flows_forward[0])
@@ -184,7 +192,7 @@ class VRT(nn.Module):
 
         return x + upscale
 
-    def get_flows(self, x):
+    def get_flows_spynet(self, x):
         '''Get flow between frames t and t+1 from x.'''
 
         b, n, c, h, w = x.size()
@@ -198,6 +206,19 @@ class VRT(nn.Module):
         # forward
         flows_forward = self.optical_flow(x_2, x_1)
         flows_forward = [flow.view(b, n-1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_forward, range(4))]
+
+        return flows_backward, flows_forward
+
+    def get_flows_irr(self, x):
+        '''Get flow between frames t and t+1 from x.'''
+
+        b, n, c, h, w = x.size()
+        x_1 = x[:, :-1, :, :, :].reshape(-1, c, h, w)
+        x_2 = x[:, 1:, :, :, :].reshape(-1, c, h, w)
+
+        flows_forward, flows_backward = self.optical_flow(x_2, x_1)
+        flows_forward = [flow.view(b, n-1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_forward, range(4))]
+        flows_backward = [flow.view(b, n - 1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_backward, range(4))]
 
         return flows_backward, flows_forward
 

@@ -3,13 +3,11 @@ from collections import OrderedDict
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-
-from optical_flow.models.raft.update import BasicUpdateBlock, SmallUpdateBlock
-from optical_flow.models.raft.extractor import BasicEncoder, SmallEncoder
-from optical_flow.models.raft.corr import correlation
-from optical_flow.models.raft.utils import coords_grid, upflow
 from core import PROJECT_ROOT
+from optical_flow.models.raft.corr import correlation
+from optical_flow.models.raft.extractor import BasicEncoder, SmallEncoder
+from optical_flow.models.raft.update import BasicUpdateBlock, SmallUpdateBlock
+from optical_flow.models.raft.utils import coords_grid, upflow
 
 pylogger = logging.getLogger(__name__)
 

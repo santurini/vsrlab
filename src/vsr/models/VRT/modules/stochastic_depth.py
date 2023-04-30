@@ -1,18 +1,5 @@
-import os
-import warnings
-import math
 import torch
 import torch.nn as nn
-import torchvision
-import torch.nn.functional as F
-import torch.utils.checkpoint as checkpoint
-from distutils.version import LooseVersion
-from torch.nn.modules.utils import _pair, _single
-import numpy as np
-from functools import reduce, lru_cache
-from operator import mul
-from einops import rearrange
-from einops.layers.torch import Rearrange
 
 class DropPath(nn.Module):
     """Drop paths (Stochastic Depth) per sample  (when applied in main path of residual blocks)"""
