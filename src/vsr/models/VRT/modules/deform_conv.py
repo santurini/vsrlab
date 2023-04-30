@@ -1,15 +1,30 @@
+import os
+import warnings
+import math
+import torch
+import torch.nn as nn
+import torchvision
+import torch.nn.functional as F
+import torch.utils.checkpoint as checkpoint
+from distutils.version import LooseVersion
+from torch.nn.modules.utils import _pair, _single
+import numpy as np
+from functools import reduce, lru_cache
+from operator import mul
+from einops import rearrange
+from einops.layers.torch import Rearrange
+
 class ModulatedDeformConv(nn.Module):
     def __init__(self,
-                 in_channels: int,
-                 out_channels:int,
-                 kernel_size: Union[Tuple, int],
-                 stride: Union[Tuple, int] = 1,
-                 padding: Union[Tuple, int] = 0,
-                 dilation: Union[Tuple, int] = 1,
-                 groups: int = 1,
-                 deformable_groups: int = 1,
-                 bias: bool = True
-                 ):
+                 in_channels,
+                 out_channels,
+                 kernel_size,
+                 stride=1,
+                 padding=0,
+                 dilation=1,
+                 groups=1,
+                 deformable_groups=1,
+                 bias=True):
         super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -20,6 +35,7 @@ class ModulatedDeformConv(nn.Module):
         self.groups = groups
         self.deformable_groups = deformable_groups
         self.with_bias = bias
+
         # enable compatibility with nn.Conv2d
         self.transposed = False
         self.output_padding = _single(0)
@@ -41,6 +57,20 @@ class ModulatedDeformConv(nn.Module):
             self.bias.data.zero_()
 
 class ModulatedDeformConvPack(ModulatedDeformConv):
+    """A ModulatedDeformable Conv Encapsulation that acts as normal Conv layers.
+
+    Args:
+        in_channels (int): Same as nn.Conv2d.
+        out_channels (int): Same as nn.Conv2d.
+        kernel_size (int or tuple[int]): Same as nn.Conv2d.
+        stride (int or tuple[int]): Same as nn.Conv2d.
+        padding (int or tuple[int]): Same as nn.Conv2d.
+        dilation (int or tuple[int]): Same as nn.Conv2d.
+        groups (int): Same as nn.Conv2d.
+        bias (bool or str): If specified as `auto`, it will be decided by the
+            norm_cfg. Bias will be set as True if norm_cfg is None, otherwise
+            False.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -62,21 +92,30 @@ class ModulatedDeformConvPack(ModulatedDeformConv):
             self.conv_offset.bias.data.zero_()
 
 class DCNv2PackFlowGuided(ModulatedDeformConvPack):
-    """
-    max_residue_magnitude (int): The maximum magnitude of the offset residue. Default: 10.
-    pa_frames (int): The number of parallel warping frames. Default: 2.
+    """Flow-guided deformable alignment module.
+
+    Args:
+        in_channels (int): Same as nn.Conv2d.
+        out_channels (int): Same as nn.Conv2d.
+        kernel_size (int or tuple[int]): Same as nn.Conv2d.
+        stride (int or tuple[int]): Same as nn.Conv2d.
+        padding (int or tuple[int]): Same as nn.Conv2d.
+        dilation (int or tuple[int]): Same as nn.Conv2d.
+        groups (int): Same as nn.Conv2d.
+        bias (bool or str): If specified as `auto`, it will be decided by the
+            norm_cfg. Bias will be set as True if norm_cfg is None, otherwise
+            False.
+        max_residue_magnitude (int): The maximum magnitude of the offset residue. Default: 10.
+        pa_frames (int): The number of parallel warping frames. Default: 2.
     """
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self.max_residue_magnitude = kwargs.pop('max_residue_magnitude', 10)
-        self.pa_frames = kwargs.pop('pa_frames', 2)
+        self.pa_frames = 2
+
+        super().__init__(*args, **kwargs)
 
         self.conv_offset = nn.Sequential(
             nn.Conv2d((1+self.pa_frames//2) * self.in_channels + self.pa_frames, self.out_channels, 3, 1, 1),
-            nn.LeakyReLU(negative_slope=0.1, inplace=True),
-            nn.Conv2d(self.out_channels, self.out_channels, 3, 1, 1),
-            nn.LeakyReLU(negative_slope=0.1, inplace=True),
-            nn.Conv2d(self.out_channels, self.out_channels, 3, 1, 1),
             nn.LeakyReLU(negative_slope=0.1, inplace=True),
             nn.Conv2d(self.out_channels, 3 * 9 * self.deformable_groups, 3, 1, 1),
         )
@@ -95,20 +134,7 @@ class DCNv2PackFlowGuided(ModulatedDeformConvPack):
 
         # offset
         offset = self.max_residue_magnitude * torch.tanh(torch.cat((o1, o2), dim=1))
-        if self.pa_frames == 2:
-            offset = offset + flows[0].flip(1).repeat(1, offset.size(1)//2, 1, 1)
-        elif self.pa_frames == 4:
-            offset1, offset2 = torch.chunk(offset, 2, dim=1)
-            offset1 = offset1 + flows[0].flip(1).repeat(1, offset1.size(1) // 2, 1, 1)
-            offset2 = offset2 + flows[1].flip(1).repeat(1, offset2.size(1) // 2, 1, 1)
-            offset = torch.cat([offset1, offset2], dim=1)
-        elif self.pa_frames == 6:
-            offset = self.max_residue_magnitude * torch.tanh(torch.cat((o1, o2), dim=1))
-            offset1, offset2, offset3 = torch.chunk(offset, 3, dim=1)
-            offset1 = offset1 + flows[0].flip(1).repeat(1, offset1.size(1) // 2, 1, 1)
-            offset2 = offset2 + flows[1].flip(1).repeat(1, offset2.size(1) // 2, 1, 1)
-            offset3 = offset3 + flows[2].flip(1).repeat(1, offset3.size(1) // 2, 1, 1)
-            offset = torch.cat([offset1, offset2, offset3], dim=1)
+        offset = offset + flows[0].flip(1).repeat(1, offset.size(1)//2, 1, 1)
 
         # mask
         mask = torch.sigmoid(mask)

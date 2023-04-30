@@ -1,15 +1,48 @@
+import os
+import warnings
+import math
 import torch
 import torch.nn as nn
+import torchvision
 import torch.nn.functional as F
+import torch.utils.checkpoint as checkpoint
+from distutils.version import LooseVersion
+from torch.nn.modules.utils import _pair, _single
+import numpy as np
+from functools import reduce, lru_cache
+from operator import mul
+from einops import rearrange
+from einops.layers.torch import Rearrange
 
-def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corners=True):
+def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corners=True, use_pad_mask=False):
+    """Warp an image or feature map with optical flow.
+
+    Args:
+        x (Tensor): Tensor with size (n, c, h, w).
+        flow (Tensor): Tensor with size (n, h, w, 2), normal value.
+        interp_mode (str): 'nearest' or 'bilinear' or 'nearest4'. Default: 'bilinear'.
+        padding_mode (str): 'zeros' or 'border' or 'reflection'.
+            Default: 'zeros'.
+        align_corners (bool): Before pytorch 1.3, the default value is
+            align_corners=True. After pytorch 1.3, the default value is
+            align_corners=False. Here, we use the True as default.
+        use_pad_mask (bool): only used for PWCNet, x is first padded with ones along the channel dimension.
+            The mask is generated according to the grid_sample results of the padded dimension.
+
+
+    Returns:
+        Tensor: Warped image or feature map.
+    """
     n, _, h, w = x.size()
-    grid_y, grid_x = torch.meshgrid(torch.arange(0, h), torch.arange(0, w))
-    grid = torch.stack((grid_x, grid_y), 2).type_as(x)  # W(x), H(y), 2
+
+    # create mesh grid
+    grid_y, grid_x = torch.meshgrid(torch.arange(0, h, dtype=x.dtype, device=x.device), torch.arange(0, w, dtype=x.dtype, device=x.device))
+    grid = torch.stack((grid_x, grid_y), 2).float()  # W(x), H(y), 2
     grid.requires_grad = False
 
     vgrid = grid + flow
 
+    # scale grid to [-1,1]
     vgrid_x = 2.0 * vgrid[:, :, :, 0] / max(w - 1, 1) - 1.0
     vgrid_y = 2.0 * vgrid[:, :, :, 1] / max(h - 1, 1) - 1.0
     vgrid_scaled = torch.stack((vgrid_x, vgrid_y), dim=3)
@@ -18,21 +51,33 @@ def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corne
     return output
 
 class BasicModule(nn.Module):
+    """Basic Module for SpyNet.
+    """
+
     def __init__(self):
         super(BasicModule, self).__init__()
+
         self.basic_module = nn.Sequential(
             nn.Conv2d(in_channels=8, out_channels=32, kernel_size=7, stride=1, padding=3), nn.ReLU(inplace=False),
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=7, stride=1, padding=3), nn.ReLU(inplace=False),
             nn.Conv2d(in_channels=64, out_channels=32, kernel_size=7, stride=1, padding=3), nn.ReLU(inplace=False),
             nn.Conv2d(in_channels=32, out_channels=16, kernel_size=7, stride=1, padding=3), nn.ReLU(inplace=False),
             nn.Conv2d(in_channels=16, out_channels=2, kernel_size=7, stride=1, padding=3))
-    def forward(self, x):
-        return self.basic_module(x)
+
+    def forward(self, tensor_input):
+        return self.basic_module(tensor_input)
 
 
 class SpyNet(nn.Module):
-    def __init__(self, pretrained=None, return_levels=[5]):
-        super().__init__()
+    """SpyNet architecture.
+
+    Args:
+        load_path (str): path for pretrained SpyNet. Default: None.
+        return_levels (list[int]): return flows of different levels. Default: [5].
+    """
+
+    def __init__(self, pretrained=True, return_levels=[5]):
+        super(SpyNet, self).__init__()
         self.return_levels = return_levels
         self.basic_module = nn.ModuleList([BasicModule() for _ in range(6)])
         if pretrained:

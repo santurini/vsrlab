@@ -97,7 +97,7 @@ class UpdateBlock(nn.Module):
         img0 = rearrange(img[:, :, :-1, :, :], 'b c t h w -> (b t) c h w')
         img1 = rearrange(img[:, :, 1:, :, :], 'b c t h w -> (b t) c h w')
 
-        flow = self.optical_flow(img0, img1)
+        flow = self.optical_flow(img1, img0)
         flow = rearrange(flow, '(b t) c h w -> b c t h w', b=b, t=t-1)
         flow_0 = flow.new_zeros(b, 2, 1, h, w)
         flow = torch.cat([flow_0, flow], dim=2)

@@ -1,21 +1,56 @@
+import os
+import warnings
+import math
+import torch
+import torch.nn as nn
+import torchvision
+import torch.nn.functional as F
+import torch.utils.checkpoint as checkpoint
+from distutils.version import LooseVersion
+from torch.nn.modules.utils import _pair, _single
+import numpy as np
+from functools import reduce, lru_cache
+from operator import mul
+from einops import rearrange
+from einops.layers.torch import Rearrange
+
 def window_partition(x, window_size):
+    """ Partition the input into windows. Attention will be conducted within the windows.
+
+    Args:
+        x: (B, D, H, W, C)
+        window_size (tuple[int]): window size
+
+    Returns:
+        windows: (B*num_windows, window_size*window_size, C)
+    """
     B, D, H, W, C = x.shape
-    x = x.view(B, D // window_size[0], window_size[0], H // window_size[1], window_size[1], W // window_size[2],
-               window_size[2], C)
+    x = x.view(B, D // window_size[0], window_size[0], H // window_size[1], window_size[1], W // window_size[2], window_size[2], C)
     windows = x.permute(0, 1, 3, 5, 2, 4, 6, 7).contiguous().view(-1, reduce(mul, window_size), C)
 
     return windows
 
 
 def window_reverse(windows, window_size, B, D, H, W):
-    x = windows.view(B, D // window_size[0], H // window_size[1], W // window_size[2], window_size[0], window_size[1],
-                     window_size[2], -1)
+    """ Reverse windows back to the original input. Attention was conducted within the windows.
+
+    Args:
+        windows: (B*num_windows, window_size, window_size, C)
+        window_size (tuple[int]): Window size
+        H (int): Height of image
+        W (int): Width of image
+
+    Returns:
+        x: (B, D, H, W, C)
+    """
+    x = windows.view(B, D // window_size[0], H // window_size[1], W // window_size[2], window_size[0], window_size[1], window_size[2], -1)
     x = x.permute(0, 1, 4, 2, 5, 3, 6, 7).contiguous().view(B, D, H, W, -1)
 
     return x
 
-
 def get_window_size(x_size, window_size, shift_size=None):
+    """ Get the window size and the shift size """
+
     use_window_size = list(window_size)
     if shift_size is not None:
         use_shift_size = list(shift_size)
@@ -30,9 +65,10 @@ def get_window_size(x_size, window_size, shift_size=None):
     else:
         return tuple(use_window_size), tuple(use_shift_size)
 
-
 @lru_cache()
 def compute_mask(D, H, W, window_size, shift_size, device):
+    """ Compute attnetion mask for input of size (D, H, W). @lru_cache caches each stage results. """
+
     img_mask = torch.zeros((1, D, H, W, 1), device=device)  # 1 Dp Hp Wp 1
     cnt = 0
     for d in slice(-window_size[0]), slice(-window_size[0], -shift_size[0]), slice(-shift_size[0], None):
@@ -48,6 +84,15 @@ def compute_mask(D, H, W, window_size, shift_size, device):
     return attn_mask
 
 class Mlp_GEGLU(nn.Module):
+    """ Multilayer perceptron with gated linear unit (GEGLU). Ref. "GLU Variants Improve Transformer".
+
+    Args:
+        x: (B, D, H, W, C)
+
+    Returns:
+        x: (B, D, H, W, C)
+    """
+
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
         super().__init__()
         out_features = out_features or in_features
@@ -121,11 +166,8 @@ class WindowAttention(nn.Module):
 
         # mutual attention
         if self.mut_attn:
-            qkv = self.qkv_mut(x + self.position_bias.repeat(1, 2, 1)).reshape(B_, N, 3, self.num_heads,
-                                                                               C // self.num_heads).permute(2, 0, 3, 1,
-                                                                                                            4)
-            (q1, q2), (k1, k2), (v1, v2) = torch.chunk(qkv[0], 2, dim=2), torch.chunk(qkv[1], 2, dim=2), torch.chunk(
-                qkv[2], 2, dim=2)  # B_, nH, N/2, C
+            qkv = self.qkv_mut(x + self.position_bias.repeat(1, 2, 1)).reshape(B_, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
+            (q1, q2), (k1, k2), (v1, v2) = torch.chunk(qkv[0], 2, dim=2), torch.chunk(qkv[1], 2, dim=2), torch.chunk(qkv[2], 2, dim=2)  # B_, nH, N/2, C
             x1_aligned = self.attention(q2, k1, v1, mask, (B_, N // 2, C), relative_position_encoding=False)
             x2_aligned = self.attention(q1, k2, v2, mask, (B_, N // 2, C), relative_position_encoding=False)
             x_out = torch.cat([torch.cat([x1_aligned, x2_aligned], 1), x_out], 2)

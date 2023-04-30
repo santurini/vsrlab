@@ -1,3 +1,19 @@
+import os
+import warnings
+import math
+import torch
+import torch.nn as nn
+import torchvision
+import torch.nn.functional as F
+import torch.utils.checkpoint as checkpoint
+from distutils.version import LooseVersion
+from torch.nn.modules.utils import _pair, _single
+import numpy as np
+from functools import reduce, lru_cache
+from operator import mul
+from einops import rearrange
+from einops.layers.torch import Rearrange
+
 class TMSA(nn.Module):
     """ Temporal Mutual Self Attention (TMSA).
 
@@ -124,6 +140,7 @@ class TMSA(nn.Module):
 
         return x
 
+
 class TMSAG(nn.Module):
     """ Temporal Mutual Self Attention Group (TMSAG).
 
@@ -240,7 +257,7 @@ class RTMSA(nn.Module):
                  use_checkpoint_attn=False,
                  use_checkpoint_ffn=None
                  ):
-        super(RTMSA, self).__init__()
+        super().__init__()
         self.dim = dim
         self.input_resolution = input_resolution
 

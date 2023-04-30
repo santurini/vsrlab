@@ -67,18 +67,18 @@ class RAFT(nn.Module):
 
         return coords0, coords1
 
-    def forward(self, image1, image2, iters=12):
-        image1 = image1.contiguous()
-        image2 = image2.contiguous()
+    def forward(self, ref, supp, iters=12):
+        supp = supp.contiguous()
+        ref = ref.contiguous()
 
-        fmap1, fmap2 = self.fnet([image1, image2])
+        fmap1, fmap2 = self.fnet([supp, ref])
 
-        cnet = self.cnet(image1)
+        cnet = self.cnet(supp)
         net, inp = torch.split(cnet, [self.hidden_dim, self.context_dim], dim=1)
         net = torch.tanh(net)
         inp = torch.relu(inp)
 
-        coords0, coords1 = self.initialize_flow(image1)
+        coords0, coords1 = self.initialize_flow(supp)
 
         for itr in range(iters):
             coords1 = coords1.detach()
