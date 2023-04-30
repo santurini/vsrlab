@@ -5,6 +5,8 @@ from operator import mul
 import torch
 import torch.nn as nn
 
+from vsr.models.VRT.modules.trunc_norm import trunc_normal_
+
 def window_partition(x, window_size):
     """ Partition the input into windows. Attention will be conducted within the windows.
 

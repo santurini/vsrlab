@@ -6,6 +6,7 @@ import torchvision
 from torch.nn.modules.utils import _pair, _single
 
 class ModulatedDeformConv(nn.Module):
+
     def __init__(self,
                  in_channels,
                  out_channels,
@@ -16,7 +17,7 @@ class ModulatedDeformConv(nn.Module):
                  groups=1,
                  deformable_groups=1,
                  bias=True):
-        super().__init__()
+        super(ModulatedDeformConv, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = _pair(kernel_size)
@@ -26,7 +27,6 @@ class ModulatedDeformConv(nn.Module):
         self.groups = groups
         self.deformable_groups = deformable_groups
         self.with_bias = bias
-
         # enable compatibility with nn.Conv2d
         self.transposed = False
         self.output_padding = _single(0)
@@ -63,7 +63,7 @@ class ModulatedDeformConvPack(ModulatedDeformConv):
             False.
     """
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(ModulatedDeformConvPack, self).__init__(*args, **kwargs)
 
         self.conv_offset = nn.Conv2d(
             self.in_channels,
@@ -73,11 +73,10 @@ class ModulatedDeformConvPack(ModulatedDeformConv):
             padding=_pair(self.padding),
             dilation=_pair(self.dilation),
             bias=True)
-
         self.init_weights()
 
     def init_weights(self):
-        super().init_weights()
+        super(ModulatedDeformConvPack, self).init_weights()
         if hasattr(self, 'conv_offset'):
             self.conv_offset.weight.data.zero_()
             self.conv_offset.bias.data.zero_()
@@ -98,15 +97,24 @@ class DCNv2PackFlowGuided(ModulatedDeformConvPack):
             False.
         max_residue_magnitude (int): The maximum magnitude of the offset residue. Default: 10.
         pa_frames (int): The number of parallel warping frames. Default: 2.
+
+    Ref:
+        BasicVSR++: Improving Video Super-Resolution with Enhanced Propagation and Alignment.
+
     """
+
     def __init__(self, *args, **kwargs):
         self.max_residue_magnitude = kwargs.pop('max_residue_magnitude', 10)
-        self.pa_frames = 2
+        self.pa_frames = kwargs.pop('pa_frames', 2)
 
-        super().__init__(*args, **kwargs)
+        super(DCNv2PackFlowGuided, self).__init__(*args, **kwargs)
 
         self.conv_offset = nn.Sequential(
             nn.Conv2d((1+self.pa_frames//2) * self.in_channels + self.pa_frames, self.out_channels, 3, 1, 1),
+            nn.LeakyReLU(negative_slope=0.1, inplace=True),
+            nn.Conv2d(self.out_channels, self.out_channels, 3, 1, 1),
+            nn.LeakyReLU(negative_slope=0.1, inplace=True),
+            nn.Conv2d(self.out_channels, self.out_channels, 3, 1, 1),
             nn.LeakyReLU(negative_slope=0.1, inplace=True),
             nn.Conv2d(self.out_channels, 3 * 9 * self.deformable_groups, 3, 1, 1),
         )
@@ -114,7 +122,7 @@ class DCNv2PackFlowGuided(ModulatedDeformConvPack):
         self.init_offset()
 
     def init_offset(self):
-        super().init_weights()
+        super(ModulatedDeformConvPack, self).init_weights()
         if hasattr(self, 'conv_offset'):
             self.conv_offset[-1].weight.data.zero_()
             self.conv_offset[-1].bias.data.zero_()
@@ -125,7 +133,20 @@ class DCNv2PackFlowGuided(ModulatedDeformConvPack):
 
         # offset
         offset = self.max_residue_magnitude * torch.tanh(torch.cat((o1, o2), dim=1))
-        offset = offset + flows[0].flip(1).repeat(1, offset.size(1)//2, 1, 1)
+        if self.pa_frames == 2:
+            offset = offset + flows[0].flip(1).repeat(1, offset.size(1)//2, 1, 1)
+        elif self.pa_frames == 4:
+            offset1, offset2 = torch.chunk(offset, 2, dim=1)
+            offset1 = offset1 + flows[0].flip(1).repeat(1, offset1.size(1) // 2, 1, 1)
+            offset2 = offset2 + flows[1].flip(1).repeat(1, offset2.size(1) // 2, 1, 1)
+            offset = torch.cat([offset1, offset2], dim=1)
+        elif self.pa_frames == 6:
+            offset = self.max_residue_magnitude * torch.tanh(torch.cat((o1, o2), dim=1))
+            offset1, offset2, offset3 = torch.chunk(offset, 3, dim=1)
+            offset1 = offset1 + flows[0].flip(1).repeat(1, offset1.size(1) // 2, 1, 1)
+            offset2 = offset2 + flows[1].flip(1).repeat(1, offset2.size(1) // 2, 1, 1)
+            offset3 = offset3 + flows[2].flip(1).repeat(1, offset3.size(1) // 2, 1, 1)
+            offset = torch.cat([offset1, offset2, offset3], dim=1)
 
         # mask
         mask = torch.sigmoid(mask)
