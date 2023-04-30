@@ -11,16 +11,16 @@ defaults:
 
 nn:
   data:
-    batch_size: 4
+    batch_size: 2
     prefetch_factor: 4
     num_workers: 8
     datasets:
       train:
-        path: "/home/aghinassi/VSR/MergedVSR"
+        path: "/home/aghinassi/Desktop/MergedVSR"
 
 train:
   trainer:
-    devices: 1
+    devices: 2
     max_steps: 100000
 
 
