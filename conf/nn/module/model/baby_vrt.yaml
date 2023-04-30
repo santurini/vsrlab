@@ -4,10 +4,10 @@ in_chans: 3
 out_chans: 3
 img_size: [6, 64, 64]
 window_size: [6, 8, 8]
-depths: [2, 2, 2, 2, 2, 2, 2, 2, 2]
+depths: [2, 2, 2, 2, 2, 2, 2, 4]
 indep_reconsts: [11, 12]
-embed_dims: [32, 32, 32, 32, 32, 32, 32, 32, 32]
-num_heads: [2, 2, 2, 2, 2, 2, 2, 2, 2]
+embed_dims: [32, 32, 32, 32, 32, 32, 32, 64]
+num_heads: [4, 4, 4, 4, 4, 4, 4, 4]
 mul_attn_ratio: 0.75
 mlp_ratio: 2.0
 qkv_bias: True
