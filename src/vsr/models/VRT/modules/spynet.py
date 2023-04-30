@@ -131,8 +131,8 @@ class SpyNet(nn.Module):
             if level in self.return_levels:
                 scale = 2**(5-level) # level=5 (scale=1), level=4 (scale=2), level=3 (scale=4), level=2 (scale=8)
                 flow_out = F.interpolate(input=flow, size=(h//scale, w//scale), mode='bilinear', align_corners=False)
-                flow_out[:, 0, :, :] *= float(w//scale) / float(w_floor//scale)
-                flow_out[:, 1, :, :] *= float(h//scale) / float(h_floor//scale)
+                flow_out[:, 0, :, :] *= (w//scale) / (w_floor//scale)
+                flow_out[:, 1, :, :] *= (h//scale) / (h_floor//scale)
                 flow_list.insert(0, flow_out)
 
         return flow_list
