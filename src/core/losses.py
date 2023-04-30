@@ -41,8 +41,8 @@ class PerceptualLoss(nn.Module):
     def forward(self, yhat, y):
         h = y.shape[-2];
         w = y.shape[-1]
-        yhat = yhat.view(-1, 3, h, w)
-        y = y.view(-1, 3, h, w)
+        yhat = yhat.reshape(-1, 3, h, w)
+        y = y.reshape(-1, 3, h, w)
         x_features = self.vgg(yhat)
         gt_features = self.vgg(y.detach())
         percep_loss = 0
