@@ -16,6 +16,8 @@ pylogger = logging.getLogger(__name__)
 
 loss_fn = CharbonnierLoss()
 
+
+
 class VRT(nn.Module):
     """ Video Restoration Transformer (VRT).
         A PyTorch impl of : `VRT: A Video Restoration Transformer`  -
@@ -91,6 +93,8 @@ class VRT(nn.Module):
             self.optical_flow = SpyNet(optical_flow_pretrained, [2, 3, 4, 5])
         elif optical_flow == "irr":
             self.optical_flow = IRRPWCNet(optical_flow_pretrained, [-1, -2, -3, -4])
+        else:
+            raise Exception("Not a valid optical flow, possible options are: spynet, irr")
 
         pylogger.info(f'Initialized Optical Flow module as: <{self.optical_flow.__class__.__name__}>')
 

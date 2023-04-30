@@ -5,11 +5,13 @@ import torch.nn as nn
 from core.modules.conv import ResidualBlock
 from core.modules.upsampling import PixelShufflePack
 from optical_flow.models.spynet import Spynet, flow_warp
+from optical_flow.models.raft.raft import RAFT
+from optical_flow.models.irr.irr import IRRPWCNet
 
 pylogger = logging.getLogger(__name__)
 
 class BasicVSR(nn.Module):
-    def __init__(self, mid_channels=64, res_blocks=30, upscale=4, is_mirror=False, pretrained_flow=False, train_flow=False):
+    def __init__(self, mid_channels=64, res_blocks=30, upscale=4, is_mirror=False, optical_flow='spynet', pretrained_flow=False, train_flow=False):
         super().__init__()
         self.is_mirror = is_mirror
         self.mid_channels = mid_channels
@@ -21,27 +23,59 @@ class BasicVSR(nn.Module):
         self.conv_last = nn.Sequential(nn.Conv2d(mid_channels, 64, 3, 1, 1), nn.LeakyReLU(0.1), nn.Conv2d(64, 3, 3, 1, 1))
         self.upscale = nn.Upsample(scale_factor=upscale, mode='bilinear', align_corners=False)
 
+        self.optical_flow_name = optical_flow
+        if optical_flow == "spynet":
+            self.optical_flow = Spynet(pretrained_flow)
+        elif optical_flow == "irr":
+            self.optical_flow = IRRPWCNet(pretrained_flow, [-1])
+        elif optical_flow == "raft":
+            self.optical_flow = RAFT(small=True, scale_factor=8, pretrained=pretrained_flow)
+        else:
+            raise Exception("Not a valid optical flow, possible options are: raft, spynet, irr")
+
         if not train_flow:
-            pylogger.info('Setting Spynet weights to no_grad')
-            for param in self.spynet.parameters():
+            pylogger.info('Setting Optical Flow weights to no_grad')
+            for param in self.optical_flow.parameters():
                 param.requires_grad = False
 
-    def compute_flow(self, lrs):
+    def compute_flow_spynet(self, lrs):
         n, t, c, h, w = lrs.size()
         lrs_1 = lrs[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
         lrs_2 = lrs[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
-        flow_backward = self.spynet(lrs_1, lrs_2)
+        flow_backward = self.optical_flow(lrs_1, lrs_2)
         if self.is_mirror:
             flow_forward = None
         else:
-            flow_forward = self.spynet(lrs_2, lrs_1)
+            flow_forward = self.optical_flow(lrs_2, lrs_1)
 
         return flow_forward, flow_backward
+
+    def compute_flow_raft(self, lrs):
+        n, t, c, h, w = lrs.size()
+        lrs_1 = lrs[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
+        lrs_2 = lrs[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
+        flow_backward = self.optical_flow(lrs_1, lrs_2)
+        if self.is_mirror:
+            flow_forward = None
+        else:
+            flow_forward = self.optical_flow(lrs_2, lrs_1)
+
+        return flow_forward, flow_backward
+
+    def compute_flow_irr(self, x):
+        '''Get flow between frames t and t+1 from x.'''
+        n, t, c, h, w = lrs.size()
+        lrs_1 = lrs[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
+        lrs_2 = lrs[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
+
+        flow_forward, flow_backward = self.optical_flow(lrs_2, lrs_1)
+
+        return flow_forward[0], flow_backward[0]
 
     def forward(self, lrs):
         n, t, c, h, w = lrs.size()
 
-        flow_forward, flow_backward = self.compute_flow(lrs)
+        flow_forward, flow_backward = getattr(self, f'compute_flow_{self.optical_flow_name}')(lrs)
         flows_forward = flow_forward.view(n, t - 1, 2, h, w)
         flows_backward = flow_backward.view(n, t - 1, 2, h, w)
 

@@ -8,6 +8,8 @@ from optical_flow.models.irr.pwc_modules import (
     WarpingLayer, FeatureExtractor, ContextNetwork, FlowEstimatorDense
 )
 
+from core import PROJECT_ROOT
+
 pylogger = logging.getLogger(__name__)
 
 class IRRPWCNet(nn.Module):
@@ -43,7 +45,7 @@ class IRRPWCNet(nn.Module):
 
         if pretrained:
             pylogger.info('Loading IRR pretrained weights')
-            load_path = f'{PROJECT_ROOT}/src/optical_flow/weights/irr-pwc_sintel.ckpt'
+            load_path = f'{PROJECT_ROOT}/src/optical_flow/weights/irr-sintel.ckpt'
             self.load_state_dict(torch.load(load_path, map_location=lambda storage, loc: storage)['params'], strict=False)
 
         else:
