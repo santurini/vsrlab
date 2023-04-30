@@ -10,7 +10,7 @@ finetune: null
 nn:
   module:
     model:
-      optical_flow: "raft"
+      optical_flow: "irr"
   data:
     datasets:
       train:
