@@ -12,6 +12,7 @@ finetune: null
 
 nn:
   data:
+    batch_size: 4
     datasets:
       train:
         _target_: vsr.models.RR3DB.dataset.DatasetVSR
