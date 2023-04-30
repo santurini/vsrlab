@@ -238,7 +238,7 @@ class VRT(nn.Module):
 
         sr = x + upscale
 
-        loss = loss_fn(sr, hr)
+        loss = loss_fn(sr.detach(), hr.detach())
 
         return {
             "lr": lr,
