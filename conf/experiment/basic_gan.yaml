@@ -3,7 +3,7 @@ core:
   run_id: 'realbasicvsr_finetune'
   run_name: "Real Basic Default - GAN"
 
-finetune: '/home/aghinassi/VSR/checkpoints/realbasicvsr_standard.ckpt'
+finetune: '/home/aghinassi/Desktop/nn-lab/video-super-resolution/realbasicvsr_standard/checkpoints/last.ckpt'
 
 defaults:
   - override /nn/data: default
