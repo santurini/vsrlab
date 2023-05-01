@@ -368,6 +368,7 @@ class SpyNet(nn.Module):
         if pretrained:
             load_path = f'{PROJECT_ROOT}/src/vsr/models/VRT/weights/spynet_sintel_final-3d2a1287.pth'
             self.load_state_dict(torch.load(load_path, map_location=lambda storage, loc: storage)['params'])
+            print('FREEZING SPYNET PARAMETERS')
             for p in self.parameters():
                 p.requires_grad = False
 
