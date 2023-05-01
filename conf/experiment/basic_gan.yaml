@@ -18,6 +18,22 @@ nn:
     datasets:
       train:
         path: "/home/aghinassi/Desktop/MergedVSR"
+        hr_augmentation:
+          - _target_: kornia.augmentation.RandomCrop
+            size: [ 256, 256 ]
+            pad_if_needed: True
+            same_on_batch: True
+            keepdim: True
+
+          - _target_: kornia.augmentation.RandomHorizontalFlip
+            p: 0.5
+            same_on_batch: True
+            keepdim: True
+
+          - _target_: kornia.augmentation.RandomVerticalFlip
+            p: 0.5
+            same_on_batch: True
+            keepdim: True
 
 train:
   trainer:
