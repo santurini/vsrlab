@@ -20,6 +20,7 @@ from operator import mul
 from einops import rearrange
 from einops.layers.torch import Rearrange
 
+from core import PROJECT_ROOT
 from core.losses import CharbonnierLoss
 
 class ModulatedDeformConv(nn.Module):
