@@ -259,13 +259,13 @@ class VRT(nn.Module):
     def forward_features(self, x, flows_backward, flows_forward):
         '''Main network for feature extraction.'''
 
-        x1 = self.stage1(x, flows_backward[0::4], flows_forward[0::4])
-        x2 = self.stage2(x1, flows_backward[1::4], flows_forward[1::4])
-        x3 = self.stage3(x2, flows_backward[2::4], flows_forward[2::4])
-        x4 = self.stage4(x3, flows_backward[3::4], flows_forward[3::4])
-        x = self.stage5(x4, flows_backward[2::4], flows_forward[2::4])
-        x = self.stage6(x + x3, flows_backward[1::4], flows_forward[1::4])
-        x = self.stage7(x + x2, flows_backward[0::4], flows_forward[0::4])
+        x1 = self.stage1(x, flows_backward[0::4], flows_forward[0::4]) # =
+        x2 = self.stage2(x1, flows_backward[1::4], flows_forward[1::4]) # stride 2
+        x3 = self.stage3(x2, flows_backward[2::4], flows_forward[2::4]) # stride 4
+        x4 = self.stage4(x3, flows_backward[3::4], flows_forward[3::4]) # stride 8
+        x = self.stage5(x4, flows_backward[2::4], flows_forward[2::4]) # stride 4
+        x = self.stage6(x + x3, flows_backward[1::4], flows_forward[1::4]) # stride 2
+        x = self.stage7(x + x2, flows_backward[0::4], flows_forward[0::4]) # =
         x = x + x1
 
         for layer in self.stage8:

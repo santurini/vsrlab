@@ -64,11 +64,6 @@ class LitBase(pl.LightningModule):
             "train",
         )
 
-        print("TRAIN: ", step_out["loss"])
-        print(torch.isnan(step_out["lr"]).sum())
-        print(torch.isnan(step_out["hr"]).sum())
-        print(torch.isnan(step_out["sr"]).sum())
-
         self.log_dict(
             self.train_metric(
                 rearrange(step_out["sr"].detach().clamp(0, 1), 'b t c h w -> (b t) c h w'),
@@ -89,11 +84,6 @@ class LitBase(pl.LightningModule):
             step_out,
             "val"
         )
-
-        print("VALIDATION:", step_out["loss"])
-        print(torch.isnan(step_out["lr"]).sum())
-        print(torch.isnan(step_out["hr"]).sum())
-        print(torch.isnan(step_out["sr"]).sum())
 
         self.log_dict(
             self.val_metric(
