@@ -7,7 +7,7 @@ finetune: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbas
 
 defaults:
   - override /nn/data: default
-  - override /train/strategy: ddp
+  #- override /train/strategy: ddp
   - override /nn/module: gan
 
 nn:
@@ -21,7 +21,7 @@ nn:
 
 train:
   trainer:
-    devices: 2
+    devices: 1
     max_steps: 100000
 
 
