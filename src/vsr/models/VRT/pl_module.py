@@ -280,7 +280,7 @@ class LitGan(LitBase):
     def _optim_step(self, optimizer, loss):
         optimizer.zero_grad()
         self.manual_backward(loss)
-        self.clip_gradients(optimizer, gradient_clip_val=1.0, gradient_clip_algorithm="norm")
+        self.clip_gradients(optimizer, gradient_clip_val=0.5, gradient_clip_algorithm="value")
         optimizer.step()
         self.untoggle_optimizer(optimizer)
 
