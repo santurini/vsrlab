@@ -281,26 +281,28 @@ class VRT(nn.Module):
         x_1 = x[:, :-1, :, :, :].reshape(-1, c, h, w)
         x_2 = x[:, 1:, :, :, :].reshape(-1, c, h, w)
 
+        n_scales = len(self.optical_flow.return_levels)
+
         # backward
         flows_backward = self.optical_flow(x_1, x_2)
-        flows_backward = [flow.view(b, n-1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_backward, range(4))]
+        flows_backward = [flow.view(b, n-1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_backward, range(n_scales))]
 
         # forward
         flows_forward = self.optical_flow(x_2, x_1)
-        flows_forward = [flow.view(b, n-1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_forward, range(4))]
+        flows_forward = [flow.view(b, n-1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_forward, range(n_scales))]
 
         return flows_backward, flows_forward
 
     def get_flows_irr(self, x):
         '''Get flow between frames t and t+1 from x.'''
-
         b, n, c, h, w = x.size()
         x_1 = x[:, :-1, :, :, :].reshape(-1, c, h, w)
         x_2 = x[:, 1:, :, :, :].reshape(-1, c, h, w)
 
+        n_scales = len(self.optical_flow.return_levels)
         flows_forward, flows_backward = self.optical_flow(x_2, x_1)
-        flows_forward = [flow.view(b, n-1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_forward, range(4))]
-        flows_backward = [flow.view(b, n - 1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_backward, range(4))]
+        flows_forward = [flow.view(b, n-1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_forward, range(n_scales))]
+        flows_backward = [flow.view(b, n - 1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_backward, range(n_scales))]
 
         return flows_backward, flows_forward
 
@@ -323,6 +325,22 @@ class VRT(nn.Module):
             x_forward.append(flow_warp(x_i, flow.permute(0, 2, 3, 1), 'nearest4')) # frame i-1 aligned towards i
 
         return [torch.stack(x_backward, 1), torch.stack(x_forward, 1)]
+
+class TinyVRT(VRT):
+    def __init__(self):
+        pass
+
+    def forward(self, x):
+        pass
+
+    def train_step(self, x, hr):
+        pass
+
+    def forward_features(self, x, flows_backward, flows_forward):
+        pass
+
+    def init_flow(self):
+        pass
 
 @torch.no_grad()
 def main() -> None:
