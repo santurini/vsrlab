@@ -72,20 +72,12 @@ def compute_mask(D, H, W, window_size, shift_size, device):
     mask_windows = window_partition(img_mask, window_size)  # nW, ws[0]*ws[1]*ws[2], 1
     mask_windows = mask_windows.squeeze(-1)  # nW, ws[0]*ws[1]*ws[2]
     attn_mask = mask_windows.unsqueeze(1) - mask_windows.unsqueeze(2)
-    attn_mask = attn_mask.masked_fill(attn_mask != 0, -100.0).masked_fill(attn_mask == 0, 0.0)
+    attn_mask = attn_mask.masked_fill(attn_mask != 0, float(-100.0)).masked_fill(attn_mask == 0, float(0.0))
 
     return attn_mask
 
 class Mlp_GEGLU(nn.Module):
-    """ Multilayer perceptron with gated linear unit (GEGLU). Ref. "GLU Variants Improve Transformer".
-
-    Args:
-        x: (B, D, H, W, C)
-
-    Returns:
-        x: (B, D, H, W, C)
-    """
-
+    """ Multilayer perceptron with gated linear unit (GEGLU)"""
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
         super().__init__()
         out_features = out_features or in_features
@@ -106,7 +98,6 @@ class Mlp_GEGLU(nn.Module):
 
 class WindowAttention(nn.Module):
     """ Window based multi-head mutual attention and self attention.
-
     Args:
         dim (int): Number of input channels.
         window_size (tuple[int]): The temporal length, height and width of the window.
@@ -153,7 +144,7 @@ class WindowAttention(nn.Module):
 
         # self attention
         B_, N, C = x.shape
-        qkv = self.qkv_self(x).reshape(B_, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4).type_as(x)
+        qkv = self.qkv_self(x).reshape(B_, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]  # B_, nH, N, C
         x_out = self.attention(q, k, v, mask, (B_, N, C), relative_position_encoding=True)
 
@@ -222,14 +213,14 @@ class WindowAttention(nn.Module):
             scale = 2 * math.pi
 
         not_mask = torch.ones([1, HW[0], HW[1]])
-        y_embed = not_mask.cumsum(1)
-        x_embed = not_mask.cumsum(2)
+        y_embed = not_mask.cumsum(1, dtype=torch.float32)
+        x_embed = not_mask.cumsum(2, dtype=torch.float32)
         if normalize:
             eps = 1e-6
             y_embed = y_embed / (y_embed[:, -1:, :] + eps) * scale
             x_embed = x_embed / (x_embed[:, :, -1:] + eps) * scale
 
-        dim_t = torch.arange(num_pos_feats)
+        dim_t = torch.arange(num_pos_feats, dtype=torch.float32)
         dim_t = temperature ** (2 * (dim_t // 2) / num_pos_feats)
 
         # BxCxHxW

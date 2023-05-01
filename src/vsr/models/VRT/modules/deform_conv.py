@@ -62,6 +62,9 @@ class ModulatedDeformConvPack(ModulatedDeformConv):
             norm_cfg. Bias will be set as True if norm_cfg is None, otherwise
             False.
     """
+
+    _version = 2
+
     def __init__(self, *args, **kwargs):
         super(ModulatedDeformConvPack, self).__init__(*args, **kwargs)
 
@@ -111,11 +114,11 @@ class DCNv2PackFlowGuided(ModulatedDeformConvPack):
 
         self.conv_offset = nn.Sequential(
             nn.Conv2d((1+self.pa_frames//2) * self.in_channels + self.pa_frames, self.out_channels, 3, 1, 1),
-            nn.LeakyReLU(negative_slope=0.1),
+            nn.LeakyReLU(negative_slope=0.1, inplace=True),
             nn.Conv2d(self.out_channels, self.out_channels, 3, 1, 1),
-            nn.LeakyReLU(negative_slope=0.1),
+            nn.LeakyReLU(negative_slope=0.1, inplace=True),
             nn.Conv2d(self.out_channels, self.out_channels, 3, 1, 1),
-            nn.LeakyReLU(negative_slope=0.1),
+            nn.LeakyReLU(negative_slope=0.1, inplace=True),
             nn.Conv2d(self.out_channels, 3 * 9 * self.deformable_groups, 3, 1, 1),
         )
 

@@ -67,11 +67,6 @@ class ModulatedDeformConv(nn.Module):
         if self.bias is not None:
             self.bias.data.zero_()
 
-    # def forward(self, x, offset, mask):
-    #     return modulated_deform_conv(x, offset, mask, self.weight, self.bias, self.stride, self.padding, self.dilation,
-    #                                  self.groups, self.deformable_groups)
-
-
 class ModulatedDeformConvPack(ModulatedDeformConv):
     """A ModulatedDeformable Conv Encapsulation that acts as normal Conv layers.
 
@@ -108,15 +103,6 @@ class ModulatedDeformConvPack(ModulatedDeformConv):
         if hasattr(self, 'conv_offset'):
             self.conv_offset.weight.data.zero_()
             self.conv_offset.bias.data.zero_()
-
-    # def forward(self, x):
-    #     out = self.conv_offset(x)
-    #     o1, o2, mask = torch.chunk(out, 3, dim=1)
-    #     offset = torch.cat((o1, o2), dim=1)
-    #     mask = torch.sigmoid(mask)
-    #     return modulated_deform_conv(x, offset, mask, self.weight, self.bias, self.stride, self.padding, self.dilation,
-    #                                  self.groups, self.deformable_groups)
-
 
 def _no_grad_trunc_normal_(tensor, mean, std, a, b):
     # From: https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/layers/weight_init.py
@@ -237,9 +223,6 @@ def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corne
     grid.requires_grad = False
 
     vgrid = grid + flow
-
-    # if use_pad_mask: # for PWCNet
-    #     x = F.pad(x, (0,0,0,0,0,1), mode='constant', value=1)
 
     # scale grid to [-1,1]
     if interp_mode == 'nearest4':
@@ -637,10 +620,8 @@ class WindowAttention(nn.Module):
         # mutual attention
         if self.mut_attn:
             qkv = self.qkv_mut(x + self.position_bias.repeat(1, 2, 1)).reshape(B_, N, 3, self.num_heads,
-                                                                               C // self.num_heads).permute(2, 0, 3, 1,
-                                                                                                            4)
-            (q1, q2), (k1, k2), (v1, v2) = torch.chunk(qkv[0], 2, dim=2), torch.chunk(qkv[1], 2, dim=2), torch.chunk(
-                qkv[2], 2, dim=2)  # B_, nH, N/2, C
+                                                                               C // self.num_heads).permute(2, 0, 3, 1, 4)
+            (q1, q2), (k1, k2), (v1, v2) = torch.chunk(qkv[0], 2, dim=2), torch.chunk(qkv[1], 2, dim=2), torch.chunk(qkv[2], 2, dim=2)  # B_, nH, N/2, C
             x1_aligned = self.attention(q2, k1, v1, mask, (B_, N // 2, C), relative_position_encoding=False)
             x2_aligned = self.attention(q1, k2, v2, mask, (B_, N // 2, C), relative_position_encoding=False)
             x_out = torch.cat([torch.cat([x1_aligned, x2_aligned], 1), x_out], 2)
@@ -1276,7 +1257,6 @@ class VRT(nn.Module):
                  pa_frames=2,
                  deformable_groups=16,
                  recal_all_flows=False,
-                 nonblind_denoising=False,
                  use_checkpoint_attn=False,
                  use_checkpoint_ffn=False,
                  no_checkpoint_attn_blocks=[],
@@ -1288,21 +1268,13 @@ class VRT(nn.Module):
         self.upscale = upscale
         self.pa_frames = pa_frames
         self.recal_all_flows = recal_all_flows
-        self.nonblind_denoising = nonblind_denoising
 
         # conv_first
-        if self.pa_frames:
-            if self.nonblind_denoising:
-                conv_first_in_chans = in_chans*(1+2*4)+1
-            else:
-                conv_first_in_chans = in_chans*(1+2*4)
-        else:
-            conv_first_in_chans = in_chans
+        conv_first_in_chans = in_chans*(1+2*4)
         self.conv_first = nn.Conv3d(conv_first_in_chans, embed_dims[0], kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
         # main body
-        if self.pa_frames:
-            self.spynet = SpyNet(optical_flow_pretrained, [2, 3, 4, 5])
+        self.spynet = SpyNet(optical_flow_pretrained, [2, 3, 4, 5])
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
         reshapes = ['none', 'down', 'down', 'down', 'up', 'up', 'up']
         scales = [1, 2, 4, 8, 4, 2, 1]
@@ -1365,55 +1337,15 @@ class VRT(nn.Module):
         self.conv_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
 
         # reconstruction
-        if self.pa_frames:
-            if self.upscale == 1:
-                # for video deblurring, etc.
-                self.conv_last = nn.Conv3d(embed_dims[0], out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
-            else:
-                # for video sr
-                num_feat = 64
-                self.conv_before_upsample = nn.Sequential(
-                    nn.Conv3d(embed_dims[0], num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)),
-                    nn.LeakyReLU(inplace=True))
-                self.upsample = Upsample(upscale, num_feat)
-                self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
-        else:
-            num_feat = 64
-            self.linear_fuse = nn.Conv2d(embed_dims[0]*img_size[0], num_feat, kernel_size=1 , stride=1)
-            self.conv_last = nn.Conv2d(num_feat, out_chans , kernel_size=7 , stride=1, padding=0)
-
-    def init_weights(self, pretrained=None, strict=True):
-        """Init weights for models.
-
-        Args:
-            pretrained (str, optional): Path for pretrained weights. If given
-                None, pretrained weights will not be loaded. Defaults: None.
-            strict (boo, optional): Whether strictly load the pretrained model.
-                Defaults to True.
-        """
-        if isinstance(pretrained, str):
-            logger = get_root_logger()
-            load_checkpoint(self, pretrained, strict=strict, logger=logger)
-        elif pretrained is not None:
-            raise TypeError(f'"pretrained" must be a str or None. '
-                            f'But received {type(pretrained)}.')
-
-    def reflection_pad2d(self, x, pad=1):
-        """ Reflection padding for any dtypes (torch.bfloat16.
-
-        Args:
-            x: (tensor): BxCxHxW
-            pad: (int): Default: 1.
-        """
-
-        x = torch.cat([torch.flip(x[:, :, 1:pad+1, :], [2]), x, torch.flip(x[:, :, -pad-1:-1, :], [2])], 2)
-        x = torch.cat([torch.flip(x[:, :, :, 1:pad+1], [3]), x, torch.flip(x[:, :, :, -pad-1:-1], [3])], 3)
-        return x
+        num_feat = 64
+        self.conv_before_upsample = nn.Sequential(
+            nn.Conv3d(embed_dims[0], num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)),
+            nn.LeakyReLU(inplace=True))
+        self.upsample = Upsample(upscale, num_feat)
+        self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
     def forward(self, x):
         # x: (N, D, C, H, W)
-
-        # main network
         x_lq = x.clone()
 
         # calculate flows

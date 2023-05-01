@@ -30,8 +30,8 @@ def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corne
     """
     n, _, h, w = x.size()
     # create mesh grid
-    grid_y, grid_x = torch.meshgrid(torch.arange(0, h, dtype=x.dtype, device=x.device), torch.arange(0, w, dtype=x.dtype, device=x.device))
-    grid = torch.stack((grid_x, grid_y), 2)  # W(x), H(y), 2
+    grid_y, grid_x = torch.meshgrid(torch.arange(0, h), torch.arange(0, w))
+    grid = torch.stack((grid_x, grid_y), 2).type_as(x)  # W(x), H(y), 2
     grid.requires_grad = False
 
     vgrid = grid + flow
@@ -131,8 +131,8 @@ class SpyNet(nn.Module):
             if level in self.return_levels:
                 scale = 2**(5-level) # level=5 (scale=1), level=4 (scale=2), level=3 (scale=4), level=2 (scale=8)
                 flow_out = F.interpolate(input=flow, size=(h//scale, w//scale), mode='bilinear', align_corners=False)
-                flow_out[:, 0, :, :] *= (w//scale) / (w_floor//scale)
-                flow_out[:, 1, :, :] *= (h//scale) / (h_floor//scale)
+                flow_out[:, 0, :, :] *= float(w//scale) / float(w_floor//scale)
+                flow_out[:, 1, :, :] *= float(h//scale) / float(h_floor//scale)
                 flow_list.insert(0, flow_out)
 
         return flow_list

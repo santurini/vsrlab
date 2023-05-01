@@ -3,6 +3,7 @@ import math
 
 import torch
 import torch.nn as nn
+from distutils.version import LooseVersion
 from einops import rearrange
 from einops.layers.torch import Rearrange
 
@@ -17,25 +18,24 @@ pylogger = logging.getLogger(__name__)
 
 loss_fn = CharbonnierLoss()
 
-class Transpose_Dim12(nn.Module):
-    """ Transpose Dim1 and Dim2 of a tensor."""
-    def __init__(self):
-        super().__init__()
-
-    @staticmethod
-    def forward(x):
-        return x.transpose(1, 2)
-
 class Upsample(nn.Sequential):
     """Upsample module for video SR.
-
     Args:
         scale (int): Scale factor. Supported scales: 2^n and 3.
         num_feat (int): Channel number of intermediate features.
     """
+    class Transpose_Dim12(nn.Module):
+        def __init__(self):
+            super().__init__()
+        @staticmethod
+        def forward(x):
+            return x.transpose(1, 2)
 
     def __init__(self, scale, num_feat):
-        assert (scale & (scale - 1)) == 0, f'scale {scale} is not supported. ' 'Supported scales: 2^n and 3.'
+        assert LooseVersion(torch.__version__) >= LooseVersion('1.8.1'), \
+            'PyTorch version >= 1.8.1 to support 5D PixelShuffle.'
+        assert (scale & (scale - 1)) == 0, \
+            f'scale {scale} is not supported. Supported scales: 2^n and 3.'
 
         m = []
         for _ in range(int(math.log(scale, 2))):
@@ -46,7 +46,7 @@ class Upsample(nn.Sequential):
             m.append(nn.LeakyReLU(negative_slope=0.1, inplace=True))
             m.append(nn.Conv3d(num_feat, num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
 
-        super().__init__(*m)
+        super(Upsample, self).__init__(*m)
 
 class VRT(nn.Module):
     """ Video Restoration Transformer (VRT).
@@ -204,16 +204,16 @@ class VRT(nn.Module):
         self.upsample = Upsample(upscale, num_feat)
         self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
-    def forward(self, lr):
+    def forward(self, x):
         # x: (N, D, C, H, W)
-        x_lq = lr.clone()
+        lr = x.clone()
 
         # calculate flows
-        flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(lr)
+        flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(x)
 
         # warp input
-        x_backward, x_forward = self.get_aligned_image(lr,  flows_backward[0], flows_forward[0])
-        x = torch.cat([lr, x_backward, x_forward], 2)
+        x_backward, x_forward = self.get_aligned_image(x,  flows_backward[0], flows_forward[0])
+        x = torch.cat([x, x_backward, x_forward], 2)
 
         # video sr
         x = self.conv_first(x.transpose(1, 2))
@@ -221,21 +221,20 @@ class VRT(nn.Module):
         x = self.conv_last(self.upsample(self.conv_before_upsample(x))).transpose(1, 2)
 
         _, _, C, H, W = x.shape
-        upscale = torch.nn.functional.interpolate(x_lq, size=(C, H, W), mode='trilinear', align_corners=False)
-        sr = x + upscale
+        sr = x + torch.nn.functional.interpolate(lr, size=(C, H, W), mode='trilinear', align_corners=False)
 
         return sr, lr
 
-    def train_step(self, lr, hr):
+    def train_step(self, x, hr):
         # x: (N, D, C, H, W)
-        x_lq = lr.clone()
+        lr = x.clone()
 
         # calculate flows
-        flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(lr)
+        flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(x)
 
         # warp input
-        x_backward, x_forward = self.get_aligned_image(lr,  flows_backward[0], flows_forward[0])
-        x = torch.cat([lr, x_backward, x_forward], 2)
+        x_backward, x_forward = self.get_aligned_image(x,  flows_backward[0], flows_forward[0])
+        x = torch.cat([x, x_backward, x_forward], 2)
 
         # video sr
         x = self.conv_first(x.transpose(1, 2))
@@ -243,9 +242,7 @@ class VRT(nn.Module):
         x = self.conv_last(self.upsample(self.conv_before_upsample(x))).transpose(1, 2)
 
         _, _, C, H, W = x.shape
-        upscale = torch.nn.functional.interpolate(x_lq, size=(C, H, W), mode='trilinear', align_corners=False)
-
-        sr = x + upscale
+        sr = x + torch.nn.functional.interpolate(lr, size=(C, H, W), mode='trilinear', align_corners=False)
 
         loss = loss_fn(sr, hr)
 

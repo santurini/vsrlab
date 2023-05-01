@@ -53,13 +53,13 @@ class TMSA(nn.Module):
         self.use_checkpoint_attn = use_checkpoint_attn
         self.use_checkpoint_ffn = use_checkpoint_ffn
 
-        assert 0 <= self.shift_size[0] < self.window_size[0], "shift_size must in 0-window_size"
-        assert 0 <= self.shift_size[1] < self.window_size[1], "shift_size must in 0-window_size"
-        assert 0 <= self.shift_size[2] < self.window_size[2], "shift_size must in 0-window_size"
+        assert 0 <= self.shift_size[0] < self.window_size[0], "shift_size must be in range [0, window_size]"
+        assert 0 <= self.shift_size[1] < self.window_size[1], "shift_size must be in range [0, window_size]"
+        assert 0 <= self.shift_size[2] < self.window_size[2], "shift_size must be in range [0, window_size]"
 
         self.norm1 = norm_layer(dim)
-        self.attn = WindowAttention(dim, window_size=self.window_size, num_heads=num_heads, qkv_bias=qkv_bias,
-                                    qk_scale=qk_scale, mut_attn=mut_attn)
+        self.attn = WindowAttention(dim, window_size=self.window_size, num_heads=num_heads,
+                                    qkv_bias=qkv_bias, qk_scale=qk_scale, mut_attn=mut_attn)
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
         self.norm2 = norm_layer(dim)
         self.mlp = Mlp_GEGLU(in_features=dim, hidden_features=int(dim * mlp_ratio), act_layer=act_layer)
@@ -78,6 +78,7 @@ class TMSA(nn.Module):
         x = F.pad(x, (0, 0, pad_l, pad_r, pad_t, pad_b, pad_d0, pad_d1), mode='constant')
 
         _, Dp, Hp, Wp, _ = x.shape
+
         # cyclic shift
         if any(i > 0 for i in shift_size):
             shifted_x = torch.roll(x, shifts=(-shift_size[0], -shift_size[1], -shift_size[2]), dims=(1, 2, 3))
