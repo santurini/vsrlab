@@ -1,7 +1,7 @@
 generator:
   - _target_: torch.optim.lr_scheduler.LinearLR
-    total_iters: 1000
-    start_factor: 1e-5
+    total_iters: 5000
+    start_factor: 1e-15
 
   - _target_: torch.optim.lr_scheduler.CosineAnnealingLR
     T_max: ${train.trainer.max_steps}
