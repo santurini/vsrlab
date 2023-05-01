@@ -13,8 +13,8 @@ defaults:
 nn:
   data:
     batch_size: 2
-    prefetch_factor: 8
-    num_workers: 16
+    prefetch_factor: 4
+    num_workers: 8
     datasets:
       train:
         path: "/home/aghinassi/Desktop/MergedVSR"
