@@ -366,9 +366,10 @@ class SpyNet(nn.Module):
         self.return_levels = return_levels
         self.basic_module = nn.ModuleList([BasicModule() for _ in range(6)])
         if pretrained:
-            pylogger.info('Loading Spynet pretrained weights')
             load_path = f'{PROJECT_ROOT}/src/vsr/models/VRT/weights/spynet_sintel_final-3d2a1287.pth'
             self.load_state_dict(torch.load(load_path, map_location=lambda storage, loc: storage)['params'])
+            for p in self.parameters():
+                p.requires_grad = False
 
         self.register_buffer('mean', torch.Tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1))
         self.register_buffer('std', torch.Tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
