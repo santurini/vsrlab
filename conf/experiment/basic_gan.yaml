@@ -1,6 +1,6 @@
 # @package _global_
 core:
-  run_id: 'realbasicvsr_finetune'
+  run_id: 'realbasicvsr_adversarial'
   run_name: "Real Basic Default - GAN"
 
 finetune: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasicvsr_standard/checkpoints/last.ckpt'
