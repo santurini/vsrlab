@@ -23,6 +23,8 @@ from einops.layers.torch import Rearrange
 from core import PROJECT_ROOT
 from core.losses import CharbonnierLoss
 
+loss_fn = CharbonnierLoss()
+
 class ModulatedDeformConv(nn.Module):
 
     def __init__(self,
