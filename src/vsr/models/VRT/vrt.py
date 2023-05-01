@@ -17,6 +17,15 @@ pylogger = logging.getLogger(__name__)
 
 loss_fn = CharbonnierLoss()
 
+class Transpose_Dim12(nn.Module):
+    """ Transpose Dim1 and Dim2 of a tensor."""
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def forward(x):
+        return x.transpose(1, 2)
+
 class Upsample(nn.Sequential):
     """Upsample module for video SR.
 
@@ -31,9 +40,9 @@ class Upsample(nn.Sequential):
         m = []
         for _ in range(int(math.log(scale, 2))):
             m.append(nn.Conv3d(num_feat, 4 * num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
-            m.append(Rearrange('b c d h w -> b d c h w'))
+            m.append(Transpose_Dim12())
             m.append(nn.PixelShuffle(2))
-            m.append(Rearrange('b d c h w -> b c d h w'))
+            m.append(Transpose_Dim12())
             m.append(nn.LeakyReLU(negative_slope=0.1, inplace=True))
             m.append(nn.Conv3d(num_feat, num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
 
