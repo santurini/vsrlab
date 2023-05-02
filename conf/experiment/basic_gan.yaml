@@ -4,6 +4,7 @@ core:
   run_name: "Real Basic Default - GAN"
 
 # finetune: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasicvsr_curriculum_hard/checkpoints/last.ckpt'
+finetune: null
 
 defaults:
   - override /nn/data: default
