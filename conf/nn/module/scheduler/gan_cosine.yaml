@@ -7,5 +7,5 @@ generator:
 discriminator:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
   T_max: ${train.trainer.max_steps}
-  eta_min: ${nn.module.optimizer.generator.lr}
+  eta_min: ${nn.module.optimizer.discriminator.lr}
   verbose: False
