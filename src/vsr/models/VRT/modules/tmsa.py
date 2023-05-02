@@ -50,8 +50,6 @@ class TMSA(nn.Module):
         self.num_heads = num_heads
         self.window_size = window_size
         self.shift_size = shift_size
-        self.use_checkpoint_attn = use_checkpoint_attn
-        self.use_checkpoint_ffn = use_checkpoint_ffn
 
         assert 0 <= self.shift_size[0] < self.window_size[0], "shift_size must be in range [0, window_size]"
         assert 0 <= self.shift_size[1] < self.window_size[1], "shift_size must be in range [0, window_size]"
@@ -122,16 +120,8 @@ class TMSA(nn.Module):
         """
 
         # attention
-        if self.use_checkpoint_attn:
-            x = x + checkpoint.checkpoint(self.forward_part1, x, mask_matrix)
-        else:
-            x = x + self.forward_part1(x, mask_matrix)
-
-        # feed-forward
-        if self.use_checkpoint_ffn:
-            x = x + checkpoint.checkpoint(self.forward_part2, x)
-        else:
-            x = x + self.forward_part2(x)
+        x = x + self.forward_part1(x, mask_matrix)
+        x = x + self.forward_part2(x)
 
         return x
 
@@ -169,8 +159,6 @@ class TMSAG(nn.Module):
                  qk_scale=None,
                  drop_path=0.,
                  norm_layer=nn.LayerNorm,
-                 use_checkpoint_attn=False,
-                 use_checkpoint_ffn=False
                  ):
         super().__init__()
         self.input_resolution = input_resolution
@@ -190,9 +178,7 @@ class TMSAG(nn.Module):
                 qkv_bias=qkv_bias,
                 qk_scale=qk_scale,
                 drop_path=drop_path[i] if isinstance(drop_path, list) else drop_path,
-                norm_layer=norm_layer,
-                use_checkpoint_attn=use_checkpoint_attn,
-                use_checkpoint_ffn=use_checkpoint_ffn
+                norm_layer=norm_layer
             )
             for i in range(depth)])
 
@@ -234,8 +220,6 @@ class RTMSA(nn.Module):
         qk_scale (float | None, optional): Override default qk scale of head_dim ** -0.5 if set.
         drop_path (float | tuple[float], optional): Stochastic depth rate. Default: 0.0.
         norm_layer (nn.Module, optional): Normalization layer. Default: nn.LayerNorm.
-        use_checkpoint_attn (bool): If True, use torch.checkpoint for attention modules. Default: False.
-        use_checkpoint_ffn (bool): If True, use torch.checkpoint for feed-forward modules. Default: False.
     """
 
     def __init__(self,
@@ -249,8 +233,6 @@ class RTMSA(nn.Module):
                  qk_scale=None,
                  drop_path=0.,
                  norm_layer=nn.LayerNorm,
-                 use_checkpoint_attn=False,
-                 use_checkpoint_ffn=None
                  ):
         super().__init__()
         self.dim = dim
@@ -266,8 +248,6 @@ class RTMSA(nn.Module):
                                     qkv_bias=qkv_bias, qk_scale=qk_scale,
                                     drop_path=drop_path,
                                     norm_layer=norm_layer,
-                                    use_checkpoint_attn=use_checkpoint_attn,
-                                    use_checkpoint_ffn=use_checkpoint_ffn
                                     )
 
         self.linear = nn.Linear(dim, dim)

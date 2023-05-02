@@ -102,10 +102,6 @@ class VRT(nn.Module):
                  pa_frames=2,
                  deformable_groups=4,
                  recal_all_flows=False,
-                 use_checkpoint_attn=False,
-                 use_checkpoint_ffn=False,
-                 no_checkpoint_attn_blocks=[],
-                 no_checkpoint_ffn_blocks=[],
                  ):
         super().__init__()
 
@@ -139,9 +135,6 @@ class VRT(nn.Module):
         reshapes = ['none', 'down', 'down', 'down', 'up', 'up', 'up']
         scales = [1, 2, 4, 8, 4, 2, 1]
 
-        use_checkpoint_attns = [False if i in no_checkpoint_attn_blocks else use_checkpoint_attn for i in range(len(depths))]
-        use_checkpoint_ffns = [False if i in no_checkpoint_ffn_blocks else use_checkpoint_ffn for i in range(len(depths))]
-
         # stage 1- 7
         for i in range(7):
             setattr(self, f'stage{i + 1}',
@@ -161,9 +154,7 @@ class VRT(nn.Module):
                         pa_frames=pa_frames,
                         deformable_groups=deformable_groups,
                         reshape=reshapes[i],
-                        max_residue_magnitude=10 / scales[i],
-                        use_checkpoint_attn=use_checkpoint_attns[i],
-                        use_checkpoint_ffn=use_checkpoint_ffns[i],
+                        max_residue_magnitude=10 / scales[i]
                         )
                     )
 
@@ -187,9 +178,7 @@ class VRT(nn.Module):
                       mlp_ratio=mlp_ratio,
                       qkv_bias=qkv_bias, qk_scale=qk_scale,
                       drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
-                      norm_layer=norm_layer,
-                      use_checkpoint_attn=use_checkpoint_attns[i],
-                      use_checkpoint_ffn=use_checkpoint_ffns[i]
+                      norm_layer=norm_layer
                       )
             )
 
