@@ -1244,7 +1244,7 @@ class VRT(nn.Module):
                  img_size=[6, 64, 64],
                  window_size=[6, 8, 8],
                  depths=[8, 8, 8, 8, 8, 8, 8, 4, 4, 4, 4, 4, 4],
-                 indep_reconsts=[11, 12],
+                 indep_reconsts=[-2, -1],
                  embed_dims=[120, 120, 120, 120, 120, 120, 120, 180, 180, 180, 180, 180, 180],
                  num_heads=[6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
                  mul_attn_ratio=0.75,
@@ -1268,6 +1268,7 @@ class VRT(nn.Module):
         self.upscale = upscale
         self.pa_frames = pa_frames
         self.recal_all_flows = recal_all_flows
+        self.indep_reconsts = [i.item() for i in torch.arange(len(depths))[indep_reconsts]]
 
         # conv_first
         conv_first_in_chans = in_chans*(1+2*4)

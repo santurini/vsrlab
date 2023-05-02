@@ -316,8 +316,89 @@ class VRT(nn.Module):
         return [torch.stack(x_backward, 1), torch.stack(x_forward, 1)]
 
 class TinyVRT(VRT):
-    def __init__(self):
-        pass
+    def __init__(self,
+                 n_scales=3
+                 ):
+
+        # main body
+        self.optical_flow_name = optical_flow
+        if optical_flow == "spynet":
+            self.optical_flow = SpyNet(optical_flow_pretrained, [2, 3, 4, 5][-n_scales:])
+        elif optical_flow == "irr":
+            self.optical_flow = IRRPWCNet(optical_flow_pretrained, [-1, -2, -3, -4][-n_scales:])
+        else:
+            raise Exception("Not a valid optical flow, possible options are: spynet, irr")
+
+        pylogger.info(f'Initialized Optical Flow module as: <{self.optical_flow.__class__.__name__}>')
+
+        if not optical_flow_train:
+            pylogger.info(f'Freezing Optical Flow parameters')
+            for p in self.optical_flow.parameters():
+                p.requires_grad = False
+
+        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
+        reshapes = ['none'] + ['up' for _ in range(n_scales-1)] + ['down' for _ in range(n_scales-1)]
+        scales = [2**i for i in range(n_scales)] + [2**i for i in reversed(range(n_scales-1))]
+
+        # stage 1- 7
+        for i in range(len(scales)):
+            setattr(self, f'stage{i + 1}',
+                    Stage(
+                        in_dim=embed_dims[i - 1],
+                        dim=embed_dims[i],
+                        input_resolution=(img_size[0], img_size[1] // scales[i], img_size[2] // scales[i]),
+                        depth=depths[i],
+                        num_heads=num_heads[i],
+                        mul_attn_ratio=mul_attn_ratio,
+                        window_size=window_size,
+                        mlp_ratio=mlp_ratio,
+                        qkv_bias=qkv_bias,
+                        qk_scale=qk_scale,
+                        drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
+                        norm_layer=norm_layer,
+                        pa_frames=pa_frames,
+                        deformable_groups=deformable_groups,
+                        reshape=reshapes[i],
+                        max_residue_magnitude=10 / scales[i]
+                    )
+                    )
+
+        # last stage
+        setattr(self,
+                f'stage{len(scales) + 1}',
+                nn.ModuleList([
+                    nn.Sequential(Rearrange('n c d h w ->  n d h w c'),
+                                  nn.LayerNorm(embed_dims[len(scales)-1]),
+                                  nn.Linear(embed_dims[len(scales)-1], embed_dims[len(scales)]),
+                                  Rearrange('n d h w c -> n c d h w'))
+                              ]
+                             )
+                )
+
+        for i in range(len(scales), len(depths)):
+            getattr(self, f'stage{len(scales) + 1}').append(
+                RTMSA(dim=embed_dims[i],
+                      input_resolution=img_size,
+                      depth=depths[i],
+                      num_heads=num_heads[i],
+                      window_size=[1, window_size[1], window_size[2]] if i in indep_reconsts else window_size,
+                      mlp_ratio=mlp_ratio,
+                      qkv_bias=qkv_bias, qk_scale=qk_scale,
+                      drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
+                      norm_layer=norm_layer
+                      )
+            )
+
+        self.norm = norm_layer(embed_dims[-1])
+        self.conv_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
+
+        # reconstruction
+        num_feat = 64
+        self.conv_before_upsample = nn.Sequential(
+            nn.Conv3d(embed_dims[0], num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)),
+            nn.LeakyReLU(inplace=True))
+        self.upsample = Upsample(upscale, num_feat)
+        self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
     def forward(self, x):
         pass
@@ -326,7 +407,25 @@ class TinyVRT(VRT):
         pass
 
     def forward_features(self, x, flows_backward, flows_forward):
-        pass
+        '''Main network for feature extraction.'''
+
+        x1 = self.stage1(x, flows_backward[0::4], flows_forward[0::4]) # =
+        x2 = self.stage2(x1, flows_backward[1::4], flows_forward[1::4]) # stride 2
+        x3 = self.stage3(x2, flows_backward[2::4], flows_forward[2::4]) # stride 4
+        x4 = self.stage4(x3, flows_backward[3::4], flows_forward[3::4]) # stride 8
+        x = self.stage5(x4, flows_backward[2::4], flows_forward[2::4]) # stride 4
+        x = self.stage6(x + x3, flows_backward[1::4], flows_forward[1::4]) # stride 2
+        x = self.stage7(x + x2, flows_backward[0::4], flows_forward[0::4]) # =
+        x = x + x1
+
+        for layer in self.stage8:
+            x = layer(x)
+
+        x = rearrange(x, 'n c d h w -> n d h w c')
+        x = self.norm(x)
+        x = rearrange(x, 'n d h w c -> n c d h w')
+
+        return x
 
     def init_flow(self):
         pass
