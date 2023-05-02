@@ -39,7 +39,7 @@ nn:
 train:
   trainer:
     devices: 1
-    max_steps: 100000
+    max_steps: 200000
 
 
 
