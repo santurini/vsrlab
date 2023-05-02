@@ -3,8 +3,8 @@ core:
   run_id: 'realbasicvsr_adversarial'
   run_name: "Real Basic Default - GAN"
 
-# finetune: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasicvsr_curriculum_hard/checkpoints/last.ckpt'
-finetune: null
+finetune: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/alkndafswe/checkpoints/last.ckpt'
+# finetune: null
 
 defaults:
   - override /nn/data: default
@@ -37,7 +37,6 @@ nn:
             keepdim: True
 
 train:
-  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/alkndafswe/checkpoints/last.ckpt'
   trainer:
     devices: 1
     max_steps: 100000
