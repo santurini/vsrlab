@@ -79,7 +79,7 @@ def run(cfg: DictConfig):
     local_rank = int(os.environ['LOCAL_RANK'])
 
     os.environ["NCCL_ASYNC_ERROR_HANDLING"] = "0"
-    torch.distributed.init_process_group(backend="nccl", world_size=world_size, rank=rank)
+    dist.init_process_group(backend="nccl", world_size=world_size, rank=rank)
 
     # Initialize logger
     wandb.init(
@@ -101,8 +101,6 @@ def run(cfg: DictConfig):
         output_device=local_rank,
         find_unused_parameters=True
     )
-
-    device = torch.device("cuda:{}".format(local_rank))
 
     # Mixed precision
     scaler = torch.cuda.amp.GradScaler()
@@ -149,8 +147,12 @@ def run(cfg: DictConfig):
 
     loss_fn = CharbonnierLoss()
 
+    epochs_time = time.time()
+
     # Loop over the dataset multiple times
     for epoch in range(2):
+        dt = time.time()
+
         # Save and evaluate model routinely
         if epoch % 1 == 0:
             if local_rank == 0:
@@ -164,6 +166,14 @@ def run(cfg: DictConfig):
                 print("-" * 75)
 
         ddp_model.train()
+
+        start = torch.cuda.Event(enable_timing=True)
+        end = torch.cuda.Event(enable_timing=True)
+
+        # Waits for everything to finish running
+        torch.cuda.synchronize()
+        start.record()
+
         for data in train_dl:
             lr, hr = data[0].to(device), data[1].to(device)
 
@@ -181,8 +191,27 @@ def run(cfg: DictConfig):
             scaler.update()
             wandb.log({"Loss/Train": loss})
 
+        end.record()
+        torch.cuda.synchronize()
         log_images({"sr":sr, "lr":lr, "hr":hr}, "Train", epoch)
-        print("Local Rank: {}, Epoch: {}, Training ...".format(local_rank, epoch))
+
+        if rank == 0:
+            print(f"Elapsed time: {start.elapsed_time(end) * 1e-6}")
+            step_out = evaluate(model=ddp_model, device=device, test_loader=val_dl, criterion=loss_fn)
+            save_checkpoint(cfg, ddp_model)
+            log_images(step_out, "Dio", epoch)
+            wandb.log({"Loss/Val": step_out["loss"]})
+            print(f"epoch {epoch} rank {rank} world_size {world_size} loss {step_out['loss']}")
+
+        dt = time.time() - dt
+
+        if rank == 0:
+            print(f"epoch {epoch} rank {rank} world_size {world_size} time {dt:2f}")
+
+    epochs_time = time.time() - epochs_time
+
+    if rank == 0:
+        print(f"walltime: rank {rank} world_size {world_size} time {epochs_time:2f}")
 
     wandb.finish()
 
