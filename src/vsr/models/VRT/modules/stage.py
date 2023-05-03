@@ -27,8 +27,6 @@ class Stage(nn.Module):
         deformable_groups (float): Number of deformable groups. Default: 16.
         reshape (str): Downscale (down), upscale (up) or keep the size (none).
         max_residue_magnitude (float): Maximum magnitude of the residual of optical flow.
-        use_checkpoint_attn (bool): If True, use torch.checkpoint for attention modules. Default: False.
-        use_checkpoint_ffn (bool): If True, use torch.checkpoint for feed-forward modules. Default: False.
     """
 
     def __init__(self,
@@ -47,9 +45,7 @@ class Stage(nn.Module):
                  pa_frames=2,
                  deformable_groups=16,
                  reshape=None,
-                 max_residue_magnitude=10,
-                 use_checkpoint_attn=False,
-                 use_checkpoint_ffn=False
+                 max_residue_magnitude=10
                  ):
         super().__init__()
         self.pa_frames = pa_frames
@@ -79,9 +75,7 @@ class Stage(nn.Module):
                                      qkv_bias=qkv_bias,
                                      qk_scale=qk_scale,
                                      drop_path=drop_path,
-                                     norm_layer=norm_layer,
-                                     use_checkpoint_attn=use_checkpoint_attn,
-                                     use_checkpoint_ffn=use_checkpoint_ffn
+                                     norm_layer=norm_layer
                                      )
         self.linear1 = nn.Linear(dim, dim)
 
@@ -95,9 +89,7 @@ class Stage(nn.Module):
                                      mlp_ratio=mlp_ratio,
                                      qkv_bias=qkv_bias, qk_scale=qk_scale,
                                      drop_path=drop_path,
-                                     norm_layer=norm_layer,
-                                     use_checkpoint_attn=True,
-                                     use_checkpoint_ffn=use_checkpoint_ffn
+                                     norm_layer=norm_layer
                                      )
         self.linear2 = nn.Linear(dim, dim)
 
