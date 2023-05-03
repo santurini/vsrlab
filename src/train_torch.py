@@ -71,7 +71,6 @@ def run(cfg: DictConfig):
     world_size = int(os.environ['WORLD_SIZE'])
     local_rank = int(os.environ['LOCAL_RANK'])
 
-    os.environ["NCCL_ASYNC_ERROR_HANDLING"] = "0"
     dist.init_process_group(backend="nccl", world_size=world_size, rank=rank)
 
     # Initialize logger
