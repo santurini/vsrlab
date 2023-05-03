@@ -42,6 +42,18 @@ def save_config(cfg):
         yaml_str = OmegaConf.to_yaml(cfg, resolve=True)
         file.write(yaml_str)
 
+def save_checkpoint(cfg, model):
+    save_path = os.path.join(
+        cfg.train.logger.save_dir,
+        cfg.train.logger.project,
+        cfg.train.logger.id,
+        "checkpoint"
+        "last.ckpt"
+    )
+    Path(save_path).parent.mkdir(exist_ok=True, parents=True)
+
+    torch.save(model.state_dict(), save_path)
+
 def save_test_config(cfg):
     model = cfg.model_name
     version = Path(cfg.finetune).stem
