@@ -8,7 +8,7 @@ defaults:
   - override /nn/module/model: baby_vrt
   - override /train/callbacks: default_swa
 
-checkpoint: null
+finetune: null
 
 nn:
   module:
