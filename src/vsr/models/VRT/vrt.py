@@ -36,11 +36,6 @@ class IterativeRefinement(nn.Module):
             x = (x + residues).view(n, t, c, h, w)
         return x
 
-    def forward(self, x):
-        x = self.resblock(x)
-        return self.conv(x)
-
-
 class VRT(nn.Module):
     """ Video Restoration Transformer (VRT).
         A PyTorch impl of : `VRT: A Video Restoration Transformer`  -
