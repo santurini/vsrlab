@@ -100,7 +100,6 @@ class VRT(nn.Module):
 
         self.in_chans = in_chans
         self.out_chans = out_chans
-        self.upscale = upscale
         self.pa_frames = pa_frames
         self.indep_reconsts = [i.item() for i in torch.arange(len(depths))[indep_reconsts]]
         self.rcl = Rearrange('b c t h w -> b t h w c')
