@@ -67,7 +67,6 @@ class DatasetVSR(DatasetSR):
         self.seq = seq
 
     def __getitem__(self, index: int):
-        print(self.path[index])
         hr_video = list(sorted(x for x in self.path[index].glob('*') if x.is_file()))
         hr_video = self.get_frames(hr_video, randint(0, len(hr_video) - self.seq))
 
@@ -83,8 +82,14 @@ class DatasetVSR(DatasetSR):
         return lr_video, hr_video
 
     def get_frames(self, video, rnd):
-        video = [self.load_img(i) for i in video[rnd:rnd + self.seq]]
-        return torch.stack(video)
+        video_list = []
+        for i in video[rnd:rnd + self.seq]:
+            try:
+                video_list.append(self.load_img(i))
+            except Exception as e:
+                raise e(f'Broken file: {i}')
+
+        return torch.stack(video_list)
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
 def main(cfg: omegaconf.DictConfig) -> None:
