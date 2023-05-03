@@ -14,7 +14,7 @@ datasets:
     size: 0.9
     hr_augmentation:
       - _target_: kornia.augmentation.RandomCrop
-        size: [ 64, 64 ]
+        size: [ 256, 256 ]
         pad_if_needed: True
         same_on_batch: True
         keepdim: True
@@ -34,6 +34,9 @@ datasets:
         same_on_batch: True
         keepdim: True
         p: 1.0
+
+      - _target_: kornia.augmentation.Resize
+        size: [ 64, 64 ]
 
     lr_augmentation:
       - _target_: core.augmentations.RandomJPEGCompression
@@ -57,8 +60,8 @@ datasets:
         quality: [ 60, 95 ]
 
       - _target_: core.augmentations.RandomVideoCompression
-        codec: [ 'libx264', 'h264', 'mpeg4' ]
-        crf: [ 36, 40 ]
+        codec: [ 'libx264', 'h264']
+        crf: [ 36, 38 ]
         fps: [ 30 ]
 
 #      - _target_: kornia.augmentation.Resize
@@ -73,7 +76,10 @@ datasets:
     size: 0.1
     hr_augmentation:
       - _target_: torchvision.transforms.CenterCrop
-        size: 64
+        size: 256
+
+      - _target_: kornia.augmentation.Resize
+        size: [ 64, 64 ]
 
     lr_augmentation:
       - _target_: core.augmentations.RandomVideoCompression
