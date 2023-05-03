@@ -29,7 +29,7 @@ nn:
 
 train:
   trainer:
-    devices: 1
+    devices: 2
     max_steps: 100000
     gradient_clip_val: 0.5
     gradient_clip_algorithm: "value"
