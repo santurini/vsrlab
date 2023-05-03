@@ -44,7 +44,7 @@ class LitBase(pl.LightningModule):
 
     def step(self, lr, hr):
         sr, lq = self(lr)
-        loss = loss_fn(sr, hr)
+        loss = loss_fn(sr, resize(hr, (lr.size(-2), lr.size(-1)), antialias=True))
 
         args = {
             "lr": lr,
