@@ -396,7 +396,31 @@ class TinyVRT(VRT):
 
 @torch.no_grad()
 def main() -> None:
-    model = VRT()
+    model = TinyVRT(
+        in_chans=3,
+        out_chans=3,
+        refine_steps=3,
+        refine_blocks=5,
+        refine_ch=64,
+        img_size=[6, 64, 64],
+        window_size=[6, 8, 8],
+        depths=[8, 8, 8, 8, 8, 4, 4],
+        indep_reconsts=[-2, -1],
+        embed_dims=[64, 64, 64, 64, 64, 80, 80],
+        num_heads=[6, 6, 6, 6, 6, 6, 6],
+        mul_attn_ratio=0.75,
+        mlp_ratio=2.,
+        qkv_bias=True,
+        qk_scale=None,
+        drop_path_rate=0.2,
+        norm_layer=nn.LayerNorm,
+        optical_flow_pretrained=True,
+        pa_frames=2,
+        deformable_groups=8,
+        restore_hidden=128,
+        restore_layers=5,
+    )
+
     x = torch.rand(2, 6, 3, 64, 64)
     print(model(x).shape)
 
