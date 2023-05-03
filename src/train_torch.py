@@ -88,6 +88,8 @@ def run(cfg: DictConfig):
         name = cfg.train.logger.name
     )
 
+    device = torch.device("cuda:{}".format(local_rank))
+
     # Encapsulate the model on the GPU assigned to the current process
     model = hydra.utils.instantiate(cfg.nn.module.model, _recursive_=False)
     model = model.to(device)
