@@ -364,7 +364,7 @@ class TinyVRT(VRT):
         self.conv_first = nn.Conv3d(conv_first_in_chans, embed_dims[0], kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
         # main body
-        self.init_flow(optical_flow, optical_flow_train)
+        self.init_flow(optical_flow, optical_flow_pretrained, optical_flow_train)
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
         reshapes = ['none', 'down', 'down', 'up', 'up']
