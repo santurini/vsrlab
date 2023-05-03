@@ -143,7 +143,12 @@ def run(cfg: DictConfig):
     epochs_time = time.time()
 
     # Loop over the dataset multiple times
-    for epoch in range(2):
+    max_epochs = 500
+    for epoch in range(max_epochs):
+        print('-' * 75)
+        print(f'Epoch: {epoch} / {max_epochs}')
+        print('-' * 75)
+
         dt = time.time()
         ddp_model.train()
 
