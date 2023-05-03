@@ -87,8 +87,8 @@ class LitBase(pl.LightningModule):
 
         self.log_dict(
             self.val_metric(
-                rearrange(step_out["sr"].detach().clamp(0, 1), 'b t c h w -> (b t) c h w').contiguous(),
-                rearrange(hr.detach(), 'b t c h w -> (b t) c h w').contiguous()
+                rearrange(step_out["sr"].detach().clamp(0, 1), 'b t c h w -> (b t) c h w'),
+                rearrange(hr.detach(), 'b t c h w -> (b t) c h w')
             )
         )
 
