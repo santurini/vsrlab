@@ -19,7 +19,7 @@ nn:
     scheduler:
       eta_min: 1e-7
   data:
-    batch_size: 4
+    batch_size: 2
     prefetch_factor: 4
     num_workers: 8
     datasets:
