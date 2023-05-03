@@ -115,7 +115,7 @@ def run(cfg: DictConfig):
     train_sampler = DistributedSampler(dataset=train_ds)
 
     train_dl = DataLoader(dataset=train_ds,
-                          batch_size=cfg.nn.data.batch_size,
+                          batch_size=2, #cfg.nn.data.batch_size,
                           sampler=train_sampler,
                           num_workers=cfg.nn.data.num_workers,
                           prefetch_factor=cfg.nn.data.prefetch_factor
@@ -144,7 +144,7 @@ def run(cfg: DictConfig):
     loss_fn = CharbonnierLoss()
 
     # Loop over the dataset multiple times
-    for epoch in range(cfg.train.trainer.max_epochs):
+    for epoch in range(2):
         # Save and evaluate model routinely
         if epoch % 1 == 0:
             if local_rank == 0:
