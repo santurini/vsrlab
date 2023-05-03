@@ -19,4 +19,4 @@ optical_flow_pretrained: True
 pa_frames: 2
 deformable_groups: 4
 restore_hidden: 64
-restore_layers: 5
+restore_layers: 3
