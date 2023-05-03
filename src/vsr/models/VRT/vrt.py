@@ -200,6 +200,7 @@ class VRT(nn.Module):
     def train_step(self, lr, hr):
         # x: (N, D, C, H, W)
         # refine image
+        hr = resize(hr, (lr.size(-2), lr.size(-1)), antialias=True)
         lq = self.iterative_refinement(lr)
 
         # calculate flows
@@ -214,7 +215,7 @@ class VRT(nn.Module):
         x = x + self.rwl(self.mlp_after_body(self.rcl(self.forward_features(x, flows_backward, flows_forward))))
         sr = self.rwl(self.restore(self.rcl(x))).transpose(1, 2) + lq
 
-        loss = loss_fn(sr, hr) + loss_fn(lq, resize(hr, (h, w), antialias=True))
+        loss = loss_fn(sr, hr) + loss_fn(lq, hr)
 
         return {
             "lr": lr,
