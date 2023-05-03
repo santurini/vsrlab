@@ -12,6 +12,7 @@ import torch.distributed as dist
 
 import hydra
 import omegaconf
+from omegaconf import DictConfig
 import wandb
 
 from core import PROJECT_ROOT
