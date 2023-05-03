@@ -82,14 +82,8 @@ class DatasetVSR(DatasetSR):
         return lr_video, hr_video
 
     def get_frames(self, video, rnd):
-        video_list = []
-        for i in video[rnd:rnd + self.seq]:
-            try:
-                video_list.append(self.load_img(i))
-            except Exception as e:
-                raise e(f'Broken file: {i}')
-
-        return torch.stack(video_list)
+        video = [self.load_img(i) for i in video[rnd:rnd + self.seq]]
+        return torch.stack(video)
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
 def main(cfg: omegaconf.DictConfig) -> None:
