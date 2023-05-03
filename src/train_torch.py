@@ -75,12 +75,13 @@ def run(cfg: DictConfig):
     dist.init_process_group(backend="nccl", world_size=world_size, rank=rank)
 
     # Initialize logger
-    wandb.init(
-        dir = cfg.train.logger.save_dir,
-        project = cfg.train.logger.project,
-        id = cfg.train.logger.id,
-        name = cfg.train.logger.name
-    )
+    if local_rank == 0:
+        wandb.init(
+            dir = cfg.train.logger.save_dir,
+            project = cfg.train.logger.project,
+            id = cfg.train.logger.id,
+            name = cfg.train.logger.name
+        )
 
     device = torch.device("cuda:{}".format(local_rank))
 
@@ -145,19 +146,6 @@ def run(cfg: DictConfig):
     # Loop over the dataset multiple times
     for epoch in range(2):
         dt = time.time()
-
-        # Save and evaluate model routinely
-        if epoch % 1 == 0:
-            if local_rank == 0:
-                step_out = evaluate(model=ddp_model, device=device, test_loader=val_dl, criterion=loss_fn)
-                save_checkpoint(cfg, ddp_model)
-                log_images(step_out, "Dio", epoch)
-                wandb.log({"Loss/Val": step_out["loss"]})
-
-                print("-" * 75)
-                print("Epoch: {}, Validation Loss: {}".format(epoch, step_out["loss"]))
-                print("-" * 75)
-
         ddp_model.train()
 
         start = torch.cuda.Event(enable_timing=True)
@@ -186,10 +174,10 @@ def run(cfg: DictConfig):
 
         end.record()
         torch.cuda.synchronize()
-        log_images({"sr":sr, "lr":lr, "hr":hr}, "Train", epoch)
 
         if rank == 0:
             print(f"Elapsed time: {start.elapsed_time(end) * 1e-6}")
+            log_images({"sr": sr, "lr": lr, "hr": hr}, "Train", epoch)
             step_out = evaluate(model=ddp_model, device=device, test_loader=val_dl, criterion=loss_fn)
             save_checkpoint(cfg, ddp_model)
             log_images(step_out, "Dio", epoch)
@@ -205,8 +193,7 @@ def run(cfg: DictConfig):
 
     if rank == 0:
         print(f"walltime: rank {rank} world_size {world_size} time {epochs_time:2f}")
-
-    wandb.finish()
+        wandb.finish()
 
     return model_filepath
 
