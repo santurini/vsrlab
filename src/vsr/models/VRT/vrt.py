@@ -79,7 +79,7 @@ class VRT(nn.Module):
                  img_size=[6, 64, 64],
                  window_size=[6, 8, 8],
                  depths=[4, 4, 4, 4, 4, 4, 4, 2, 2],
-                 indep_reconsts=[11, 12],
+                 indep_reconsts=[-2, -1],
                  embed_dims=[32, 32, 32, 32, 32, 32, 32, 64, 64],
                  num_heads=[4, 4, 4, 4, 4, 4, 4, 4, 4],
                  mul_attn_ratio=0.75,
@@ -102,7 +102,7 @@ class VRT(nn.Module):
         self.out_chans = out_chans
         self.upscale = upscale
         self.pa_frames = pa_frames
-        self.recal_all_flows = recal_all_flows
+        self.indep_reconsts = [i.item() for i in torch.arange(len(depths))[indep_reconsts]]
         self.rcl = Rearrange('b c t h w -> b t h w c')
         self.rwl = Rearrange('b t h w c -> b c t h w')
 
@@ -162,7 +162,7 @@ class VRT(nn.Module):
                       input_resolution=img_size,
                       depth=depths[i],
                       num_heads=num_heads[i],
-                      window_size=[1, window_size[1], window_size[2]] if i in indep_reconsts else window_size,
+                      window_size=[1, window_size[1], window_size[2]] if i in self.indep_reconsts else window_size,
                       mlp_ratio=mlp_ratio,
                       qkv_bias=qkv_bias, qk_scale=qk_scale,
                       drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
@@ -366,7 +366,7 @@ class TinyVRT(VRT):
                       input_resolution=img_size,
                       depth=depths[i],
                       num_heads=num_heads[i],
-                      window_size=[1, window_size[1], window_size[2]] if i in indep_reconsts else window_size,
+                      window_size=[1, window_size[1], window_size[2]] if i in self.indep_reconsts else window_size,
                       mlp_ratio=mlp_ratio,
                       qkv_bias=qkv_bias, qk_scale=qk_scale,
                       drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
