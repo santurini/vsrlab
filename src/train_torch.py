@@ -138,7 +138,7 @@ def run(cfg: DictConfig):
 
     scheduler: Optional[Any] = build_scheduler(
         optimizer,
-        sched_cfg
+        cfg.nn.module.scheduler
     )
 
     loss_fn = CharbonnierLoss()
