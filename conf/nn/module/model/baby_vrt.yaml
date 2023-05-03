@@ -6,7 +6,7 @@ refine_blocks: 5
 refine_ch: 64
 img_size: [6, 64, 64]
 window_size: [6, 8, 8]
-depths: [8, 8, 8, 8, 8, 4, 4]
+depths: [6, 6, 6, 6, 6, 4, 4]
 indep_reconsts: [-2, -1]
 embed_dims: [60, 60, 60, 60, 60, 80, 80]
 num_heads: [6, 6, 6, 6, 6, 4, 4]
