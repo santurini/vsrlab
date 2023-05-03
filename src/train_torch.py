@@ -165,7 +165,7 @@ def run(cfg: DictConfig):
             optimizer.zero_grad()
 
             with torch.cuda.amp.autocast():
-                sr, lq = ddp_model(lr, hr)
+                sr, lq = ddp_model(lr)
                 loss = criterion(sr, hr) + criterion(lq, hr)
 
             scaler.scale(loss).backward()
