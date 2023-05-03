@@ -17,6 +17,6 @@ qk_scale: null
 drop_path_rate: 0.2
 optical_flow_pretrained: True
 pa_frames: 2
-deformable_groups: 8
+deformable_groups: 4
 restore_hidden: 128
 restore_layers: 5
