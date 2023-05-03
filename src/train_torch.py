@@ -115,18 +115,18 @@ def run(cfg: DictConfig):
     train_sampler = DistributedSampler(dataset=train_ds)
 
     train_dl = DataLoader(dataset=train_ds,
-                          batch_size=cfg.nn.data.datasets.batch_size,
+                          batch_size=cfg.nn.data.batch_size,
                           sampler=train_sampler,
-                          num_workers=cfg.nn.data.datasets.num_workers,
-                          prefetch_factor=cfg.nn.data.datasets.prefetch_factor
+                          num_workers=cfg.nn.data.num_workers,
+                          prefetch_factor=cfg.nn.data.prefetch_factor
                           )
 
     # Test loader does not have to follow distributed sampling strategy
     val_dl = DataLoader(dataset=val_ds,
-                        batch_size=cfg.nn.data.datasets.batch_size,
+                        batch_size=cfg.nn.data.batch_size,
                         sampler=train_sampler,
-                        num_workers=cfg.nn.data.datasets.num_workers,
-                        prefetch_factor=cfg.nn.data.datasets.prefetch_factor,
+                        num_workers=cfg.nn.data.num_workers,
+                        prefetch_factor=cfg.nn.data.prefetch_factor,
                         shuffle=False
                         )
 
