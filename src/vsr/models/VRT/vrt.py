@@ -47,7 +47,6 @@ class VRT(nn.Module):
           https://arxiv.org/pdf/2201.00000
 
     Args:
-        upscale (int): Upscaling factor. Set as 1 for video deblurring, etc. Default: 4.
         in_chans (int): Number of input image channels. Default: 3.
         out_chans (int): Number of output image channels. Default: 3.
         img_size (int | tuple(int)): Size of input image. Default: [6, 64, 64].
@@ -72,7 +71,6 @@ class VRT(nn.Module):
     """
 
     def __init__(self,
-                 upscale=4,
                  in_chans=3,
                  out_chans=3,
                  refine_steps=3,
@@ -321,8 +319,8 @@ class VRT(nn.Module):
                 p.requires_grad = False
 
 class TinyVRT(VRT):
-    def __init__(self):
-
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         # main body
         self.init_flow(optical_flow, optical_flow_train)
 
