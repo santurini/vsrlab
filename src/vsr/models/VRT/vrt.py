@@ -6,47 +6,40 @@ import torch.nn as nn
 from distutils.version import LooseVersion
 from einops import rearrange
 from einops.layers.torch import Rearrange
+from kornia.geometry.transform import resize
 
 from optical_flow.models.irr.irr import IRRPWCNet
 from core.losses import CharbonnierLoss
+from core.modules.conv import ResidualBlock
 
 from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
 from vsr.models.VRT.modules.stage import Stage
 from vsr.models.VRT.modules.tmsa import RTMSA
+from vsr.models.VRT.modules.siren import SirenNet
+
 
 pylogger = logging.getLogger(__name__)
 
 loss_fn = CharbonnierLoss()
 
-class Upsample(nn.Sequential):
-    """Upsample module for video SR.
-    Args:
-        scale (int): Scale factor. Supported scales: 2^n and 3.
-        num_feat (int): Channel number of intermediate features.
-    """
-    class Transpose_Dim12(nn.Module):
-        def __init__(self):
-            super().__init__()
-        @staticmethod
-        def forward(x):
-            return x.transpose(1, 2)
+class IterativeRefinement(nn.Module):
+    def __init__(self, mid_ch, blocks, steps):
+        super().__init__()
+        self.steps = steps
+        self.resblock = ResidualBlock(3, mid_ch, blocks)
+        self.conv = nn.Conv2d(mid_ch, 3, 3, 1, 1, bias=True)
+    def forward(self, x):
+        n, t, c, h, w = x.size()
+        for _ in range(self.steps):  # at most 3 cleaning, determined empirically
+            x = x.view(-1, c, h, w)
+            residues = self.conv(self.resblock(x))
+            x = (x + residues).view(n, t, c, h, w)
+        return x
 
-    def __init__(self, scale, num_feat):
-        assert LooseVersion(torch.__version__) >= LooseVersion('1.8.1'), \
-            'PyTorch version >= 1.8.1 to support 5D PixelShuffle.'
-        assert (scale & (scale - 1)) == 0, \
-            f'scale {scale} is not supported. Supported scales: 2^n and 3.'
+    def forward(self, x):
+        x = self.resblock(x)
+        return self.conv(x)
 
-        m = []
-        for _ in range(int(math.log(scale, 2))):
-            m.append(nn.Conv3d(num_feat, 4 * num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
-            m.append(Transpose_Dim12())
-            m.append(nn.PixelShuffle(2))
-            m.append(Transpose_Dim12())
-            m.append(nn.LeakyReLU(negative_slope=0.1, inplace=True))
-            m.append(nn.Conv3d(num_feat, num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
-
-        super(Upsample, self).__init__(*m)
 
 class VRT(nn.Module):
     """ Video Restoration Transformer (VRT).
@@ -84,6 +77,9 @@ class VRT(nn.Module):
                  upscale=4,
                  in_chans=3,
                  out_chans=3,
+                 refine_steps=3,
+                 refine_blocks=5,
+                 refine_ch=64,
                  img_size=[6, 64, 64],
                  window_size=[6, 8, 8],
                  depths=[4, 4, 4, 4, 4, 4, 4, 2, 2],
@@ -101,6 +97,8 @@ class VRT(nn.Module):
                  optical_flow_train=False,
                  pa_frames=2,
                  deformable_groups=4,
+                 restore_hidden = 128,
+                 restore_layers = 5,
                  recal_all_flows=False,
                  ):
         super().__init__()
@@ -110,26 +108,21 @@ class VRT(nn.Module):
         self.upscale = upscale
         self.pa_frames = pa_frames
         self.recal_all_flows = recal_all_flows
+        self.rcl = Rearrange('b c t h w -> b t h w c')
+        self.rwl = Rearrange('b t h w c -> b c t h w')
+
+        self.iterative_refinement = IterativeRefinement(
+            refine_ch,
+            refine_steps,
+            refine_blocks,
+        )
 
         # conv_first
         conv_first_in_chans = in_chans*(1+2*4)
         self.conv_first = nn.Conv3d(conv_first_in_chans, embed_dims[0], kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
         # main body
-        self.optical_flow_name = optical_flow
-        if optical_flow == "spynet":
-            self.optical_flow = SpyNet(optical_flow_pretrained, [2, 3, 4, 5])
-        elif optical_flow == "irr":
-            self.optical_flow = IRRPWCNet(optical_flow_pretrained, [-1, -2, -3, -4])
-        else:
-            raise Exception("Not a valid optical flow, possible options are: spynet, irr")
-
-        pylogger.info(f'Initialized Optical Flow module as: <{self.optical_flow.__class__.__name__}>')
-
-        if not optical_flow_train:
-            pylogger.info(f'Freezing Optical Flow parameters')
-            for p in self.optical_flow.parameters():
-                p.requires_grad = False
+        self.init_flow(optical_flow, optical_flow_pretrained, optical_flow_train)
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
         reshapes = ['none', 'down', 'down', 'down', 'up', 'up', 'up']
@@ -161,10 +154,10 @@ class VRT(nn.Module):
         # stage 8
         self.stage8 = nn.ModuleList(
             [nn.Sequential(
-                Rearrange('n c d h w ->  n d h w c'),
+                self.rcl,
                 nn.LayerNorm(embed_dims[6]),
                 nn.Linear(embed_dims[6], embed_dims[7]),
-                Rearrange('n d h w c -> n c d h w')
+                self.rwl
             )]
         )
 
@@ -183,57 +176,56 @@ class VRT(nn.Module):
             )
 
         self.norm = norm_layer(embed_dims[-1])
-        self.conv_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
+        self.mlp_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
 
         # reconstruction
-        num_feat = 64
-        self.conv_before_upsample = nn.Sequential(
-            nn.Conv3d(embed_dims[0], num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)),
-            nn.LeakyReLU(inplace=True))
-        self.upsample = Upsample(upscale, num_feat)
-        self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
+        self.restore = SirenNet(
+            dim_in = embed_dims[0],
+            dim_hidden = restore_hidden,
+            dim_out = 3,
+            num_layers = restore_layers,
+            w0 = 1.,
+            w0_initial = 30.,
+            use_bias = True
+        )
 
     def forward(self, x):
         # x: (N, D, C, H, W)
-        lr = x.clone()
+        # refine image
+        lq = self.iterative_refinement(x)
 
         # calculate flows
-        flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(x)
+        flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(lq)
 
         # warp input
-        x_backward, x_forward = self.get_aligned_image(x,  flows_backward[0], flows_forward[0])
-        x = torch.cat([x, x_backward, x_forward], 2)
+        x_backward, x_forward = self.get_aligned_image(lq,  flows_backward[0], flows_forward[0])
+        x = torch.cat([lq, x_backward, x_forward], 2)
 
-        # video sr
+        # video restoration
         x = self.conv_first(x.transpose(1, 2))
-        x = x + self.conv_after_body(self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)).transpose(1, 4)
-        x = self.conv_last(self.upsample(self.conv_before_upsample(x))).transpose(1, 2)
-
-        _, _, C, H, W = x.shape
-        sr = x + torch.nn.functional.interpolate(lr, size=(C, H, W), mode='trilinear', align_corners=False)
+        x = x + self.rwl(self.mlp_after_body(self.rcl(self.forward_features(x, flows_backward, flows_forward))))
+        sr = self.rwl(self.restore(self.rcl(x))).transpose(1, 2) + lq
 
         return sr, lr
 
     def train_step(self, x, hr):
         # x: (N, D, C, H, W)
-        lr = x.clone()
+        # refine image
+        lq = self.iterative_refinement(x)
 
         # calculate flows
-        flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(x)
+        flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(lq)
 
         # warp input
-        x_backward, x_forward = self.get_aligned_image(x,  flows_backward[0], flows_forward[0])
-        x = torch.cat([x, x_backward, x_forward], 2)
+        x_backward, x_forward = self.get_aligned_image(lq,  flows_backward[0], flows_forward[0])
+        x = torch.cat([lq, x_backward, x_forward], 2)
 
-        # video sr
+        # video restoration
         x = self.conv_first(x.transpose(1, 2))
-        x = x + self.conv_after_body(self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)).transpose(1, 4)
-        x = self.conv_last(self.upsample(self.conv_before_upsample(x))).transpose(1, 2)
+        x = x + self.rwl(self.mlp_after_body(self.rcl(self.forward_features(x, flows_backward, flows_forward))))
+        sr = self.rwl(self.restore(self.rcl(x))).transpose(1, 2) + lq
 
-        _, _, C, H, W = x.shape
-        sr = x + torch.nn.functional.interpolate(lr, size=(C, H, W), mode='trilinear', align_corners=False)
-
-        loss = loss_fn(sr, hr)
+        loss = loss_fn(sr, hr) + loss_fn(lq, resize(hr, (h, w), antialias=True))
 
         return {
             "lr": lr,
@@ -315,32 +307,33 @@ class VRT(nn.Module):
 
         return [torch.stack(x_backward, 1), torch.stack(x_forward, 1)]
 
-class TinyVRT(VRT):
-    def __init__(self,
-                 n_scales=3
-                 ):
-
-        # main body
+    def init_flow(self, optical_flow, pretrained, train):
         self.optical_flow_name = optical_flow
         if optical_flow == "spynet":
-            self.optical_flow = SpyNet(optical_flow_pretrained, [2, 3, 4, 5][-n_scales:])
+            self.optical_flow = SpyNet(pretrained, [3, 4, 5])
         elif optical_flow == "irr":
-            self.optical_flow = IRRPWCNet(optical_flow_pretrained, [-1, -2, -3, -4][-n_scales:])
+            self.optical_flow = IRRPWCNet(pretrained, [-2, -3, -4])
         else:
             raise Exception("Not a valid optical flow, possible options are: spynet, irr")
 
         pylogger.info(f'Initialized Optical Flow module as: <{self.optical_flow.__class__.__name__}>')
 
-        if not optical_flow_train:
+        if not train:
             pylogger.info(f'Freezing Optical Flow parameters')
             for p in self.optical_flow.parameters():
                 p.requires_grad = False
 
-        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
-        reshapes = ['none'] + ['up' for _ in range(n_scales-1)] + ['down' for _ in range(n_scales-1)]
-        scales = [2**i for i in range(n_scales)] + [2**i for i in reversed(range(n_scales-1))]
+class TinyVRT(VRT):
+    def __init__(self):
 
-        # stage 1- 7
+        # main body
+        self.init_flow(optical_flow, optical_flow_train)
+
+        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
+        reshapes = ['none', 'down', 'down', 'up', 'up']
+        scales = [1, 2, 4, 2, 1]
+
+        # stage 1-5
         for i in range(len(scales)):
             setattr(self, f'stage{i + 1}',
                     Stage(
@@ -361,22 +354,19 @@ class TinyVRT(VRT):
                         reshape=reshapes[i],
                         max_residue_magnitude=10 / scales[i]
                     )
-                    )
+                )
 
         # last stage
-        setattr(self,
-                f'stage{len(scales) + 1}',
-                nn.ModuleList([
+        self.stage6 = nn.ModuleList([
                     nn.Sequential(Rearrange('n c d h w ->  n d h w c'),
                                   nn.LayerNorm(embed_dims[len(scales)-1]),
                                   nn.Linear(embed_dims[len(scales)-1], embed_dims[len(scales)]),
                                   Rearrange('n d h w c -> n c d h w'))
                               ]
                              )
-                )
 
         for i in range(len(scales), len(depths)):
-            getattr(self, f'stage{len(scales) + 1}').append(
+            self.stage6.append(
                 RTMSA(dim=embed_dims[i],
                       input_resolution=img_size,
                       depth=depths[i],
@@ -389,36 +379,18 @@ class TinyVRT(VRT):
                       )
             )
 
-        self.norm = norm_layer(embed_dims[-1])
-        self.conv_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
-
-        # reconstruction
-        num_feat = 64
-        self.conv_before_upsample = nn.Sequential(
-            nn.Conv3d(embed_dims[0], num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)),
-            nn.LeakyReLU(inplace=True))
-        self.upsample = Upsample(upscale, num_feat)
-        self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
-
-    def forward(self, x):
-        pass
-
-    def train_step(self, x, hr):
-        pass
 
     def forward_features(self, x, flows_backward, flows_forward):
         '''Main network for feature extraction.'''
 
-        x1 = self.stage1(x, flows_backward[0::4], flows_forward[0::4]) # =
-        x2 = self.stage2(x1, flows_backward[1::4], flows_forward[1::4]) # stride 2
-        x3 = self.stage3(x2, flows_backward[2::4], flows_forward[2::4]) # stride 4
-        x4 = self.stage4(x3, flows_backward[3::4], flows_forward[3::4]) # stride 8
-        x = self.stage5(x4, flows_backward[2::4], flows_forward[2::4]) # stride 4
-        x = self.stage6(x + x3, flows_backward[1::4], flows_forward[1::4]) # stride 2
-        x = self.stage7(x + x2, flows_backward[0::4], flows_forward[0::4]) # =
+        x1 = self.stage1(x, flows_backward[0], flows_forward[0]) # =
+        x2 = self.stage2(x1, flows_backward[1], flows_forward[1]) # stride 2
+        x3 = self.stage3(x2, flows_backward[2], flows_forward[2]) # stride 4
+        x = self.stage4(x3, flows_backward[1], flows_forward[1])  # stride 2
+        x = self.stage5(x + x2, flows_backward[0], flows_forward[0])  # =
         x = x + x1
 
-        for layer in self.stage8:
+        for layer in self.stage6:
             x = layer(x)
 
         x = rearrange(x, 'n c d h w -> n d h w c')
@@ -426,9 +398,6 @@ class TinyVRT(VRT):
         x = rearrange(x, 'n d h w c -> n c d h w')
 
         return x
-
-    def init_flow(self):
-        pass
 
 @torch.no_grad()
 def main() -> None:
