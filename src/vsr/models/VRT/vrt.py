@@ -195,7 +195,7 @@ class VRT(nn.Module):
         x = x + self.rwl(self.mlp_after_body(self.rcl(self.forward_features(x, flows_backward, flows_forward))))
         sr = self.rwl(self.restore(self.rcl(x))).transpose(1, 2) + lq
 
-        return sr, lr
+        return sr, lq
 
     def train_step(self, lr, hr):
         # x: (N, D, C, H, W)

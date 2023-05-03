@@ -165,17 +165,18 @@ def run(cfg: DictConfig):
             optimizer.zero_grad()
 
             with torch.cuda.amp.autocast():
-                step_out = ddp_model.train_step(lr, hr)
+                sr, lq = ddp_model(lr, hr)
+                loss = criterion(sr, hr) + criterion(lq, hr)
 
-            scaler.scale(step_out["loss"]).backward()
+            scaler.scale(loss).backward()
             scaler.step(optimizer)
             scheduler.step()
 
             # Updates the scale for next iteration.
             scaler.update()
-            wandb.log({"Loss/Train": step_out["loss"]})
+            wandb.log({"Loss/Train": loss})
 
-        log_images(step_out, "Train", epoch)
+        log_images({"sr":sr, "lr":lr, "hr":hr}, "Train", epoch)
         print("Local Rank: {}, Epoch: {}, Training ...".format(local_rank, epoch))
 
     wandb.finish()
