@@ -13,7 +13,7 @@ num_heads: [6, 6, 6, 6, 6, 4, 4]
 mul_attn_ratio: 0.75
 mlp_ratio: 2.
 qkv_bias: True
-qk_scale: None
+qk_scale: null
 drop_path_rate: 0.2
 optical_flow_pretrained: True
 pa_frames: 2
