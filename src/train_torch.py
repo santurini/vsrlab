@@ -95,7 +95,12 @@ def run(cfg: DictConfig):
     model = hydra.utils.instantiate(cfg.nn.module.model, _recursive_=False)
     model = model.to(device)
 
-    ddp_model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[local_rank], output_device=local_rank)
+    ddp_model = torch.nn.parallel.DistributedDataParallel(
+        model,
+        device_ids=[local_rank],
+        output_device=local_rank,
+        find_unused_parameters=True
+    )
 
     device = torch.device("cuda:{}".format(local_rank))
 
