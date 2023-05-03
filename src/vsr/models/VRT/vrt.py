@@ -178,10 +178,10 @@ class VRT(nn.Module):
             use_bias = True
         )
 
-    def forward(self, x):
+    def forward(self, lr):
         # x: (N, D, C, H, W)
         # refine image
-        lq = self.iterative_refinement(x)
+        lq = self.iterative_refinement(lr)
 
         # calculate flows
         flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(lq)
@@ -197,10 +197,10 @@ class VRT(nn.Module):
 
         return sr, lr
 
-    def train_step(self, x, hr):
+    def train_step(self, lr, hr):
         # x: (N, D, C, H, W)
         # refine image
-        lq = self.iterative_refinement(x)
+        lq = self.iterative_refinement(lr)
 
         # calculate flows
         flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(lq)
