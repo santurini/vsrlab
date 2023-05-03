@@ -318,10 +318,51 @@ class VRT(nn.Module):
                 p.requires_grad = False
 
 class TinyVRT(VRT):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(
+            self,
+            in_chans=3,
+            out_chans=3,
+            refine_steps=3,
+            refine_blocks=5,
+            refine_ch=64,
+            img_size=[6, 64, 64],
+            window_size=[6, 8, 8],
+            depths=[8, 8, 8, 8, 8, 4, 4],
+            indep_reconsts=[-2, -1],
+            embed_dims=[64, 64, 64, 64, 64, 80, 80],
+            num_heads=[6, 6, 6, 6, 6, 6, 6],
+            mul_attn_ratio=0.75,
+            mlp_ratio=2.,
+            qkv_bias=True,
+            qk_scale=None,
+            drop_path_rate=0.2,
+            norm_layer=nn.LayerNorm,
+            optical_flow_pretrained=True,
+            pa_frames=2,
+            deformable_groups=8,
+            restore_hidden=128,
+            restore_layers=5,
+                ):
+        super().__init__()
+        self.in_chans = in_chans
+        self.out_chans = out_chans
+        self.pa_frames = pa_frames
+        self.indep_reconsts = [i.item() for i in torch.arange(len(depths))[indep_reconsts]]
+        self.rcl = Rearrange('b c t h w -> b t h w c')
+        self.rwl = Rearrange('b t h w c -> b c t h w')
+
+        self.iterative_refinement = IterativeRefinement(
+            refine_ch,
+            refine_steps,
+            refine_blocks,
+        )
+
+        # conv_first
+        conv_first_in_chans = in_chans*(1+2*4)
+        self.conv_first = nn.Conv3d(conv_first_in_chans, embed_dims[0], kernel_size=(1, 3, 3), padding=(0, 1, 1))
+
         # main body
-        self.init_flow(optical_flow, optical_flow_train)
+        super().init_flow(optical_flow, optical_flow_train)
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
         reshapes = ['none', 'down', 'down', 'up', 'up']
@@ -373,6 +414,19 @@ class TinyVRT(VRT):
                       )
             )
 
+        self.norm = norm_layer(embed_dims[-1])
+        self.mlp_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
+
+        # reconstruction
+        self.restore = SirenNet(
+            dim_in = embed_dims[0],
+            dim_hidden = restore_hidden,
+            dim_out = 3,
+            num_layers = restore_layers,
+            w0 = 1.,
+            w0_initial = 30.,
+            use_bias = True
+        )
 
     def forward_features(self, x, flows_backward, flows_forward):
         '''Main network for feature extraction.'''
