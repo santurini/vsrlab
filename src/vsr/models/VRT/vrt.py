@@ -62,15 +62,13 @@ class VRT(nn.Module):
         qk_scale (float): Override default qk scale of head_dim ** -0.5 if set.
         drop_path_rate (float): Stochastic depth rate. Default: 0.2.
         norm_layer (obj): Normalization layer. Default: nn.LayerNorm.
-        optical_flow_path (str): Pretrained optical_flow model path.
+        optical_flow (str): Optical Flow Model. Default: "spynet".
+        optical_flow_pretrained (bool): Pretrained Optical Flow. Default: True.
+        optical_flow_train (bool): Freeze or not Optical Flow. Default: True.
         pa_frames (float): Number of warpped frames. Default: 2.
         deformable_groups (float): Number of deformable groups. Default: 16.
-        recal_all_flows (bool): If True, derive (t,t+2) and (t,t+3) flows from (t,t+1). Default: False.
-        nonblind_denoising (bool): If True, conduct experiments on non-blind denoising. Default: False.
-        use_checkpoint_attn (bool): If True, use torch.checkpoint for attention modules. Default: False.
-        use_checkpoint_ffn (bool): If True, use torch.checkpoint for feed-forward modules. Default: False.
-        no_checkpoint_attn_blocks (list[int]): Layers without torch.checkpoint for attention modules.
-        no_checkpoint_ffn_blocks (list[int]): Layers without torch.checkpoint for feed-forward modules.
+        restore_hidden (int): Number of hidden layers of final layer. Default: 128.
+        restore_layers: Number of layers in final layer. Default: 5.
     """
 
     def __init__(self,
@@ -99,7 +97,6 @@ class VRT(nn.Module):
                  deformable_groups=4,
                  restore_hidden = 128,
                  restore_layers = 5,
-                 recal_all_flows=False,
                  ):
         super().__init__()
 
