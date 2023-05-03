@@ -151,7 +151,7 @@ def run(cfg: DictConfig):
             if local_rank == 0:
                 step_out = evaluate(model=ddp_model, device=device, test_loader=val_dl, criterion=loss_fn)
                 save_checkpoint(cfg, ddp_model)
-                log_images(step_out, "Val", epoch)
+                log_images(step_out, "Dio", epoch)
                 wandb.log({"Loss/Val": step_out["loss"]})
 
                 print("-" * 75)
@@ -166,7 +166,7 @@ def run(cfg: DictConfig):
 
             with torch.cuda.amp.autocast():
                 sr, lq = ddp_model(lr)
-                loss = criterion(sr, hr) + criterion(lq, hr)
+                loss = loss_fn(sr, hr) + loss_fn(lq, hr)
 
             scaler.scale(loss).backward()
             scaler.step(optimizer)
