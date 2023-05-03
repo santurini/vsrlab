@@ -29,7 +29,6 @@ nn:
 
 train:
   trainer:
-    precision: "bf16-mixed"
     devices: 1
     max_steps: 100000
     gradient_clip_val: 0.5

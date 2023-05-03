@@ -200,7 +200,6 @@ class VRT(nn.Module):
     def train_step(self, lr, hr):
         # x: (N, D, C, H, W)
         # refine image
-        hr = resize(hr, (lr.size(-2), lr.size(-1)), antialias=True)
         lq = self.iterative_refinement(lr)
 
         # calculate flows
