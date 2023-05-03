@@ -152,10 +152,10 @@ def run(cfg: DictConfig):
                 step_out = evaluate(model=ddp_model, device=device, test_loader=val_dl, criterion=loss_fn)
                 save_checkpoint(cfg, ddp_model)
                 log_images(step_out, "Val", epoch)
-                wandb.log({"Loss/Val": out["loss"]})
+                wandb.log({"Loss/Val": step_out["loss"]})
 
                 print("-" * 75)
-                print("Epoch: {}, Validation Loss: {}".format(epoch, loss))
+                print("Epoch: {}, Validation Loss: {}".format(epoch, step_out["loss"]))
                 print("-" * 75)
 
         ddp_model.train()
