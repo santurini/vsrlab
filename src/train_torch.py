@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+from torchvision.utils import make_grid
 import os
 import random
 import numpy as np
