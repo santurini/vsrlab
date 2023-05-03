@@ -8,8 +8,8 @@ img_size: [6, 64, 64]
 window_size: [6, 8, 8]
 depths: [6, 6, 6, 6, 6, 4, 4]
 indep_reconsts: [-2, -1]
-embed_dims: [60, 60, 60, 60, 60, 80, 80]
-num_heads: [6, 6, 6, 6, 6, 4, 4]
+embed_dims: [40, 40, 40, 40, 40, 80, 80]
+num_heads: [4, 4, 4, 4, 4, 4, 4]
 mul_attn_ratio: 0.75
 mlp_ratio: 2.
 qkv_bias: True
@@ -18,5 +18,5 @@ drop_path_rate: 0.2
 optical_flow_pretrained: True
 pa_frames: 2
 deformable_groups: 4
-restore_hidden: 128
+restore_hidden: 64
 restore_layers: 5
