@@ -67,6 +67,7 @@ class DatasetVSR(DatasetSR):
         self.seq = seq
 
     def __getitem__(self, index: int):
+        print(self.path[index])
         hr_video = list(sorted(x for x in self.path[index].glob('*') if x.is_file()))
         hr_video = self.get_frames(hr_video, randint(0, len(hr_video) - self.seq))
 
