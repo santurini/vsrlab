@@ -339,7 +339,7 @@ class TinyVRT(VRT):
             norm_layer=nn.LayerNorm,
             optical_flow="spynet",
             optical_flow_pretrained=True,
-            optical_flow_train=True,
+            optical_flow_train=False,
             pa_frames=2,
             deformable_groups=8,
             restore_hidden=128,
