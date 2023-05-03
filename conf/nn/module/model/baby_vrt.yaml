@@ -8,8 +8,8 @@ img_size: [6, 64, 64]
 window_size: [6, 8, 8]
 depths: [8, 8, 8, 8, 8, 4, 4]
 indep_reconsts: [-2, -1]
-embed_dims: [64, 64, 64, 64, 64, 80, 80]
-num_heads: [6, 6, 6, 6, 6, 6, 6]
+embed_dims: [60, 60, 60, 60, 60, 80, 80]
+num_heads: [6, 6, 6, 6, 6, 4, 4]
 mul_attn_ratio: 0.75
 mlp_ratio: 2.
 qkv_bias: True
