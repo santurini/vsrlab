@@ -1,5 +1,5 @@
 _target_: vsr.models.VRT.vrt.TinyVRT
-upscale: 2
+upscale: 4
 in_chans: 3
 out_chans: 3
 refine_steps: 3
