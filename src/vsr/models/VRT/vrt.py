@@ -221,7 +221,8 @@ class VRT(nn.Module):
         x = torch.nn.functional.interpolate(x, size=(C, H*4, W*4), mode='trilinear', align_corners=False)
         sr = self.rwl(self.restore(self.rcl(x))).transpose(1, 2)
 
-        loss = loss_fn(sr, hr) + loss_fn(lq, torch.nn.functional.interpolate(hr, size=(C, H // 4, W // 4), mode='trilinear', align_corners=False))
+        _, _, C, H, W = lq.size()
+        loss = loss_fn(sr, hr) + loss_fn(lq, torch.nn.functional.interpolate(hr, size=(C, H, W), mode='trilinear', align_corners=False))
 
         return {
             "lr": lr,
