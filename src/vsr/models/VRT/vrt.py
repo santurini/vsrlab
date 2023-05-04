@@ -108,7 +108,7 @@ class VRT(nn.Module):
     """
 
     def __init__(self,
-                 upsample=4,
+                 upscale=4,
                  in_chans=3,
                  out_chans=3,
                  refine_steps=3,
