@@ -6,7 +6,7 @@ core:
 defaults:
   - override /train/strategy: ddp
   - override /nn/module/model: baby_vrt
-  - override /train/callbacks: default_swa
+  - override /train/callbacks: default
 
 finetune: null
 
