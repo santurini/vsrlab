@@ -227,7 +227,7 @@ class VRT(nn.Module):
         flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(x)
 
         # warp input
-        x_backward, x_forward = self.get_aligned_image_2frames(x,  flows_backward[0], flows_forward[0])
+        x_backward, x_forward = self.get_aligned_image(x,  flows_backward[0], flows_forward[0])
         x = torch.cat([x, x_backward, x_forward], 2)
 
         # video sr
@@ -250,7 +250,7 @@ class VRT(nn.Module):
         flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(x)
 
         # warp input
-        x_backward, x_forward = self.get_aligned_image_2frames(x, flows_backward[0], flows_forward[0])
+        x_backward, x_forward = self.get_aligned_image(x, flows_backward[0], flows_forward[0])
         x = torch.cat([x, x_backward, x_forward], 2)
 
         # video sr
