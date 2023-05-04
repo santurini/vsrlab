@@ -44,6 +44,8 @@ class LitBase(pl.LightningModule):
 
     def step(self, lr, hr):
         sr, lq = self(lr)
+        print(sr.shape)
+        print(hr.shape)
         loss = loss_fn(sr, hr)
 
         args = {
