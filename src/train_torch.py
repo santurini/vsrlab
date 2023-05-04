@@ -42,7 +42,6 @@ def log_images(out, stage, epoch):
 def evaluate(model, device, test_loader, criterion):
     model.eval()
     loss = 0
-
     with torch.no_grad():
         for data in test_loader:
             lr, hr = data[0].to(device), data[1].to(device)
@@ -166,10 +165,11 @@ def run(cfg: DictConfig):
 
             with torch.cuda.amp.autocast():
                 sr, lq = ddp_model(lr)
-                loss = loss_fn(sr, hr) + loss_fn(lq, hr)
+                loss = loss_fn(sr, hr) #+ loss_fn(lq, hr)
 
             scaler.scale(loss).backward()
             scaler.step(optimizer)
+
             scheduler.step()
 
             # Updates the scale for next iteration.
@@ -177,7 +177,6 @@ def run(cfg: DictConfig):
             wandb.log({"Loss/Train": loss})
 
         end.record()
-        torch.cuda.synchronize()
 
         print(f"Elapsed time: {start.elapsed_time(end) * 1e-6}")
 
