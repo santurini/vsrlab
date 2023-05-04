@@ -186,7 +186,7 @@ class LitBase(pl.LightningModule):
 
     def log_images(self, out, stage):
         #b, t, c, h, w = out["sr"].shape
-        lr = out["lr"][0, -1, :, :, :].detach()
+        lr = F.interpolate(out["lr"][0, -1, :, :, :], scale_factor=4).detach()
         hr = out["hr"][0, -1, :, :, :].detach()
         sr = out["sr"][0, -1, :, :, :].detach().clamp(0, 1)
 
