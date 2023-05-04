@@ -187,11 +187,11 @@ def run(cfg: DictConfig):
             #log_images(step_out, "Val", epoch)
             wandb.log({"Loss/Val": step_out["loss"]})
 
-        print(f"epoch {epoch} rank {rank} world_size {world_size} loss {step_out['loss']}")
+        #print(f"epoch {epoch} rank {rank} world_size {world_size} loss {step_out['loss']}")
         dt = time.time() - dt
 
-        if rank == 0:
-            print(f"epoch {epoch} rank {rank} world_size {world_size} time {dt:2f}")
+        #if rank == 0:
+        print(f"epoch {epoch} rank {rank} world_size {world_size} time {dt:2f}")
 
     epochs_time = time.time() - epochs_time
 
