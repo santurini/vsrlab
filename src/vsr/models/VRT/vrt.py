@@ -363,7 +363,7 @@ class VRT(nn.Module):
 class TinyVRT(VRT):
     def __init__(
             self,
-            upsample=4,
+            upscale=4,
             in_chans=3,
             out_chans=3,
             refine_steps=3,
@@ -390,6 +390,7 @@ class TinyVRT(VRT):
         super().__init__()
         self.in_chans = in_chans
         self.out_chans = out_chans
+        self.upscale = upscale
         self.pa_frames = pa_frames
         self.indep_reconsts = [i.item() for i in torch.arange(len(depths))[indep_reconsts]]
         self.rcl = Rearrange('b c t h w -> b t h w c')
