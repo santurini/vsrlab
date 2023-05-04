@@ -22,48 +22,6 @@ pylogger = logging.getLogger(__name__)
 
 loss_fn = CharbonnierLoss()
 
-
-class Upsample(nn.Sequential):
-    """Upsample module for video SR.
-
-    Args:
-        scale (int): Scale factor. Supported scales: 2^n and 3.
-        num_feat (int): Channel number of intermediate features.
-    """
-
-    def __init__(self, scale, num_feat):
-        assert LooseVersion(torch.__version__) >= LooseVersion('1.8.1'), \
-            'PyTorch version >= 1.8.1 to support 5D PixelShuffle.'
-
-        class Transpose_Dim12(nn.Module):
-            """ Transpose Dim1 and Dim2 of a tensor."""
-
-            def __init__(self):
-                super().__init__()
-
-            def forward(self, x):
-                return x.transpose(1, 2)
-
-        m = []
-        if (scale & (scale - 1)) == 0:  # scale = 2^n
-            for _ in range(int(math.log(scale, 2))):
-                m.append(nn.Conv3d(num_feat, 4 * num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
-                m.append(Transpose_Dim12())
-                m.append(nn.PixelShuffle(2))
-                m.append(Transpose_Dim12())
-                m.append(nn.LeakyReLU(negative_slope=0.1, inplace=True))
-            m.append(nn.Conv3d(num_feat, num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
-        elif scale == 3:
-            m.append(nn.Conv3d(num_feat, 9 * num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
-            m.append(Transpose_Dim12())
-            m.append(nn.PixelShuffle(3))
-            m.append(Transpose_Dim12())
-            m.append(nn.LeakyReLU(negative_slope=0.1, inplace=True))
-            m.append(nn.Conv3d(num_feat, num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
-        else:
-            raise ValueError(f'scale {scale} is not supported. ' 'Supported scales: 2^n and 3.')
-        super(Upsample, self).__init__(*m)
-
 class IterativeRefinement(nn.Module):
     def __init__(self, mid_ch, blocks, steps):
         super().__init__()
@@ -108,7 +66,6 @@ class VRT(nn.Module):
     """
 
     def __init__(self,
-                 upsample=4,
                  in_chans=3,
                  out_chans=3,
                  refine_steps=3,
@@ -130,7 +87,9 @@ class VRT(nn.Module):
                  optical_flow_pretrained=True,
                  optical_flow_train=False,
                  pa_frames=2,
-                 deformable_groups=4
+                 deformable_groups=4,
+                 restore_hidden = 128,
+                 restore_layers = 5,
                  ):
         super().__init__()
 
@@ -206,65 +165,67 @@ class VRT(nn.Module):
             )
 
         self.norm = norm_layer(embed_dims[-1])
-        self.conv_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
+        self.mlp_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
 
         # reconstruction
-        num_feat = 64
-        self.conv_before_upsample = nn.Sequential(
-            nn.Conv3d(embed_dims[0], num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)),
-            nn.LeakyReLU(inplace=True))
+        self.restore = SirenNet(
+            dim_in = embed_dims[0],
+            dim_hidden = restore_hidden,
+            dim_out = 3,
+            num_layers = restore_layers,
+            w0 = 1.,
+            w0_initial = 30.,
+            use_bias = True
+        )
 
-        self.upsample = Upsample(upscale, num_feat)
-
-        self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
-
-    def forward(self, x):
+    def forward(self, lr):
         # x: (N, D, C, H, W)
-        x_lq = x.clone()
+        # refine image
+        lq = self.iterative_refinement(lr)
 
         # calculate flows
-        flows_backward, flows_forward = self.get_flows(x)
+        flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(lq)
 
         # warp input
-        x_backward, x_forward = self.get_aligned_image_2frames(x,  flows_backward[0], flows_forward[0])
-        x = torch.cat([x, x_backward, x_forward], 2)
+        x_backward, x_forward = self.get_aligned_image(lq,  flows_backward[0], flows_forward[0])
+        x = torch.cat([lq, x_backward, x_forward], 2)
 
-        # video sr
+        # video restoration
         x = self.conv_first(x.transpose(1, 2))
-        x = x + self.conv_after_body(self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)).transpose(1, 4)
-        x = self.conv_last(self.upsample(self.conv_before_upsample(x))).transpose(1, 2)
-        _, _, C, H, W = x.shape
+        x = x + self.rwl(self.mlp_after_body(self.rcl(self.forward_features(x, flows_backward, flows_forward))))
 
-        sr = x + torch.nn.functional.interpolate(x_lq, size=(C, H, W), mode='trilinear', align_corners=False)
+        _, _, C, H, W = x.size()
+        x = torch.nn.functional.interpolate(x, size=(C, H * 4, W * 4), mode='trilinear', align_corners=False)
+        sr = self.rwl(self.restore(self.rcl(x))).transpose(1, 2)
 
-        return sr, x_lq
+        return sr, lq
 
-    def train_step(self, x, hr):
+    def train_step(self, lr, hr):
         # x: (N, D, C, H, W)
-
-        # main network
-        x_lq = x.clone()
+        # refine image
+        N, D, C, H, W = lr.size()
+        lq = self.iterative_refinement(lr)
 
         # calculate flows
-        flows_backward, flows_forward = self.get_flows(x)
+        flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(lq)
 
         # warp input
-        x_backward, x_forward = self.get_aligned_image_2frames(x, flows_backward[0], flows_forward[0])
-        x = torch.cat([x, x_backward, x_forward], 2)
+        x_backward, x_forward = self.get_aligned_image(lq,  flows_backward[0], flows_forward[0])
+        x = torch.cat([lq, x_backward, x_forward], 2)
 
-        # video sr
+        # video restoration
         x = self.conv_first(x.transpose(1, 2))
-        x = x + self.conv_after_body(
-            self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)).transpose(1, 4)
-        x = self.conv_last(self.upsample(self.conv_before_upsample(x))).transpose(1, 2)
-        _, _, C, H, W = x.shape
+        x = x + self.rwl(self.mlp_after_body(self.rcl(self.forward_features(x, flows_backward, flows_forward))))
 
-        sr = x + torch.nn.functional.interpolate(x_lq, size=(C, H, W), mode='trilinear', align_corners=False)
+        _, _, C, H, W = x.size()
+        x = torch.nn.functional.interpolate(x, size=(C, H*4, W*4), mode='trilinear', align_corners=False)
+        sr = self.rwl(self.restore(self.rcl(x))).transpose(1, 2)
 
-        loss = loss_fn(sr, hr)
+        _, _, C, H, W = lq.size()
+        loss = loss_fn(sr, hr) + loss_fn(lq, torch.nn.functional.interpolate(hr, size=(C, H, W), mode='trilinear', align_corners=False))
 
         return {
-            "lr": x_lq,
+            "lr": lr,
             "sr": sr,
             "hr": hr,
             "loss": loss
@@ -362,7 +323,6 @@ class VRT(nn.Module):
 class TinyVRT(VRT):
     def __init__(
             self,
-            upsample=4,
             in_chans=3,
             out_chans=3,
             refine_steps=3,
@@ -384,7 +344,9 @@ class TinyVRT(VRT):
             optical_flow_pretrained=True,
             optical_flow_train=False,
             pa_frames=2,
-            deformable_groups=8
+            deformable_groups=8,
+            restore_hidden=128,
+            restore_layers=5,
                 ):
         super().__init__()
         self.in_chans = in_chans
@@ -458,17 +420,18 @@ class TinyVRT(VRT):
             )
 
         self.norm = norm_layer(embed_dims[-1])
-        self.conv_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
+        self.mlp_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
 
         # reconstruction
-        num_feat = 64
-        self.conv_before_upsample = nn.Sequential(
-            nn.Conv3d(embed_dims[0], num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)),
-            nn.LeakyReLU(inplace=True))
-
-        self.upsample = Upsample(upscale, num_feat)
-
-        self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
+        self.restore = SirenNet(
+            dim_in = embed_dims[0],
+            dim_hidden = restore_hidden,
+            dim_out = 3,
+            num_layers = restore_layers,
+            w0 = 1.,
+            w0_initial = 30.,
+            use_bias = True
+        )
 
     def forward_features(self, x, flows_backward, flows_forward):
         '''Main network for feature extraction.'''
@@ -492,7 +455,6 @@ class TinyVRT(VRT):
 @torch.no_grad()
 def main() -> None:
     model = TinyVRT(
-        upsample=4,
         in_chans=3,
         out_chans=3,
         refine_steps=3,
@@ -512,7 +474,9 @@ def main() -> None:
         norm_layer=nn.LayerNorm,
         optical_flow_pretrained=True,
         pa_frames=2,
-        deformable_groups=8
+        deformable_groups=8,
+        restore_hidden=128,
+        restore_layers=5,
     )
 
     x = torch.rand(2, 6, 3, 64, 64)
