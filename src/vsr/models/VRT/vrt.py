@@ -181,6 +181,7 @@ class VRT(nn.Module):
     def forward(self, lr):
         # x: (N, D, C, H, W)
         # refine image
+        N, D, C, H, W = lr.size()
         lq = self.iterative_refinement(lr)
 
         # calculate flows
@@ -193,13 +194,15 @@ class VRT(nn.Module):
         # video restoration
         x = self.conv_first(x.transpose(1, 2))
         x = x + self.rwl(self.mlp_after_body(self.rcl(self.forward_features(x, flows_backward, flows_forward))))
-        sr = self.rwl(self.restore(self.rcl(x))).transpose(1, 2) + lq
+        x = torch.nn.functional.interpolate(x, size=(C, H * 2, W * 2), mode='trilinear', align_corners=False)
+        sr = self.rwl(self.restore(self.rcl(x))).transpose(1, 2)
 
         return sr, lq
 
     def train_step(self, lr, hr):
         # x: (N, D, C, H, W)
         # refine image
+        N, D, C, H, W = lr.size()
         lq = self.iterative_refinement(lr)
 
         # calculate flows
@@ -212,7 +215,8 @@ class VRT(nn.Module):
         # video restoration
         x = self.conv_first(x.transpose(1, 2))
         x = x + self.rwl(self.mlp_after_body(self.rcl(self.forward_features(x, flows_backward, flows_forward))))
-        sr = self.rwl(self.restore(self.rcl(x))).transpose(1, 2) + lq
+        x = torch.nn.functional.interpolate(x, size=(C, H*2, W*2), mode='trilinear', align_corners=False)
+        sr = self.rwl(self.restore(self.rcl(x))).transpose(1, 2)
 
         loss = loss_fn(sr, hr) + loss_fn(lq, hr)
 
