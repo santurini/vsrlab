@@ -181,10 +181,10 @@ def run(cfg: DictConfig):
         print(f"Elapsed time: {start.elapsed_time(end) * 1e-6}")
 
         if rank == 0:
-            log_images({"sr": sr, "lr": lr, "hr": hr}, "Train", epoch)
+            #log_images({"sr": sr, "lr": lr, "hr": hr}, "Train", epoch)
             step_out = evaluate(model=ddp_model, device=device, test_loader=val_dl, criterion=loss_fn)
             save_checkpoint(cfg, ddp_model)
-            log_images(step_out, "Val", epoch)
+            #log_images(step_out, "Val", epoch)
             wandb.log({"Loss/Val": step_out["loss"]})
 
         print(f"epoch {epoch} rank {rank} world_size {world_size} loss {step_out['loss']}")
