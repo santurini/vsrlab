@@ -99,9 +99,9 @@ def run(cfg: DictConfig):
 
     # We only save the model who uses device "cuda:0"
     # To resume, the device for the saved model would also be "cuda:0"
-    if cfg.checkpoint is not None:
-        map_location = {"cuda:0": "cuda:{}".format(local_rank)}
-        ddp_model.load_state_dict(torch.load(cfg.checkpoint, map_location=map_location))
+    #if cfg.checkpoint is not None:
+    #    map_location = {"cuda:0": "cuda:{}".format(local_rank)}
+    #    ddp_model.load_state_dict(torch.load(cfg.checkpoint, map_location=map_location))
 
     # Prepare dataset and dataloader
     train_ds = hydra.utils.instantiate(cfg.nn.data.datasets.train, _recursive_=False)
