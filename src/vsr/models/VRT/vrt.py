@@ -194,7 +194,9 @@ class VRT(nn.Module):
         # video restoration
         x = self.conv_first(x.transpose(1, 2))
         x = x + self.rwl(self.mlp_after_body(self.rcl(self.forward_features(x, flows_backward, flows_forward))))
-        x = torch.nn.functional.interpolate(x.transpose(1, 2), size=(C, H * 4, W * 4), mode='trilinear', align_corners=False).transpose(1, 2)
+        print(x.shape)
+        x = torch.nn.functional.interpolate(x, size=(C, H * 4, W * 4), mode='trilinear', align_corners=False)
+        print(x.shape)
         sr = self.rwl(self.restore(self.rcl(x))).transpose(1, 2)
 
         return sr, lq
@@ -215,7 +217,9 @@ class VRT(nn.Module):
         # video restoration
         x = self.conv_first(x.transpose(1, 2))
         x = x + self.rwl(self.mlp_after_body(self.rcl(self.forward_features(x, flows_backward, flows_forward))))
-        x = torch.nn.functional.interpolate(x.transpose(1, 2), size=(C, H*4, W*4), mode='trilinear', align_corners=False).transpose(1, 2)
+        print(x.shape)
+        x = torch.nn.functional.interpolate(x, size=(C, H*4, W*4), mode='trilinear', align_corners=False)
+        print(x.shape)
         sr = self.rwl(self.restore(self.rcl(x))).transpose(1, 2)
 
         loss = loss_fn(sr, hr) + loss_fn(lq, torch.nn.functional.interpolate(hr, size=(C, H // 4, W // 4), mode='trilinear', align_corners=False))
