@@ -43,7 +43,7 @@ def get_resources():
     world_size = int(os.environ['WORLD_SIZE'])
     rank = int(os.environ['RANK'])
 
-    dist.init_process_group(backend="nccl")
+    dist.init_process_group(backend="nccl", rank=rank, world_size=world_size)
 
     return rank, local_rank, world_size
 

@@ -47,7 +47,7 @@ def run(cfg: DictConfig):
     if (local_rank == 0):
         print("world_size", world_size)
 
-    torch.distributed.init_process_group(backend="nccl", rank=rank, world_size=world_size)
+    #torch.distributed.init_process_group(backend="nccl", rank=rank, world_size=world_size)
 
     model_config = save_config(cfg)
     seed_index_everything(cfg.train)
