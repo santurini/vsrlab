@@ -41,7 +41,7 @@ def evaluate(model, logger, device, test_loader,
         save_checkpoint(cfg, model)
 
 
-@autograd.detect_anomaly()
+@torch.autograd.detect_anomaly()
 def run(cfg: DictConfig):
     save_config(cfg)
     seed_index_everything(cfg.train)
