@@ -62,7 +62,7 @@ def run(cfg: DictConfig):
     device = torch.device("cuda:{}".format(local_rank))
 
     # Encapsulate the model on the GPU assigned to the current process
-    model = Dummy().to(device) #build_model(cfg.nn.module.model, device, local_rank, cfg.train.ddp)
+    model = build_model(cfg.nn.module.model, device, local_rank, cfg.train.ddp)
 
     # Mixed precision
     scaler = torch.cuda.amp.GradScaler()
@@ -87,41 +87,40 @@ def run(cfg: DictConfig):
         model.train()
 
         print('Loading Batches ...')
-        with torch.autograd.detect_anomaly():
-            for i, data in enumerate(train_dl):
-                lr, hr = data[0].to(device), data[1].to(device)
+        for i, data in enumerate(train_dl):
+            lr, hr = data[0].to(device), data[1].to(device)
 
-                with torch.cuda.amp.autocast():
-                    sr, lq = model(lr)
-                    loss_dict = compute_loss(loss_fn, loss_dict, sr, hr, lq)
-                    loss = loss_dict["Loss"] / num_grad_acc
+            with torch.cuda.amp.autocast():
+                sr, lq = model(lr)
+                loss_dict = compute_loss(loss_fn, loss_dict, sr, hr, lq)
+                loss = loss_dict["Loss"] / num_grad_acc
 
-                print("Loss:", loss_dict["Loss"].item())
-                metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
+            print("Loss:", loss_dict["Loss"].item())
+            metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
 
-                print("Scaling Loss ...")
-                scaler.scale(loss).backward()
+            print("Scaling Loss ...")
+            scaler.scale(loss).backward()
 
-                if (i + 1) % num_grad_acc == 0:
-                    print("Updating Parameters at Step {} ...".format(i))
-                    scaler.step(optimizer)
-                    scaler.update()
-                    scheduler.step()
-                    optimizer.zero_grad()
+            if (i + 1) % num_grad_acc == 0:
+                print("Updating Parameters at Step {} ...".format(i))
+                scaler.step(optimizer)
+                scaler.update()
+                scheduler.step()
+                optimizer.zero_grad()
 
-                #steps = update_weights(loss_dict["Loss"], scaler, scheduler, optimizer, num_grad_acc, steps, i, len(train_dl))
+            #steps = update_weights(loss_dict["Loss"], scaler, scheduler, optimizer, num_grad_acc, steps, i, len(train_dl))
 
-            if rank == 0:
-                print("Logging on WandB ...")
-                logger.log_dict(loss_dict | metrics_dict)
-                logger.log_images("Train", epoch, lr, sr, hr, lq)
+        if rank == 0:
+            print("Logging on WandB ...")
+            logger.log_dict(loss_dict | metrics_dict)
+            logger.log_images("Train", epoch, lr, sr, hr, lq)
 
-                print("Starting Evaluation ...")
-                evaluate(model, logger, device, test_loader,
-                         loss_fn, loss_dict, metric, metrics_dict)
+            print("Starting Evaluation ...")
+            evaluate(model, logger, device, test_loader,
+                     loss_fn, loss_dict, metric, metrics_dict)
 
-                dt = time.time() - dt
-                print(f"Elapsed time epoch {epoch} --> {dt:2f}")
+            dt = time.time() - dt
+            print(f"Elapsed time epoch {epoch} --> {dt:2f}")
 
     if rank == 0:
         wandb.finish()
