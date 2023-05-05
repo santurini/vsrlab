@@ -74,7 +74,7 @@ def run(cfg: DictConfig):
 
     # Loop over the dataset multiple times
     print("Start Training ...")
-    while steps < cfg.train.trainer.max_steps:
+    while step < cfg.train.trainer.max_steps:
         dt = time.time()
         model.train()
 
@@ -87,8 +87,8 @@ def run(cfg: DictConfig):
                 sr, lq = model(lr)
                 loss, loss_dict = compute_loss(loss_fn, loss_dict, sr, hr, lq)
 
-            steps = update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc,
-                                   cfg.train.trainer.gradient_clip_val, steps, i, len(train_dl))
+            step = update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc,
+                                   cfg.train.trainer.gradient_clip_val, step, i, len(train_dl))
 
             metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
 

@@ -235,7 +235,8 @@ def build_loaders(cfg):
                           batch_size=batch_size,
                           sampler=train_sampler,
                           num_workers=cfg.nn.data.num_workers,
-                          prefetch_factor=cfg.nn.data.prefetch_factor
+                          prefetch_factor=cfg.nn.data.prefetch_factor,
+                          pin_memory=True
                           )
 
     # Test loader does not have to follow distributed sampling strategy
@@ -243,7 +244,8 @@ def build_loaders(cfg):
                         batch_size=cfg.nn.data.batch_size,
                         num_workers=cfg.nn.data.num_workers,
                         prefetch_factor=cfg.nn.data.prefetch_factor,
-                        shuffle=False
+                        shuffle=False,
+                        pin_memory=True
                         )
 
     return train_dl, val_dl, num_grad_acc, steps, epoch
