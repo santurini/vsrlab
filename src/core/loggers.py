@@ -21,6 +21,7 @@ class WandbLogger(object):
         self.tags = tags
 
     def init(self):
+        wandb.finish()
         wandb.init(
             dir = self.save_dir,
             project = self.project,
