@@ -77,10 +77,8 @@ def run(cfg: DictConfig):
         dt = time.time()
         model.train()
 
-        print('Loading Batches ...')
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
-            print('Batch: {}/{}'.format(i, len(train_dl)))
 
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
