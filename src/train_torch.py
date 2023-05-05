@@ -29,7 +29,7 @@ local_rank = int(os.environ['OMPI_COMM_WORLD_LOCAL_RANK'])
 world_size = int(os.environ['OMPI_COMM_WORLD_SIZE'])
 world_rank = int(os.environ['OMPI_COMM_WORLD_RANK'])
 
-dist.init_process_group(backend, rank=WORLD_RANK, world_size=WORLD_SIZE)
+dist.init_process_group('nccl', rank=WORLD_RANK, world_size=WORLD_SIZE)
 
 tensor = torch.zeros(1)
 
@@ -63,7 +63,7 @@ def run(cfg: DictConfig):
     model_config = save_config(cfg)
     seed_index_everything(cfg.train)
 
-    print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
+    print("Global Rank {} - Local Rank {} - Initializing Wandb".format(world_rank, local_rank))
 
     # Initialize logger
     if world_rank == 0:
@@ -109,7 +109,7 @@ def run(cfg: DictConfig):
 
             metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
 
-        if rank == 0:
+        if world_rank == 0:
             print("Logging on WandB ...")
             logger.log_dict(loss_dict | metrics_dict, average_by=len(train_dl), stage="Train")
             logger.log_images("Train", epoch, lr, sr, hr, lq)
@@ -121,7 +121,7 @@ def run(cfg: DictConfig):
             dt = time.time() - dt
             print(f"Elapsed time epoch {epoch} --> {dt:2f}")
 
-    if rank == 0:
+    if world_rank == 0:
         logger.close()
 
     return model_config
