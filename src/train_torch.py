@@ -31,7 +31,7 @@ class Dummy(nn.Module):
         self.io = nn.Conv3d(3,3,1,padding="same")
     def forward(self, x):
         x = resize(x, size=(256,256))
-        return self.io(x.transpose(1,2)).transpose(1,2), x
+        return self.io(x.transpose(1,2)).transpose(1,2), x.detach().clone()
 
 def evaluate(model, logger, device, test_loader,
              loss_fn, loss_dict, metric, metrics_dict):
