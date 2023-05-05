@@ -71,7 +71,7 @@ def run(cfg: DictConfig):
     metric, metrics_dict = build_metric(cfg.nn.module.metric)
 
     # Loop over the dataset multiple times
-    print("Start Training ...")
+    print("Local Rank {} - Start Training ...".format(local_rank))
     while step < cfg.train.trainer.max_steps:
         dt = time.time()
         model.train()
