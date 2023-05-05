@@ -43,7 +43,8 @@ def run(cfg: DictConfig):
     model_config = save_config(cfg)
     seed_index_everything(cfg.train)
 
-    local_rank, world_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
+    rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
+    print(os.environ['MASTER_ADDR'])
     print("Global Rank {} - Local Rank {} - Initializing Wandb".format(world_rank, local_rank))
 
     # Initialize logger

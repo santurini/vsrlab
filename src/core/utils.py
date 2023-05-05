@@ -40,14 +40,15 @@ def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> Opt
 
 def get_resources():
     # from mpirun
-    LOCAL_RANK = int(os.environ['OMPI_COMM_WORLD_LOCAL_RANK'])
-    WORLD_SIZE = int(os.environ['OMPI_COMM_WORLD_SIZE'])
-    WORLD_RANK = int(os.environ['OMPI_COMM_WORLD_RANK'])
+    rank = int(os.environ["OMPI_COMM_WORLD_RANK"])
+    local_rank = int(os.environ["OMPI_COMM_WORLD_LOCAL_RANK"])
+    world_size = int(os.environ["OMPI_COMM_WORLD_SIZE"])
 
-    print("World Rank {} - Local Rank {} - World Size {}".format(WORLD_RANK, LOCAL_RANK, WORLD_SIZE))
-    dist.init_process_group(backend="nccl", rank=WORLD_RANK, world_size=WORLD_SIZE)
+    os.environ['MASTER_ADDR'] = '192.168.0.166'
+    os.environ['MASTER_PORT'] = '1234'
 
-    return LOCAL_RANK, WORLD_RANK, WORLD_SIZE
+    return rank, local_rank, world_size
+
 
 def cleanup():
     dist.destroy_process_group()
