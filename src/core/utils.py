@@ -15,6 +15,7 @@ from omegaconf import DictConfig, ListConfig, OmegaConf
 from kornia.geometry.transform import resize
 from pytorch_lightning import seed_everything, Callback
 from torch.nn import Sequential
+from einops import rearrange
 
 from functools import reduce
 from operator import add
@@ -221,8 +222,8 @@ def compute_loss(loss_fn, loss_dict, sr, hr, lq=None):
 
 def compute_metric(metric, metrics_dict, sr, hr):
     metrics = metric(
-        sr.detach().clamp(0, 1).cpu().contiguous(),
-        hr.detach().cpu().contiguous()
+        rearrange(sr.detach().clamp(0, 1).cpu().contiguous(), 'b t c h w -> b c t h w'),
+        rearrange(hr.detach().cpu().contiguous(), 'b t c h w -> b c t h w')
     )
     metrics_dict = dict(reduce(add, map(Counter, [metrics, metrics_dict])))
     return metrics_dict
