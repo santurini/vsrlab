@@ -9,7 +9,7 @@ import os
 import random
 import numpy as np
 import time
-import tqorch.distributed as dist
+import torch.distributed as dist
 from torch.distributed import destroy_process_group
 
 import hydra
