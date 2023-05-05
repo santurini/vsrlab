@@ -4,6 +4,8 @@ deterministic: False
 
 restore: null
 
+ddp: False
+
 monitor:
   metric: 'loss/val'
   mode: 'min'

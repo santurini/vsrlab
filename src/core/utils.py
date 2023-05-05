@@ -180,10 +180,10 @@ def build_loaders(cfg):
     val_ds = hydra.utils.instantiate(cfg.nn.data.datasets.val, _recursive_=False)
 
     # Restricts data loading to a subset of the dataset exclusive to the current process
-    train_sampler = DistributedSampler(dataset=train_ds)
+    train_sampler = DistributedSampler(dataset=train_ds) if cfg.train.ddp else None
 
     if cfg.train.num_grad_acc is not None:
-        num_grad_acc = cfg.train.num_grad_acc
+        num_grad_acc = cfg.train.trainer.num_grad_acc
         batch_size = cfg.nn.data.batch_size // num_grad_acc
         steps = 0
         epoch = 0
@@ -203,7 +203,6 @@ def build_loaders(cfg):
     # Test loader does not have to follow distributed sampling strategy
     val_dl = DataLoader(dataset=val_ds,
                         batch_size=cfg.nn.data.batch_size,
-                        sampler=train_sampler,
                         num_workers=cfg.nn.data.num_workers,
                         prefetch_factor=cfg.nn.data.prefetch_factor,
                         shuffle=False

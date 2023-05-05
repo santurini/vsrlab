@@ -61,7 +61,7 @@ def run(cfg: DictConfig):
     save_config(cfg)
     seed_index_everything(cfg.train)
 
-    rank, local_rank = setup_ddp()
+    rank, local_rank = setup_ddp() if cfg.train.ddp else (0, 0)
 
     # Initialize logger
     if local_rank == 0:
@@ -70,7 +70,7 @@ def run(cfg: DictConfig):
     device = torch.device("cuda:{}".format(local_rank))
 
     # Encapsulate the model on the GPU assigned to the current process
-    model = build_model(cfg.nn.module.model, device, local_rank, ddp=False)
+    model = build_model(cfg.nn.module.model, device, local_rank, cfg.train.ddp)
 
     # Mixed precision
     scaler = torch.cuda.amp.GradScaler()
@@ -92,7 +92,7 @@ def run(cfg: DictConfig):
     print("Start Training...")
     while steps < cfg.train.max_steps:
         dt = time.time()
-        ddp_model.train()
+        model.train()
 
         optimizer.zero_grad()
         for i, data in enumerate(train_dl):
