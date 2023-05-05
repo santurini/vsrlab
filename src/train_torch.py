@@ -65,7 +65,7 @@ def run(cfg: DictConfig):
         model = restore_model(model, cfg.finetune, local_rank)
 
     # Prepare dataset and dataloader
-    train_dl, val_dl, num_grad_acc, steps, epoch = build_loaders(cfg)
+    train_dl, val_dl, num_grad_acc, step, epoch = build_loaders(cfg)
 
     optimizer, scheduler = build_optimizer(cfg, model)
 
