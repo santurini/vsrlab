@@ -4,7 +4,7 @@ import wandb
 from torchvision.utils import make_grid
 from kornia.geometry.transform import resize
 
-class WandbLogger:
+class WandbLogger():
     def __init__(
             self,
             project: str = 'vsr',
