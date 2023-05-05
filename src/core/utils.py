@@ -238,12 +238,14 @@ def build_loaders(cfg):
 
     return train_dl, val_dl, num_grad_acc, steps, epoch
 
-def compute_loss(loss_fn, sr, hr, lq=None):
+def compute_loss(loss_fn, loss_dict, sr, hr, lq=None):
     loss = loss_fn(sr, hr)
     if lq is not None:
         _, _, _, h, w = lq.size()
         loss += loss_fn(lq, resize(hr, (h, w)))
-    return loss
+
+    loss_dict["Loss"] += loss.detach().item()
+    return loss, loss_dict
 
 def compute_metric(metric, metrics_dict, sr, hr):
     metrics = metric(
@@ -255,9 +257,12 @@ def compute_metric(metric, metrics_dict, sr, hr):
 
 def update_weights(loss, scaler, scheduler, optimizer, num_grad_acc, steps, i, n):
     loss = loss / num_grad_acc
+
+    print("Scaling Loss ...")
     scaler.scale(loss).backward()
 
     if ((i + 1) % num_grad_acc == 0) or (i + 1 == n):
+        print("Updating Parameters at Step {} ...".format(i))
         optimizer.zero_grad()
         scaler.step(optimizer)
         scheduler.step()

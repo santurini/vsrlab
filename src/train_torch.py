@@ -92,25 +92,25 @@ def run(cfg: DictConfig):
 
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
-                loss = compute_loss(loss_fn, loss_dict, sr, hr, lq)
-                loss_dict["Loss"] += loss.detach().item()
-                loss = loss / num_grad_acc
+                loss, loss_dict = compute_loss(loss_fn, loss_dict, sr, hr, lq)
+                #loss_dict["Loss"] += loss.detach().item()
+                #loss = loss / num_grad_acc
 
             print("Loss:", loss_dict["Loss"])
-            print("Scaling Loss ...")
-            scaler.scale(loss).backward()
+            steps = update_weights(loss, scaler, scheduler, optimizer,
+                                num_grad_acc, steps, i, len(train_dl))
 
-            if (i + 1) % num_grad_acc == 0:
-                print("Updating Parameters at Step {} ...".format(i))
-                scaler.step(optimizer)
-                scaler.update()
-                scheduler.step()
-                optimizer.zero_grad()
+            #print("Scaling Loss ...")
+            #scaler.scale(loss).backward()
 
+            #if (i + 1) % num_grad_acc == 0:
+            #    print("Updating Parameters at Step {} ...".format(i))
+            #    scaler.step(optimizer)
+            #    scaler.update()
+            #    scheduler.step()
+            #    optimizer.zero_grad()
 
-            with torch.no_grad():
-                metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
-            #steps = update_weights(loss_dict["Loss"], scaler, scheduler, optimizer, num_grad_acc, steps, i, len(train_dl))
+            metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
 
         if rank == 0:
             print("Logging on WandB ...")
