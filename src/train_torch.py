@@ -87,12 +87,12 @@ def run(cfg: DictConfig):
     metric, metrics_dict = build_metric(cfg.nn.module.metric)
 
     # Loop over the dataset multiple times
-    print("Start Training...")
+    print("Start Training ...")
     while steps < cfg.train.trainer.max_steps:
         dt = time.time()
         model.train()
 
-        print('Loading Batcher')
+        print('Loading Batches ...')
         optimizer.zero_grad()
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
@@ -107,11 +107,12 @@ def run(cfg: DictConfig):
                 steps = update_weights(loss_dict["Loss"], scaler, scheduler, optimizer, num_grad_acc, steps)
 
         if rank == 0:
+            print("Logging on WandB ...")
             # log train stuff
             logger.log_dict(loss_dict | metrics_dict)
             logger.log_images("Train", epoch, lr, sr, hr, lq)
 
-            print("Starting Evaluation")
+            print("Starting Evaluation ...")
             # run evaluation and save last checkpoint
             evaluate(model, logger, device, test_loader,
                      loss_fn, loss_dict, metric, metrics_dict)
