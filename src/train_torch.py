@@ -29,7 +29,6 @@ warnings.filterwarnings('ignore')
 def evaluate(model, logger, device, test_loader, step, loss_fn, loss_dict, metric, metrics_dict, cfg):
     model.eval()
     for i, data in enumerate(test_loader):
-        print('Batch: {}/{}'.format(i, len(test_loader)))
         lr, hr = data[0].to(device), data[1].to(device)
         sr, lq = model(lr)
         _, loss_dict = compute_loss(loss_fn, loss_dict, sr, hr)

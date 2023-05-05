@@ -28,6 +28,7 @@ nn:
         seq: 6
 
 train:
+  ddp: True
   trainer:
     devices: 2
     max_steps: 1000000
