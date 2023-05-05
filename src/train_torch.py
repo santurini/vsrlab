@@ -25,14 +25,6 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-class Dummy(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.io = nn.Conv3d(3,3,1,padding="same")
-    def forward(self, x):
-        x = resize(x, size=(256,256))
-        return self.io(x.transpose(1,2)).transpose(1,2), x.detach().clone()
-
 def evaluate(model, logger, device, test_loader,
              loss_fn, loss_dict, metric, metrics_dict):
     model.eval()
@@ -50,7 +42,7 @@ def evaluate(model, logger, device, test_loader,
 
 
 def run(cfg: DictConfig):
-    save_config(cfg)
+    model_config = save_config(cfg)
     seed_index_everything(cfg.train)
 
     rank, local_rank = get_resources() if cfg.train.ddp else (0, 0)
@@ -93,22 +85,9 @@ def run(cfg: DictConfig):
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
                 loss, loss_dict = compute_loss(loss_fn, loss_dict, sr, hr, lq)
-                #loss_dict["Loss"] += loss.detach().item()
-                #loss = loss / num_grad_acc
 
-            print("Loss:", loss_dict["Loss"])
             steps = update_weights(loss, scaler, scheduler, optimizer,
-                                num_grad_acc, steps, i, len(train_dl))
-
-            #print("Scaling Loss ...")
-            #scaler.scale(loss).backward()
-
-            #if (i + 1) % num_grad_acc == 0:
-            #    print("Updating Parameters at Step {} ...".format(i))
-            #    scaler.step(optimizer)
-            #    scaler.update()
-            #    scheduler.step()
-            #    optimizer.zero_grad()
+                                        num_grad_acc, steps, i, len(train_dl))
 
             metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
 
@@ -127,7 +106,7 @@ def run(cfg: DictConfig):
     if rank == 0:
         wandb.finish()
 
-    return model_filepath
+    return model_config
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
 def main(config: omegaconf.DictConfig):

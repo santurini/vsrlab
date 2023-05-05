@@ -83,6 +83,8 @@ def save_config(cfg):
         yaml_str = OmegaConf.to_yaml(cfg, resolve=True)
         file.write(yaml_str)
 
+    return save_path
+
 def save_checkpoint(cfg, model):
     save_path = os.path.join(
         cfg.train.logger.save_dir,
@@ -257,12 +259,9 @@ def compute_metric(metric, metrics_dict, sr, hr):
 
 def update_weights(loss, scaler, scheduler, optimizer, num_grad_acc, steps, i, n):
     loss = loss / num_grad_acc
-
-    print("Scaling Loss ...")
     scaler.scale(loss).backward()
 
     if (i + 1) % num_grad_acc == 0:
-        print("Updating Parameters at Step {} ...".format(i))
         scaler.step(optimizer)
         scaler.update()
         scheduler.step()
@@ -271,8 +270,6 @@ def update_weights(loss, scaler, scheduler, optimizer, num_grad_acc, steps, i, n
     return steps
 
 def batched(iterable, n):
-    "Batch data into tuples of length n. The last batch may be shorter."
-    # batched('ABCDEFG', 3) --> ABC DEF G
     if n < 1:
         raise ValueError('n must be at least one')
     it = iter(iterable)
