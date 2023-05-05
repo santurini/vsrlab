@@ -70,6 +70,9 @@ def setup_ddp():
     dist.init_process_group(backend="nccl", world_size=world_size, rank=rank)
     return rank, local_rank
 
+def cleanup():
+    dist.destroy_process_group()
+
 def save_config(cfg):
     save_path = os.path.join(
         cfg.train.logger.save_dir,
