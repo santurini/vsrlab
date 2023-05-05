@@ -41,27 +41,8 @@ def evaluate(model, logger, device, test_loader, step, loss_fn, loss_dict, metri
     #save_checkpoint(cfg, model)
     return loss / len(test_loader)
 
-def get_resources():
-    if os.environ.get('OMPI_COMMAND'):
-        # from mpirun
-        rank = int(os.environ["OMPI_COMM_WORLD_RANK"])
-        local_rank = int(os.environ["OMPI_COMM_WORLD_LOCAL_RANK"])
-        world_size = int(os.environ["OMPI_COMM_WORLD_SIZE"])
-    else:
-        # from slurm
-        rank = int(os.environ["SLURM_PROCID"])
-        local_rank = int(os.environ["SLURM_LOCALID"])
-        world_size = int(os.environ["SLURM_NPROCS"])
-
-    return rank, local_rank, world_size
-
-
-
 def run(cfg: DictConfig):
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
-
-    os.environ['MASTER_ADDR'] = '192.168.0.166'
-    os.environ['MASTER_PORT'] = '1234'
 
     if (local_rank == 0):
         print("world_size", world_size)
