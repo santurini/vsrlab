@@ -70,7 +70,7 @@ def run(cfg: DictConfig):
     device = torch.device("cuda:{}".format(local_rank))
 
     # Encapsulate the model on the GPU assigned to the current process
-    model = build_model(cfg.nn.module.model, device, local_rank, ddp=True)
+    model = build_model(cfg.nn.module.model, device, local_rank, ddp=False)
 
     # Mixed precision
     scaler = torch.cuda.amp.GradScaler()

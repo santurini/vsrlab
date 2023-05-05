@@ -1,0 +1,28 @@
+# @package _global_
+core:
+  run_id: "akfvaeilf"
+  run_name: "Real Basic OF"
+
+defaults:
+  - override /train/strategy: ddp
+  - override /nn/data: easy_schedule
+
+finetune: null
+
+nn:
+  data:
+    datasets:
+      train:
+        path: "/home/aghinassi/Desktop/MergedVSR"
+  module:
+    optimizer:
+      lr: 1e-4
+    scheduler:
+      eta_min: 6.7e-5
+    set_lr: False
+
+train:
+  trainer:
+    devices: 1
+    max_steps: 100000
+    gradient_clip_val: 1
