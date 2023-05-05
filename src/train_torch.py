@@ -93,7 +93,7 @@ def run(cfg: DictConfig):
 
         if rank == 0:
             print("Logging on WandB ...")
-            logger.log_dict(loss_dict | metrics_dict)
+            logger.log_dict(loss_dict | metrics_dict, average_by=len(train_dl), stage="Train")
             logger.log_images("Train", epoch, lr, sr, hr, lq)
 
             print("Starting Evaluation ...")
