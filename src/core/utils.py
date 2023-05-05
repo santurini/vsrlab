@@ -205,6 +205,11 @@ def build_metric(cfg):
     metrics_dict = {k: 0 for k in cfg.metrics}
     return metric, metrics_dict
 
+def build_logger(cfg):
+    logger = hydra.utils.instantiate(cfg, _recursive_=False)
+    logger.init()
+    return logger
+
 def build_loaders(cfg):
     train_ds = hydra.utils.instantiate(cfg.nn.data.datasets.train, _recursive_=False)
     val_ds = hydra.utils.instantiate(cfg.nn.data.datasets.val, _recursive_=False)

@@ -14,12 +14,19 @@ class WandbLogger:
             tags: List[Any] = None
                  ):
 
+        self.save_dir = save_dir
+        self.project = project
+        self.name = name
+        self.run_id = run_id
+        self.tags = tags
+
+    def init(self):
         wandb.init(
-            dir = save_dir,
-            project = project,
-            name = name,
-            id = run_id,
-            tags = tags,
+            dir = self.save_dir,
+            project = self.project,
+            name = self.name,
+            id = self.run_id,
+            tags = self.tags,
         )
 
     @staticmethod
