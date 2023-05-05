@@ -43,8 +43,7 @@ def get_resources():
     world_size = int(os.environ['WORLD_SIZE'])
     rank = int(os.environ['RANK'])
 
-    os.environ['MASTER_ADDR'] = '192.168.0.166'
-    os.environ['MASTER_PORT'] = '1234'
+    dist.init_process_group(backend="nccl")
 
     return rank, local_rank, world_size
 
