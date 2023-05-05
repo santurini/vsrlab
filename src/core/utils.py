@@ -175,7 +175,7 @@ def build_model(cfg, device, local_rank=None, ddp=False):
 def build_metric(cfg):
     metric = hydra.utils.instantiate(cfg, _recursive_=True, _convert_="partial")
     metrics_dict = {k: 0 for k in cfg.metrics}
-    return metric.to('cpu'), metrics_dict
+    return metric, metrics_dict
 
 def build_loaders(cfg):
     train_ds = hydra.utils.instantiate(cfg.nn.data.datasets.train, _recursive_=False)
