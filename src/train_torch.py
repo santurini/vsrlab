@@ -79,8 +79,6 @@ def run(cfg: DictConfig):
         model.train()
 
         print('Loading Batches ...')
-        optimizer.zero_grad()
-
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
@@ -99,7 +97,7 @@ def run(cfg: DictConfig):
                 print("Updating Parameters at Step {} ...".format(i))
                 scaler.step(optimizer)
                 scaler.update()
-                scheduler.step()
+                #scheduler.step()
                 optimizer.zero_grad()
 
 
