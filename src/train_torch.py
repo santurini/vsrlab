@@ -46,7 +46,7 @@ def run(cfg: DictConfig):
     rank, local_rank = get_resources() if cfg.train.ddp else (0, 0)
 
     # Initialize logger
-    if local_rank == 0:
+    if rank == 0:
         logger = build_logger(cfg.train.logger)
 
     device = torch.device("cuda:{}".format(local_rank))
