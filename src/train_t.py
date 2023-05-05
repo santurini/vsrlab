@@ -25,7 +25,7 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-def evaluate(model, logger, device, test_loader, step, loss_fn, loss_dict, metric, metrics_dict, cfg):
+def evaluate(model, device, test_loader, loss_fn):
     model.eval()
     with torch.no_grad():
         for i, data in enumerate(test_loader):
@@ -110,8 +110,7 @@ def run(cfg: DictConfig):
             #logger.log_images("Train", epoch, lr, sr, hr, lq)
 
             print("Rank {} -> Starting Evaluation ...".format(rank))
-            evaluate(model, logger, device, val_dl, step,
-                     loss_fn, loss_dict, metric, metrics_dict, cfg)
+            evaluate(model, device, val_dl, loss_fn)
 
         dt = time.time() - dt
         print(f"Elapsed time epoch {epoch} --> {dt:2f}")
