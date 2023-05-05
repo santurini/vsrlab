@@ -41,12 +41,35 @@ def evaluate(model, logger, device, test_loader, step, loss_fn, loss_dict, metri
     #save_checkpoint(cfg, model)
     return loss / len(test_loader)
 
+def get_resources():
+    if os.environ.get('OMPI_COMMAND'):
+        # from mpirun
+        rank = int(os.environ["OMPI_COMM_WORLD_RANK"])
+        local_rank = int(os.environ["OMPI_COMM_WORLD_LOCAL_RANK"])
+        world_size = int(os.environ["OMPI_COMM_WORLD_SIZE"])
+    else:
+        # from slurm
+        rank = int(os.environ["SLURM_PROCID"])
+        local_rank = int(os.environ["SLURM_LOCALID"])
+        world_size = int(os.environ["SLURM_NPROCS"])
+
+    return rank, local_rank, world_size
+
+
 
 def run(cfg: DictConfig):
+    rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
+
+    os.environ['MASTER_ADDR'] = '192.168.0.166'
+    os.environ['MASTER_PORT'] = '1234'
+
+    if (local_rank == 0):
+        print("world_size", world_size)
+
+    torch.distributed.init_process_group(backend="nccl", rank=rank, world_size=world_size)
+
     model_config = save_config(cfg)
     seed_index_everything(cfg.train)
-
-    rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
 
     # Initialize logger
     #if rank == 0:
@@ -54,6 +77,7 @@ def run(cfg: DictConfig):
     #    logger = build_logger(cfg.train.logger)
 
     device = torch.device("cuda:{}".format(local_rank))
+    torch.cuda.set_device(local_rank)
 
     # Encapsulate the model on the GPU assigned to the current process
     model = build_model(cfg.nn.module.model, device, local_rank, cfg.train.ddp)
