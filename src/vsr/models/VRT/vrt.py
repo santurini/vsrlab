@@ -339,8 +339,6 @@ class VRT(nn.Module):
         else:
             raise Exception("Not a valid optical flow, possible options are: spynet, irr")
 
-        pylogger.info(f'Initialized Optical Flow module as: <{self.optical_flow.__class__.__name__}>')
-
         if not train:
             pylogger.info(f'Freezing Optical Flow parameters')
             for p in self.optical_flow.parameters():
