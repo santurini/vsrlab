@@ -8,7 +8,7 @@ import hydra
 import numpy as np
 import torch
 import torch.distributed as dist
-from torch.nn.utils import clip_grad_norm_, clip_grad_value_
+from torch.nn.utils import clip_grad_norm_
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data import DataLoader
 from omegaconf import DictConfig, ListConfig, OmegaConf
@@ -257,11 +257,14 @@ def compute_metric(metric, metrics_dict, sr, hr):
     metrics_dict = dict(reduce(add, map(Counter, [metrics, metrics_dict])))
     return metrics_dict
 
-def update_weights(loss, scaler, scheduler, optimizer, num_grad_acc, steps, i, n):
+def update_weights(loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, steps, i, n):
     loss = loss / num_grad_acc
     scaler.scale(loss).backward()
 
-    if (i + 1) % num_grad_acc == 0:
+    if (((i + 1) % num_grad_acc == 0) or ((i+1) == n)):
+        if grad_clip is not None:
+            scaler.unscale_(optimizer)
+            clip_grad_norm_(model.parameters(), grad_clip)
         scaler.step(optimizer)
         scaler.update()
         scheduler.step()
