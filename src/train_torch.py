@@ -25,26 +25,6 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-local_rank = int(os.environ['OMPI_COMM_WORLD_LOCAL_RANK'])
-world_size = int(os.environ['OMPI_COMM_WORLD_SIZE'])
-world_rank = int(os.environ['OMPI_COMM_WORLD_RANK'])
-
-dist.init_process_group('nccl', rank=WORLD_RANK, world_size=WORLD_SIZE)
-
-tensor = torch.zeros(1)
-
-# Need to put tensor on a GPU device for nccl backend
-device = torch.device("cuda:{}".format(local_rank))
-tensor = tensor.to(device)
-
-if world_rank == 0:
-    for rank_recv in range(1, world_size):
-        dist.send(tensor=tensor, dst=rank_recv)
-        print('worker_{} sent data to Rank {}\n'.format(0, rank_recv))
-else:
-    dist.recv(tensor=tensor, src=0)
-    print('worker_{} has received data from rank {}\n'.format(world_rank, 0))
-
 @torch.no_grad()
 def evaluate(model, logger, device, test_loader, step, loss_fn, loss_dict, metric, metrics_dict, cfg):
     model.eval()
@@ -63,6 +43,7 @@ def run(cfg: DictConfig):
     model_config = save_config(cfg)
     seed_index_everything(cfg.train)
 
+    local_rank, world_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
     print("Global Rank {} - Local Rank {} - Initializing Wandb".format(world_rank, local_rank))
 
     # Initialize logger

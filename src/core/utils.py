@@ -45,7 +45,7 @@ def get_resources():
     WORLD_RANK = int(os.environ['OMPI_COMM_WORLD_RANK'])
 
     print("World Rank {} - Local Rank {} - World Size {}".format(WORLD_RANK, LOCAL_RANK, WORLD_SIZE))
-    dist.init_process_group(backend="nccl", rank=rank, world_size=world_size)
+    dist.init_process_group(backend="nccl", rank=WORLD_RANK, world_size=WORLD_SIZE)
 
     return LOCAL_RANK, WORLD_RANK, WORLD_SIZE
 
