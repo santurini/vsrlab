@@ -30,13 +30,13 @@ def evaluate(model, logger, device, test_loader, step,
     model.eval()
     with torch.no_grad():
         for data in test_loader:
+            print('Batch: {}/{}'.format(i, len(test_loader)))
             lr, hr = data[0].to(device), data[1].to(device)
             sr, lq = model(lr)
             _, loss_dict = compute_loss(loss_fn, loss_dict, sr, hr)
             metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
 
-        logger.log_dict(loss_dict | metrics_dict,
-                        average_by=len(test_loader), stage="Val")
+        logger.log_dict(loss_dict | metrics_dict, average_by=len(test_loader), stage="Val")
         logger.log_images("Val", step, lr, sr, hr, lq)
         save_checkpoint(cfg, model)
 
@@ -81,6 +81,7 @@ def run(cfg: DictConfig):
         print('Loading Batches ...')
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
+            print('Batch: {}/{}'.format(i, len(train_dl)))
 
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
