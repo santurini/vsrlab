@@ -104,7 +104,7 @@ def run(cfg: DictConfig):
             print(f"Elapsed time epoch {epoch} --> {dt:2f}")
 
     if rank == 0:
-        wandb.finish()
+        logger.close()
 
     return model_config
 
