@@ -45,11 +45,11 @@ def run(cfg: DictConfig):
 
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
     print(os.environ['MASTER_ADDR'])
-    print("Global Rank {} - Local Rank {} - Initializing Wandb".format(world_rank, local_rank))
+    print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
 
     # Initialize logger
-    if world_rank == 0:
-        print("Global Rank {} - Local Rank {} - Initializing Wandb".format(world_rank, local_rank))
+    if rank == 0:
+        print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
         logger = build_logger(cfg.train.logger)
 
     device = torch.device("cuda:{}".format(local_rank))
@@ -91,7 +91,7 @@ def run(cfg: DictConfig):
 
             metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
 
-        if world_rank == 0:
+        if rank == 0:
             print("Logging on WandB ...")
             logger.log_dict(loss_dict | metrics_dict, average_by=len(train_dl), stage="Train")
             logger.log_images("Train", epoch, lr, sr, hr, lq)
@@ -103,7 +103,7 @@ def run(cfg: DictConfig):
             dt = time.time() - dt
             print(f"Elapsed time epoch {epoch} --> {dt:2f}")
 
-    if world_rank == 0:
+    if rank == 0:
         logger.close()
 
     return model_config
