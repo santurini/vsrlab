@@ -261,13 +261,12 @@ def update_weights(loss, scaler, scheduler, optimizer, num_grad_acc, steps, i, n
     print("Scaling Loss ...")
     scaler.scale(loss).backward()
 
-    if ((i + 1) % num_grad_acc == 0) or (i + 1 == n):
+    if (i + 1) % num_grad_acc == 0:
         print("Updating Parameters at Step {} ...".format(i))
-        optimizer.zero_grad()
         scaler.step(optimizer)
-        scheduler.step()
         scaler.update()
-        steps += 1
+        scheduler.step()
+        optimizer.zero_grad()
 
     return steps
 
