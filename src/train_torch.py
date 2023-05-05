@@ -108,6 +108,7 @@ def run(cfg: DictConfig):
             logger.log_dict(loss_dict | metrics_dict)
             logger.log_images("Train", epoch, lr, sr, hr, lq)
 
+            print("Starting Evaluation")
             # run evaluation and save last checkpoint
             evaluate(model, logger, device, test_loader,
                      loss_fn, loss_dict, metric, metrics_dict)

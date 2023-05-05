@@ -175,7 +175,7 @@ def build_model(cfg, device, local_rank=None, ddp=False):
 def build_metric(cfg):
     metric = hydra.utils.instantiate(cfg, _recursive_=True, _convert_="partial")
     metrics_dict = {k: 0 for k in cfg.metrics}
-    return metric, metrics_dict
+    return metric.to('cpu'), metrics_dict
 
 def build_loaders(cfg):
     train_ds = hydra.utils.instantiate(cfg.nn.data.datasets.train, _recursive_=False)
@@ -218,6 +218,7 @@ def compute_loss(loss_fn, loss_dict, sr, hr, lq=None):
         _, _, _, h, w = lq.size()
         loss_dict["Loss"] += loss_fn(lq, resize(hr, (h, w)))
     return loss_dict
+
 def compute_metric(metric, metrics_dict, sr, hr):
     metrics = metric(
         sr.detach().clamp(0, 1).contiguous(),
