@@ -41,7 +41,6 @@ def evaluate(model, logger, device, test_loader,
         save_checkpoint(cfg, model)
 
 
-@torch.autograd.detect_anomaly
 def run(cfg: DictConfig):
     save_config(cfg)
     seed_index_everything(cfg.train)
@@ -80,6 +79,7 @@ def run(cfg: DictConfig):
         model.train()
 
         print('Loading Batches ...')
+        torch.autograd.set_detect_anomaly(True)
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
