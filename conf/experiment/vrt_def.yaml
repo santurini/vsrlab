@@ -33,3 +33,4 @@ train:
     max_steps: 1000000
     gradient_clip_val: 0.5
     gradient_clip_algorithm: "value"
+    num_grad_acc: 1
