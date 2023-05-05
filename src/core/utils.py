@@ -182,7 +182,7 @@ def build_loaders(cfg):
     # Restricts data loading to a subset of the dataset exclusive to the current process
     train_sampler = DistributedSampler(dataset=train_ds) if cfg.train.ddp else None
 
-    if cfg.train.num_grad_acc is not None:
+    if cfg.train.trainer.num_grad_acc is not None:
         num_grad_acc = cfg.train.trainer.num_grad_acc
         batch_size = cfg.nn.data.batch_size // num_grad_acc
         steps = 0
