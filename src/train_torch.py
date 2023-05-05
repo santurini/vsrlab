@@ -44,8 +44,6 @@ def run(cfg: DictConfig):
     seed_index_everything(cfg.train)
 
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
-    print(os.environ['MASTER_ADDR'])
-    print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
 
     # Initialize logger
     if rank == 0:

@@ -174,8 +174,7 @@ def build_model(cfg, device, local_rank=None, ddp=False):
         ddp_model = torch.nn.parallel.DistributedDataParallel(
             model,
             device_ids=[local_rank],
-            output_device=local_rank,
-            find_unused_parameters=True
+            output_device=local_rank
         )
         return ddp_model
 
