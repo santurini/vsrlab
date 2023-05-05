@@ -89,7 +89,7 @@ def run(cfg: DictConfig):
 
                 metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
 
-            loss = loss / num_grad_acc
+            loss = loss_dict["Loss"] / num_grad_acc
             scaler.scale(loss).backward()
 
             if ((i + 1) % num_grad_acc == 0) or (i + 1 == len(train_dl)):
