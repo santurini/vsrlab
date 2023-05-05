@@ -92,6 +92,7 @@ def run(cfg: DictConfig):
         dt = time.time()
         model.train()
 
+        print('Loading Batcher')
         optimizer.zero_grad()
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
@@ -99,6 +100,11 @@ def run(cfg: DictConfig):
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
                 loss_dict = compute_loss(loss_fn, loss_dict, sr, hr, lq)
+                print("Loss:", loss_dict["Loss"])
+                print("hr device:", hr.device)
+                print("sr device:", sr.device)
+                print("metric device:", metric.device)
+
                 metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
 
                 steps = update_weights(loss_dict["Loss"], scaler, scheduler, optimizer, num_grad_acc, steps)
