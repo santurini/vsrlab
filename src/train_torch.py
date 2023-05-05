@@ -90,23 +90,22 @@ def run(cfg: DictConfig):
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
-            optimizer.zero_grad()
-
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
-                loss = loss_fn(sr, hr)
-                #loss_dict = compute_loss(loss_fn, loss_dict, sr, hr, lq)
-                #loss = loss_dict["Loss"] / num_grad_acc
+                loss = compute_loss(loss_fn, loss_dict, sr, hr, lq)
+                loss_dict["Loss"] += loss.detach().item()
+                loss = loss / num_grad_acc
 
-            #print("Loss:", loss_dict["Loss"].item())
+            print("Loss:", loss_dict["Loss"])
             print("Scaling Loss ...")
             scaler.scale(loss).backward()
 
-            #if (i + 1) % num_grad_acc == 0:
-            print("Updating Parameters at Step {} ...".format(i))
-            scaler.step(optimizer)
-            scaler.update()
-            scheduler.step()
+            if (i + 1) % num_grad_acc == 0:
+                print("Updating Parameters at Step {} ...".format(i))
+                scaler.step(optimizer)
+                scaler.update()
+                scheduler.step()
+                optimizer.zero_grad()
 
 
             with torch.no_grad():
