@@ -1,4 +1,4 @@
-_target_: core.logger.WandbLogger
+_target_: core.loggers.WandbLogger
 project: ${core.project_name}
 save_dir: ${oc.env:LOGGING_DIR}
 run_id: ${core.run_id}
