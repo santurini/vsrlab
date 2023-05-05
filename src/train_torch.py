@@ -97,7 +97,7 @@ def run(cfg: DictConfig):
             logger.log_images("Train", epoch, lr, sr, hr, lq)
 
             print("Starting Evaluation ...")
-            evaluate(model, logger, device, test_loader,
+            evaluate(model, logger, device, test_dl,
                      loss_fn, loss_dict, metric, metrics_dict)
 
             dt = time.time() - dt
