@@ -50,7 +50,7 @@ class WandbLogger(object):
     def log_dict(log_dict, average_by=1, stage="Train"):
         out_dict = {}
         for key in log_dict.keys():
-            out_dict['/'.join([key, stage.capitalize()])] = log_dict[key] / average_by
+            out_dict['/'.join([key, stage])] = log_dict[key] / average_by
 
         wandb.log(out_dict)
 
