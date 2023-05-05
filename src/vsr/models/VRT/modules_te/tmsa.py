@@ -8,6 +8,8 @@ from einops import rearrange
 from vsr.models.VRT.modules.window_attention import *
 from vsr.models.VRT.modules.stochastic_depth import DropPath
 
+import transformer_engine.pytorch as te
+
 class TMSA(nn.Module):
     """ Temporal Mutual Self Attention (TMSA).
 
@@ -23,7 +25,7 @@ class TMSA(nn.Module):
         qk_scale (float | None, optional): Override default qk scale of head_dim ** -0.5 if set.
         drop_path (float, optional): Stochastic depth rate. Default: 0.0.
         act_layer (nn.Module, optional): Activation layer. Default: nn.GELU.
-        norm_layer (nn.Module, optional): Normalization layer.  Default: nn.LayerNorm.
+        norm_layer (nn.Module, optional): Normalization layer.  Default: te.LayerNorm.
         use_checkpoint_attn (bool): If True, use torch.checkpoint for attention modules. Default: False.
         use_checkpoint_ffn (bool): If True, use torch.checkpoint for feed-forward modules. Default: False.
     """
@@ -40,7 +42,7 @@ class TMSA(nn.Module):
                  qk_scale=None,
                  drop_path=0.,
                  act_layer=nn.GELU,
-                 norm_layer=nn.LayerNorm
+                 norm_layer=te.LayerNorm
                  ):
         super().__init__()
         self.dim = dim
@@ -139,7 +141,7 @@ class TMSAG(nn.Module):
         qkv_bias (bool, optional): If True, add a learnable bias to query, key, value. Default: True
         qk_scale (float | None, optional): Override default qk scale of head_dim ** -0.5 if set.
         drop_path (float | tuple[float], optional): Stochastic depth rate. Default: 0.0
-        norm_layer (nn.Module, optional): Normalization layer. Default: nn.LayerNorm
+        norm_layer (nn.Module, optional): Normalization layer. Default: te.LayerNorm
         use_checkpoint_attn (bool): If True, use torch.checkpoint for attention modules. Default: False.
         use_checkpoint_ffn (bool): If True, use torch.checkpoint for feed-forward modules. Default: False.
     """
@@ -156,7 +158,7 @@ class TMSAG(nn.Module):
                  qkv_bias=False,
                  qk_scale=None,
                  drop_path=0.,
-                 norm_layer=nn.LayerNorm,
+                 norm_layer=te.LayerNorm,
                  ):
         super().__init__()
         self.input_resolution = input_resolution
@@ -217,7 +219,7 @@ class RTMSA(nn.Module):
         qkv_bias (bool, optional): If True, add a learnable bias to query, key, value. Default: True.
         qk_scale (float | None, optional): Override default qk scale of head_dim ** -0.5 if set.
         drop_path (float | tuple[float], optional): Stochastic depth rate. Default: 0.0.
-        norm_layer (nn.Module, optional): Normalization layer. Default: nn.LayerNorm.
+        norm_layer (nn.Module, optional): Normalization layer. Default: te.LayerNorm.
     """
 
     def __init__(self,
@@ -230,7 +232,7 @@ class RTMSA(nn.Module):
                  qkv_bias=True,
                  qk_scale=None,
                  drop_path=0.,
-                 norm_layer=nn.LayerNorm,
+                 norm_layer=te.LayerNorm,
                  ):
         super().__init__()
         self.dim = dim
@@ -248,7 +250,7 @@ class RTMSA(nn.Module):
                                     norm_layer=norm_layer,
                                     )
 
-        self.linear = nn.Linear(dim, dim)
+        self.linear = te.Linear(dim, dim)
 
     def forward(self, x):
         return x + self.linear(self.residual_group(x).transpose(1, 4)).transpose(1, 4)

@@ -7,10 +7,16 @@ from typing import List, Optional, Union
 import hydra
 import numpy as np
 import torch
+import torch.distributed as dist
 from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 from omegaconf import DictConfig, ListConfig, OmegaConf
+from kornia.geometry.transform import resize
 from pytorch_lightning import seed_everything, Callback
 from torch.nn import Sequential
+
+from functools import reduce
+from operator import add
+from collections import Counter
 
 CPU_DEVICE = torch.device("cpu")
 
@@ -28,6 +34,13 @@ def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> Opt
     else:
         pylogger.warning("The seed has not been set! The reproducibility is not guaranteed.")
         return None
+
+def setup_ddp():
+    rank = int(os.environ["RANK"])
+    world_size = int(os.environ['WORLD_SIZE'])
+    local_rank = int(os.environ['LOCAL_RANK'])
+    dist.init_process_group(backend="nccl", world_size=world_size, rank=rank)
+    return rank, local_rank
 
 def save_config(cfg):
     save_path = os.path.join(
@@ -50,8 +63,8 @@ def save_checkpoint(cfg, model):
         "checkpoint"
         "last.ckpt"
     )
-    Path(save_path).parent.mkdir(exist_ok=True, parents=True)
 
+    Path(save_path).parent.mkdir(exist_ok=True, parents=True)
     torch.save(model.state_dict(), save_path)
 
 def save_test_config(cfg):
@@ -82,6 +95,11 @@ def get_model_state_dict(path):
     state_dict = torch.load(path)['state_dict']
     out = {k.partition('model.')[-1]: v for k, v in state_dict.items() if k.startswith('model.')}
     return out
+
+def restore_model(model, path, local_rank):
+    map_location = {"cuda:0": "cuda:{}".format(local_rank)}
+    model.load_state_dict(torch.load(path, map_location=map_location))
+    return model
 
 def build_callbacks(cfg: ListConfig) -> List[Callback]:
     callbacks = list()
@@ -116,6 +134,19 @@ def build_scheduler(
             chained_scheduler
         )
 
+def build_optimizer(cfg, model):
+    optimizer = hydra.utils.instantiate(cfg.nn.module.optimizer,
+                                        model.parameters(),
+                                        _recursive_=False,
+                                        _convert_="partial"
+                                        )
+
+    scheduler = build_scheduler(
+        optimizer,
+        cfg.nn.module.scheduler
+    )
+
+    return optimizer, scheduler
 
 def build_transform(cfg: ListConfig) -> List[Sequential]:
     augmentation = list()
@@ -123,6 +154,87 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
         pylogger.info(f"Adding augmentation <{aug['_target_'].split('.')[-1]}>")
         augmentation.append(hydra.utils.instantiate(aug, _recursive_=False))
     return Sequential(*augmentation)
+
+def build_model(cfg, device, local_rank=None, ddp=False):
+    model = hydra.utils.instantiate(cfg, _recursive_=False)
+    model = model.to(device)
+
+    if ddp:
+        ddp_model = torch.nn.parallel.DistributedDataParallel(
+            model,
+            device_ids=[local_rank],
+            output_device=local_rank,
+            find_unused_parameters=True
+        )
+        return ddp_model
+
+    return model
+
+def build_metric(cfg):
+    metric = hydra.utils.instantiate(cfg, _recursive_=True, _convert_="partial")
+    metrics_dict = {k: 0 for k in cfg.metrics}
+    return metric, metrics_dict
+
+def build_loaders(cfg):
+    train_ds = hydra.utils.instantiate(cfg.nn.data.datasets.train, _recursive_=False)
+    val_ds = hydra.utils.instantiate(cfg.nn.data.datasets.val, _recursive_=False)
+
+    # Restricts data loading to a subset of the dataset exclusive to the current process
+    train_sampler = DistributedSampler(dataset=train_ds)
+
+    if cfg.train.num_grad_acc is not None:
+        num_grad_acc = cfg.train.num_grad_acc
+        batch_size = cfg.nn.data.batch_size // num_grad_acc
+        steps = 0
+        epoch = 0
+    else:
+        num_grad_acc = 1
+        batch_size = cfg.nn.data.batch_size
+        steps = 0
+        epoch = 0
+
+    train_dl = DataLoader(dataset=train_ds,
+                          batch_size=batch_size,
+                          sampler=train_sampler,
+                          num_workers=cfg.nn.data.num_workers,
+                          prefetch_factor=cfg.nn.data.prefetch_factor
+                          )
+
+    # Test loader does not have to follow distributed sampling strategy
+    val_dl = DataLoader(dataset=val_ds,
+                        batch_size=cfg.nn.data.batch_size,
+                        sampler=train_sampler,
+                        num_workers=cfg.nn.data.num_workers,
+                        prefetch_factor=cfg.nn.data.prefetch_factor,
+                        shuffle=False
+                        )
+
+    return train_dl, val_dl, num_grad_acc, steps, epoch
+
+def compute_loss(loss_fn, loss_dict, sr, hr, lq=None):
+    loss_dict["Loss"] += loss_fn(sr, hr)
+    if lq is not None:
+        _, _, _, h, w = lq.size()
+        loss_dict["Loss"] += loss_fn(lq, resize(hr, (h, w)))
+    return loss_dict
+def compute_metric(metric, metrics_dict, sr, hr):
+    metrics = metric(
+        sr.detach().clamp(0, 1).contiguous(),
+        hr.detach().contiguous()
+    )
+    metrics_dict = dict(reduce(add, map(Counter, [metrics, metrics_dict])))
+    return metrics_dict
+
+def update_weights(loss, scaler, scheduler, optimizer, num_grad_acc, steps):
+    scaler.scale(loss / num_grad_acc).backward()
+    if i + 1 % num_grad_acc == 0:
+        scaler.step(optimizer)
+        scheduler.step()
+        scaler.update()
+        optimizer.zero_grad()
+        steps += 1
+
+    return steps
 
 def batched(iterable, n):
     "Batch data into tuples of length n. The last batch may be shorter."
