@@ -44,9 +44,11 @@ def run(cfg: DictConfig):
     seed_index_everything(cfg.train)
 
     rank, local_rank = get_resources() if cfg.train.ddp else (0, 0)
+    print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
 
     # Initialize logger
     if rank == 0:
+        print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
         logger = build_logger(cfg.train.logger)
 
     device = torch.device("cuda:{}".format(local_rank))

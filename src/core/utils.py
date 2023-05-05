@@ -53,13 +53,6 @@ def get_resources():
 
     return rank, local_rank
 
-def setup_ddp():
-    rank = int(os.environ["RANK"])
-    world_size = int(os.environ['WORLD_SIZE'])
-    local_rank = int(os.environ['LOCAL_RANK'])
-    dist.init_process_group(backend="nccl", world_size=world_size, rank=rank)
-    return rank, local_rank
-
 def cleanup():
     dist.destroy_process_group()
 
