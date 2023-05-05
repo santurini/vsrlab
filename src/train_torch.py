@@ -97,12 +97,14 @@ def run(cfg: DictConfig):
 
             print("Loss:", loss_dict["Loss"].item())
             print("Scaling Loss ...")
-            scaler.scale(loss).backward()
+            #scaler.scale(loss).backward()
+            loss.backward()
 
             #if (i + 1) % num_grad_acc == 0:
             print("Updating Parameters at Step {} ...".format(i))
-            scaler.step(optimizer)
-            scaler.update()
+            #scaler.step(optimizer)
+            #scaler.update()
+            optimizer.step()
             scheduler.step()
             optimizer.zero_grad()
 
