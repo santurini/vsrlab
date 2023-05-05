@@ -96,8 +96,6 @@ def run(cfg: DictConfig):
                 loss = loss_dict["Loss"] / num_grad_acc
 
             print("Loss:", loss_dict["Loss"].item())
-            metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
-
             print("Scaling Loss ...")
             scaler.scale(loss).backward()
 
@@ -108,6 +106,7 @@ def run(cfg: DictConfig):
             scheduler.step()
             optimizer.zero_grad()
 
+            metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
             #steps = update_weights(loss_dict["Loss"], scaler, scheduler, optimizer, num_grad_acc, steps, i, len(train_dl))
 
         if rank == 0:
