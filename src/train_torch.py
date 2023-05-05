@@ -82,10 +82,10 @@ def run(cfg: DictConfig):
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
-            #with torch.cuda.amp.autocast():
-            sr, lq = model(lr)
-            loss_dict = compute_loss(loss_fn, loss_dict, sr, hr, lq)
-            loss = loss_dict["Loss"] / num_grad_acc
+            with torch.cuda.amp.autocast():
+                sr, lq = model(lr)
+                loss_dict = compute_loss(loss_fn, loss_dict, sr, hr, lq)
+                loss = loss_dict["Loss"] / num_grad_acc
 
             print("Loss:", loss_dict["Loss"].item())
             metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
@@ -98,6 +98,7 @@ def run(cfg: DictConfig):
                 scaler.step(optimizer)
                 scaler.update()
                 scheduler.step()
+                optimizer.zero_grad()
 
             #steps = update_weights(loss_dict["Loss"], scaler, scheduler, optimizer, num_grad_acc, steps, i, len(train_dl))
 
