@@ -88,7 +88,7 @@ def run(cfg: DictConfig):
 
     # Loop over the dataset multiple times
     print("Start Training...")
-    while steps < cfg.train.max_steps:
+    while steps < cfg.train.trainer.max_steps:
         dt = time.time()
         model.train()
 
