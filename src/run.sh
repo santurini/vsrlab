@@ -5,4 +5,4 @@ mpirun -np 2 \
 -x MASTER_ADDR=192.168.0.166 \
 -x MASTER_PORT=1234 \
 -bind-to none -map-by node \
-python train_torch.py +experiment=baby_of core.run_id="sanity" core.run_name="Sanity Checking"
+python dummy.py --backend=nccl --use_syn
