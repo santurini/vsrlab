@@ -9,7 +9,7 @@ class WandbLogger(object):
             self,
             project: str = 'vsr',
             save_dir: str = '.',
-            run_id: str = 'sanity',
+            id: str = 'sanity',
             name: str = 'Sanity Checking',
             tags: List[Any] = None
                  ):
@@ -17,7 +17,7 @@ class WandbLogger(object):
         self.save_dir = save_dir
         self.project = project
         self.name = name
-        self.run_id = run_id
+        self.id = id
         self.tags = tags
 
     def init(self):
@@ -25,7 +25,7 @@ class WandbLogger(object):
             dir = self.save_dir,
             project = self.project,
             name = self.name,
-            id = self.run_id,
+            id = self.id,
             tags = self.tags,
         )
 
