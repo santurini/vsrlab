@@ -38,6 +38,31 @@ def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> Opt
         pylogger.warning("The seed has not been set! The reproducibility is not guaranteed.")
         return None
 
+import os
+import time
+
+import torch
+import torch.distributed as dist
+import torch.optim as optim
+
+import torchvision
+import torchvision.transforms as transforms
+
+from torch.utils.data.distributed import DistributedSampler
+from torch.utils.data import DataLoader
+
+
+def get_resources():
+    if os.environ.get('OMPI_COMMAND'):
+        # from mpirun
+        rank = int(os.environ["OMPI_COMM_WORLD_RANK"])
+        local_rank = int(os.environ["OMPI_COMM_WORLD_LOCAL_RANK"])
+        world_size = int(os.environ["OMPI_COMM_WORLD_SIZE"])
+
+        print(rank, local_rank, world_size)
+
+    return rank, local_rank
+
 def setup_ddp():
     rank = int(os.environ["RANK"])
     world_size = int(os.environ['WORLD_SIZE'])

@@ -45,7 +45,7 @@ def run(cfg: DictConfig):
     save_config(cfg)
     seed_index_everything(cfg.train)
 
-    rank, local_rank = setup_ddp() if cfg.train.ddp else (0, 0)
+    rank, local_rank = get_resources()
 
     # Initialize logger
     if local_rank == 0:
