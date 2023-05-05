@@ -59,7 +59,7 @@ def get_resources():
         local_rank = int(os.environ["OMPI_COMM_WORLD_LOCAL_RANK"])
         world_size = int(os.environ["OMPI_COMM_WORLD_SIZE"])
 
-        print(rank, local_rank, world_size)
+        print("Rank {} - Local Rank {} - World Size {}".format(rank, local_rank, world_size))
 
     return rank, local_rank
 

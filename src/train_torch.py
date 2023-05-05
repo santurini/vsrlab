@@ -79,7 +79,6 @@ def run(cfg: DictConfig):
         model.train()
 
         print('Loading Batches ...')
-        optimizer.zero_grad()
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
@@ -90,7 +89,7 @@ def run(cfg: DictConfig):
 
                 metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
 
-                steps = update_weights(loss_dict["Loss"], scaler, scheduler, optimizer, num_grad_acc, steps, i, len(train_dl))
+            steps = update_weights(loss_dict["Loss"], scaler, scheduler, optimizer, num_grad_acc, steps, i, len(train_dl))
 
         if rank == 0:
             print("Logging on WandB ...")
