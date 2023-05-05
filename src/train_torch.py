@@ -98,7 +98,7 @@ def run(cfg: DictConfig):
                 #loss_dict = compute_loss(loss_fn, loss_dict, sr, hr, lq)
                 #loss = loss_dict["Loss"] / num_grad_acc
 
-            print("Loss:", loss_dict["Loss"].item())
+            #print("Loss:", loss_dict["Loss"].item())
             print("Scaling Loss ...")
             scaler.scale(loss).backward()
 
