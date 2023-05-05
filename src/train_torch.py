@@ -90,6 +90,7 @@ def run(cfg: DictConfig):
                 print("Loss:", loss_dict["Loss"].item())
                 metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
 
+            print("Scaling Loss ...")
             scaler.scale(loss).backward()
 
             if (i + 1) % num_grad_acc == 0:
