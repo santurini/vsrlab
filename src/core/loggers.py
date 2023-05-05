@@ -30,7 +30,7 @@ class WandbLogger(object):
         )
 
     @staticmethod
-    def log_images(stage, epoch, lr, sr, hr, lq=None):
+    def log_images(stage, step, lr, sr, hr, lq=None):
         _, _, _, h, w = hr.size()
 
         lr = resize(lr[0, -1, :, :, :], (h,w)).detach()
