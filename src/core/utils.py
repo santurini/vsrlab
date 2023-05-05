@@ -222,8 +222,8 @@ def compute_loss(loss_fn, loss_dict, sr, hr, lq=None):
 
 def compute_metric(metric, metrics_dict, sr, hr):
     metrics = metric(
-        rearrange(sr.detach().clamp(0, 1).cpu().contiguous(), 'b t c h w -> b c t h w'),
-        rearrange(hr.detach().cpu().contiguous(), 'b t c h w -> b c t h w')
+        rearrange(sr.detach().clamp(0, 1).cpu().contiguous(), 'b t c h w -> (b t) c h w'),
+        rearrange(hr.detach().cpu().contiguous(), 'b t c h w -> (b t) c h w')
     )
     metrics_dict = dict(reduce(add, map(Counter, [metrics, metrics_dict])))
     return metrics_dict
