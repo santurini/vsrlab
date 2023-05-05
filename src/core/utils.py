@@ -228,7 +228,7 @@ def compute_metric(metric, metrics_dict, sr, hr):
     metrics_dict = dict(reduce(add, map(Counter, [metrics, metrics_dict])))
     return metrics_dict
 
-def update_weights(loss, scaler, scheduler, optimizer, num_grad_acc, steps):
+def update_weights(loss, scaler, scheduler, optimizer, num_grad_acc, steps, i):
     scaler.scale(loss / num_grad_acc).backward()
     if i + 1 % num_grad_acc == 0:
         scaler.step(optimizer)
