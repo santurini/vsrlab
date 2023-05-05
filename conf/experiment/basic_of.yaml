@@ -25,6 +25,7 @@ nn:
     set_lr: False
 
 train:
+  ddp: True
   trainer:
     devices: 1
     max_steps: 100000
