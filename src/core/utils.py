@@ -74,7 +74,7 @@ def save_config(cfg):
     save_path = os.path.join(
         cfg.train.logger.save_dir,
         cfg.train.logger.project,
-        cfg.train.logger.id,
+        cfg.train.logger.run_id,
         "config.yaml"
     )
     Path(save_path).parent.mkdir(exist_ok=True, parents=True)
@@ -89,7 +89,7 @@ def save_checkpoint(cfg, model):
     save_path = os.path.join(
         cfg.train.logger.save_dir,
         cfg.train.logger.project,
-        cfg.train.logger.id,
+        cfg.train.logger.run_id,
         "checkpoint"
         "last.ckpt"
     )
