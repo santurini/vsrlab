@@ -97,8 +97,9 @@ def run(cfg: DictConfig):
                 print("Updating Parameters at Step {} ...".format(i))
                 scaler.step(optimizer)
                 scaler.update()
-                optimizer.zero_grad()
                 scheduler.step()
+                optimizer.zero_grad()
+
 
             #steps = update_weights(loss_dict["Loss"], scaler, scheduler, optimizer, num_grad_acc, steps, i, len(train_dl))
 
