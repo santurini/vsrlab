@@ -49,6 +49,7 @@ def run(cfg: DictConfig):
 
     # Initialize logger
     if local_rank == 0:
+        import ipdb ; ipdb.set_trace()
         logger = hydra.utils.instantiate(cfg.train.logger, _recursive_=False)
 
     device = torch.device("cuda:{}".format(local_rank))
