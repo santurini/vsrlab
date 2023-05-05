@@ -32,7 +32,7 @@ def evaluate(model, logger, device, test_loader,
         for data in test_loader:
             lr, hr = data[0].to(device), data[1].to(device)
             sr, lq = model(lr)
-            loss_dict = compute_loss(loss_fn, loss_dict, sr, hr)
+            _, loss_dict = compute_loss(loss_fn, loss_dict, sr, hr)
             metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
 
         logger.log_dict(loss_dict | metrics_dict,
@@ -97,7 +97,7 @@ def run(cfg: DictConfig):
             logger.log_images("Train", epoch, lr, sr, hr, lq)
 
             print("Starting Evaluation ...")
-            evaluate(model, logger, device, test_dl,
+            evaluate(model, logger, device, val_dl,
                      loss_fn, loss_dict, metric, metrics_dict)
 
             dt = time.time() - dt
