@@ -44,7 +44,7 @@ class WandbLogger(object):
         else:
             grid = make_grid([lr, sr, hr], nrow=3, ncol=1)
 
-        wandb.log({f'Prediction {stage}': [wandb.Image(grid, caption=f'Stage {stage}, Epoch {epoch}')]})
+        wandb.log({f'Prediction {stage}': [wandb.Image(grid, caption=f'Stage {stage}, Step {step}')]})
 
     @staticmethod
     def log_dict(log_dict, average_by=1, stage="Train"):

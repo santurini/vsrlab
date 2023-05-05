@@ -25,7 +25,7 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-def evaluate(model, logger, device, test_loader,
+def evaluate(model, logger, device, test_loader, step,
              loss_fn, loss_dict, metric, metrics_dict):
     model.eval()
     with torch.no_grad():
@@ -37,7 +37,7 @@ def evaluate(model, logger, device, test_loader,
 
         logger.log_dict(loss_dict | metrics_dict,
                         average_by=len(test_loader), stage="Val")
-        logger.log_images("Val", epoch, lr, sr, hr, lq)
+        logger.log_images("Val", step, lr, sr, hr, lq)
         save_checkpoint(cfg, model)
 
 
@@ -97,7 +97,7 @@ def run(cfg: DictConfig):
             logger.log_images("Train", epoch, lr, sr, hr, lq)
 
             print("Starting Evaluation ...")
-            evaluate(model, logger, device, val_dl,
+            evaluate(model, logger, device, val_dl, step,
                      loss_fn, loss_dict, metric, metrics_dict)
 
             dt = time.time() - dt
