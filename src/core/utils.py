@@ -262,7 +262,7 @@ def compute_metric(metric, metrics_dict, sr, hr):
     metrics_dict = dict(reduce(add, map(Counter, [metrics, metrics_dict])))
     return metrics_dict
 
-def update_weights(loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, steps, i, n):
+def update_weights(model,loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, steps, i, n):
     loss = loss / num_grad_acc
     scaler.scale(loss).backward()
 

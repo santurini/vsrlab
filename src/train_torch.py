@@ -86,7 +86,7 @@ def run(cfg: DictConfig):
                 sr, lq = model(lr)
                 loss, loss_dict = compute_loss(loss_fn, loss_dict, sr, hr, lq)
 
-            steps = update_weights(loss, scaler, scheduler, optimizer, num_grad_acc,
+            steps = update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc,
                                    cfg.train.trainer.gradient_clip_val, steps, i, len(train_dl))
 
             metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
