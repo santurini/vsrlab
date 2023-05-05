@@ -17,23 +17,8 @@ import omegaconf
 from omegaconf import DictConfig
 import wandb
 
+from core.utils import *
 from core import PROJECT_ROOT
-from core.utils import (
-    build_scheduler,
-    build_model,
-    build_optimizer,
-    build_loaders,
-    build_metric,
-    save_config,
-    save_checkpoint,
-    seed_index_everything,
-    setup_ddp,
-    restore_model,
-    compute_loss,
-    compute_metric,
-    update_weights
-)
-
 from core.losses import CharbonnierLoss
 
 import warnings
