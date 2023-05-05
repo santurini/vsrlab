@@ -10,6 +10,9 @@ class MetricCollection(nn.ModuleDict):
         self.add_metrics(metrics)
 
     def forward(self, *args):
+        hr, lr = args
+        print(hr.device)
+        print(lr.device)
         res = {k: m(*args).item() for k, m in self.items()}
         return {self._set_name(k): v for k, v in res.items()}
 

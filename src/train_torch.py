@@ -100,10 +100,7 @@ def run(cfg: DictConfig):
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
                 loss_dict = compute_loss(loss_fn, loss_dict, sr, hr, lq)
-                print("Loss:", loss_dict["Loss"])
-                print("hr device:", hr.device)
-                print("sr device:", sr.device)
-                print("metric device:", metric.device)
+                print("Loss:", loss_dict["Loss"].item())
 
                 metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
 
