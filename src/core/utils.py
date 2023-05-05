@@ -238,12 +238,12 @@ def build_loaders(cfg):
 
     return train_dl, val_dl, num_grad_acc, steps, epoch
 
-def compute_loss(loss_fn, loss_dict, sr, hr, lq=None):
-    loss_dict["Loss"] += loss_fn(sr, hr)
+def compute_loss(loss_fn, sr, hr, lq=None):
+    loss = loss_fn(sr, hr)
     if lq is not None:
         _, _, _, h, w = lq.size()
-        loss_dict["Loss"] += loss_fn(lq, resize(hr, (h, w)))
-    return loss_dict
+        loss += loss_fn(lq, resize(hr, (h, w)))
+    return loss
 
 def compute_metric(metric, metrics_dict, sr, hr):
     metrics = metric(
