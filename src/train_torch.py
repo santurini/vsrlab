@@ -49,9 +49,9 @@ def run(cfg: DictConfig):
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
 
     # Initialize logger
-    if rank == 0:
-        pylogger.info("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
-        logger = build_logger(cfg.train.logger)
+    #if rank == 0:
+    pylogger.info("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
+    logger = build_logger(cfg.train.logger)
 
     device = torch.device("cuda:{}".format(local_rank))
 
