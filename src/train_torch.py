@@ -33,8 +33,8 @@ def evaluate(rank, world_size, model, logger, device, val_dl, step, loss_fn, met
     model.eval()
     with torch.no_grad():
         for i, data in enumerate(val_dl):
-            lr, hr = data[0].to(device, memory_format=torch.channels_last), \
-                        data[1].to(device, memory_format=torch.channels_last)
+            lr, hr = data[0].to(device, memory_format=torch.channels_last_3d), \
+                        data[1].to(device, memory_format=torch.channels_last_3d)
             sr, lq = model(lr)
             loss = compute_loss(loss_fn, sr, hr, lq)
 
@@ -95,8 +95,8 @@ def run(cfg: DictConfig):
         model.train()
 
         for i, data in enumerate(train_dl):
-            lr, hr = data[0].to(device, memory_format=torch.channels_last), \
-                        data[1].to(device, memory_format=torch.channels_last)
+            lr, hr = data[0].to(device, memory_format=torch.channels_last_3d), \
+                        data[1].to(device, memory_format=torch.channels_last_3d)
 
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
