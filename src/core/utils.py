@@ -258,6 +258,7 @@ def update_weights(model,loss, scaler, scheduler, optimizer, num_grad_acc, grad_
     scaler.scale(loss).backward()
 
     if (i + 1) % num_grad_acc == 0:
+        print("Updating at step {}".format(step))
         scaler.unscale_(optimizer)
         clip_grad_norm_(model.parameters(), grad_clip)
         scaler.step(optimizer)
