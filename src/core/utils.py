@@ -170,7 +170,7 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
 def build_model(cfg, device, local_rank=None, ddp=False):
     pylogger.info(f"Building Model")
     model = hydra.utils.instantiate(cfg, _recursive_=False)
-    model = model.to(device, memory_format=torch.channels_last_3d)
+    model = model.to(device, memory_format=torch.channels_last)
 
     if ddp:
         pylogger.info(f"Setting up distributed model")
