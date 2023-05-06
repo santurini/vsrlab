@@ -86,7 +86,6 @@ def run(cfg: DictConfig):
         model.train()
 
         for i, data in enumerate(train_dl):
-            print('batch {}'.format(i))
             lr, hr = data[0].to(device), data[1].to(device)
 
             with torch.cuda.amp.autocast():
@@ -104,15 +103,15 @@ def run(cfg: DictConfig):
             optimizer.zero_grad()
 
         if rank == 0:
-            pylogger.info("Logging on WandB ...")
+            print("Logging on WandB ...")
             logger.log_images("Train", step, lr, sr, hr, lq)
 
-            pylogger.info("Starting Evaluation ...")
+            print("Starting Evaluation ...")
             evaluate(model, logger, device, val_dl, step,
                         loss_fn, metric, cfg)
 
             dt = time.time() - dt
-            pylogger.info(f"Elapsed time epoch {epoch} --> {dt:2f}")
+            print(f"Elapsed time epoch {epoch} --> {dt:2f}")
 
     if rank == 0:
         logger.close()
