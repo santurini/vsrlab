@@ -83,7 +83,7 @@ class OpticalFlowConsistency(nn.Module):
         self.weight = weight
 
         for p in self.of.parameters():
-            p.requires_grad = None
+            p.requires_grad = False
 
     def forward(self, sr, hr):
         b, t, c, h, w = sr.shape
