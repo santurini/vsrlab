@@ -1,5 +1,4 @@
 #!/usr/bin/env zsh
-
 git pull
 
 export MASTER_ADDR=192.168.1.42
@@ -8,7 +7,6 @@ export MASTER_PORT=1234
 echo $MASTER_ADDR
 echo $MASTER_PORT
 
-conda activate vsr
-
 mpirun -v -np 2 -host 192.168.1.42,192.168.0.166 \
-        python train_torch.py +experiment=basic_of_ddp core.run_id=mpirun core.run_name=MPIRUN
+        python train_torch.py +experiment=basic_of_ddp \
+        core.run_id=mpirun core.run_name=MPIRUN
