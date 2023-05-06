@@ -102,6 +102,8 @@ def run(cfg: DictConfig):
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
                 loss = compute_loss(loss_fn, sr, hr, lq)
+                print(sr.shape())
+                print(lq.shape())
 
             '''loss = loss / num_grad_acc
             scaler.scale(loss).backward()
