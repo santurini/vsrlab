@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/bin/bash
 git pull
 
 export MASTER_ADDR=192.168.1.42
