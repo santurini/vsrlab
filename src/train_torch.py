@@ -99,6 +99,7 @@ def run(cfg: DictConfig):
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
                 loss = compute_loss(loss_fn, sr, hr, lq)
+                print(loss)
 
             loss = loss / num_grad_acc
             scaler.scale(loss).backward()
@@ -109,8 +110,11 @@ def run(cfg: DictConfig):
             scheduler.step()
             optimizer.zero_grad()
 
+            print(loss)
+
             if rank==0:
                 dist.all_reduce(loss, op=dist.ReduceOp.SUM)
+                print(loss)
                 logger.log_dict({"Loss": loss.detach().item() / world_size}, "Train")
                 logger.log_dict(compute_metric(metric, sr, hr), "Train")
 
