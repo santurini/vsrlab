@@ -240,7 +240,7 @@ def compute_loss(loss_fn, sr, hr, lq=None):
     loss = loss_fn(sr, hr)
     if lq is not None:
         _, _, c, h, w = lq.size()
-        loss += loss_fn(lq, F.resize(hr, [c, h, w]))
+        loss += loss_fn(lq, resize(hr.contiguous(), (h, w)))
     return loss
 
 def compute_metric(metric, sr, hr):
