@@ -200,6 +200,7 @@ def build_loaders(cfg):
 
     # Restricts data loading to a subset of the dataset exclusive to the current process
     train_sampler = DistributedSampler(dataset=train_ds) if cfg.train.ddp else None
+    val_sampler = DistributedSampler(dataset=val_ds) if cfg.train.ddp else None
 
     if cfg.train.trainer.num_grad_acc is not None:
         num_grad_acc = cfg.train.trainer.num_grad_acc
@@ -224,6 +225,7 @@ def build_loaders(cfg):
     # Test loader does not have to follow distributed sampling strategy
     val_dl = DataLoader(dataset=val_ds,
                         batch_size=cfg.nn.data.batch_size,
+                        sampler=train_sampler,
                         num_workers=cfg.nn.data.num_workers,
                         prefetch_factor=cfg.nn.data.prefetch_factor,
                         shuffle=False,
@@ -233,21 +235,18 @@ def build_loaders(cfg):
 
     return train_dl, val_dl, num_grad_acc, steps, epoch
 
-def compute_loss(logger, stage, loss_fn, sr, hr, lq=None):
+def compute_loss(loss_fn, sr, hr, lq=None):
     loss = loss_fn(sr, hr)
     if lq is not None:
         _, _, _, h, w = lq.size()
         loss += loss_fn(lq, resize(hr, (h, w)))
-
-    logger.log_dict({"Loss": loss.detach().item()}, stage)
     return loss
 
-def compute_metric(logger, stage, metric, sr, hr):
+def compute_metric(metric, sr, hr):
     metrics = metric(
         rearrange(sr.detach().clamp(0, 1), 'b t c h w -> (b t) c h w').contiguous(),
         rearrange(hr.detach(), 'b t c h w -> (b t) c h w').contiguous()
     )
-    logger.log_dict(metrics, stage)
 
     return metrics
 

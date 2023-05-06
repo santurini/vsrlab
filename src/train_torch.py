@@ -35,11 +35,17 @@ def evaluate(model, logger, device, test_loader, step, loss_fn, metric, cfg):
         for i, data in enumerate(test_loader):
             lr, hr = data[0].to(device), data[1].to(device)
             sr, lq = model(lr)
-            _ = compute_loss(logger, "Val", loss_fn, sr, hr)
-            _ = compute_metric(logger, "Val", metric, sr, hr)
+            loss = compute_loss(loss_fn, sr, hr, lq)
 
-    logger.log_images("Val", step, lr, sr, hr, lq)
-    save_checkpoint(cfg, model)
+            if rank==0:
+                dist.all_reduce(loss, op=dist.ReduceOp.SUM)
+                logger.log_dict({"Loss": loss.detach().item() / world_size}, "Val")
+                logger.log_dict(compute_metric(metric, sr, hr), "Val")
+
+        if rank == 0:
+            print("Logging on WandB ...")
+            logger.log_images("Val", step, lr, sr, hr, lq)
+            save_checkpoint(cfg, model)
 
 
 def run(cfg: DictConfig):
@@ -90,8 +96,7 @@ def run(cfg: DictConfig):
 
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
-                loss = compute_loss(logger, "Train", loss_fn, sr, hr, lq)
-                _ = compute_metric(logger, "Train", metric, sr, hr)
+                loss = compute_loss(loss_fn, sr, hr, lq)
 
             loss = loss / num_grad_acc
             scaler.scale(loss).backward()
@@ -102,16 +107,21 @@ def run(cfg: DictConfig):
             scheduler.step()
             optimizer.zero_grad()
 
+            if rank==0:
+                dist.all_reduce(loss, op=dist.ReduceOp.SUM)
+                logger.log_dict({"Loss": loss.detach().item() / world_size}, "Train")
+                logger.log_dict(compute_metric(metric, sr, hr), "Train")
+
         if rank == 0:
             print("Logging on WandB ...")
             logger.log_images("Train", step, lr, sr, hr, lq)
 
-            print("Starting Evaluation ...")
-            evaluate(model, logger, device, val_dl, step,
-                        loss_fn, metric, cfg)
+        print("Starting Evaluation ...")
+        evaluate(model, logger, device, val_dl,
+                 step, loss_fn, metric, cfg)
 
-            dt = time.time() - dt
-            print(f"Elapsed time epoch {epoch} --> {dt:2f}")
+        dt = time.time() - dt
+        print(f"Elapsed time --> {dt:2f}")
 
     if rank == 0:
         logger.close()
