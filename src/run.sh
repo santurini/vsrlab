@@ -1,7 +1,7 @@
 #!/bin/bash
 
-EXPORT MASTER_ADDR=192.168.1.42
-EXPORT MASTER_PORT=1234
+export MASTER_ADDR=192.168.1.42
+export MASTER_PORT=1234
 
 #conda activate vsr
 git pull
