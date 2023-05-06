@@ -3,7 +3,7 @@
 EXPORT MASTER_ADDR=192.168.1.42
 EXPORT MASTER_PORT=1234
 
-conda activate vsr
+#conda activate vsr
 git pull
 
 mpirun -v -np 2 -host 192.168.1.42,192.168.0.166 \
