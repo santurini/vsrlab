@@ -227,7 +227,7 @@ def build_loaders(cfg):
 
     # Test loader does not have to follow distributed sampling strategy
     val_dl = DataLoader(dataset=val_ds,
-                        batch_size=cfg.nn.data.batch_size * 2,
+                        batch_size=cfg.nn.data.batch_size,
                         sampler=val_sampler,
                         num_workers=cfg.nn.data.num_workers,
                         prefetch_factor=cfg.nn.data.prefetch_factor,
