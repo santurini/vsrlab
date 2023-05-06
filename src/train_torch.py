@@ -102,14 +102,17 @@ def run(cfg: DictConfig):
                 sr, lq = model(lr)
                 loss = compute_loss(loss_fn, sr, hr, lq)
 
-            loss = loss / num_grad_acc
+            '''loss = loss / num_grad_acc
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             clip_grad_norm_(model.parameters(), cfg.train.trainer.gradient_clip_val)
             scaler.step(optimizer)
             scaler.update()
             scheduler.step()
-            optimizer.zero_grad()
+            optimizer.zero_grad()'''
+
+            step = update_weights(model,loss, scaler, scheduler,
+                                  optimizer, num_grad_acc, grad_clip, steps, i)
 
             if rank==0:
                 logger.log_dict({"Loss": loss.detach().item()}, "Train")

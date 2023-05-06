@@ -250,7 +250,7 @@ def compute_metric(metric, sr, hr):
 
     return metrics
 
-def update_weights(model,loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, steps, i):
+def update_weights(model,loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, step, i):
     loss = loss / num_grad_acc
     scaler.scale(loss).backward()
 
@@ -261,8 +261,9 @@ def update_weights(model,loss, scaler, scheduler, optimizer, num_grad_acc, grad_
         scaler.update()
         scheduler.step()
         optimizer.zero_grad()
+        step += 1
 
-    return steps
+    return step
 
 def batched(iterable, n):
     if n < 1:
