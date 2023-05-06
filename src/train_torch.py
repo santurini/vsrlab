@@ -33,8 +33,7 @@ def evaluate(rank, world_size, model, logger, device, val_dl, step, loss_fn, met
     model.eval()
     with torch.no_grad():
         for i, data in enumerate(val_dl):
-            lr, hr = data[0].to(device, memory_format=torch.channels_last_3d), \
-                        data[1].to(device, memory_format=torch.channels_last_3d)
+            lr, hr = data[0].to(device), data[1].to(device)
             sr, lq = model(lr)
             loss = compute_loss(loss_fn, sr, hr, lq)
 

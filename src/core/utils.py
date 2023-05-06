@@ -171,7 +171,7 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
 def build_model(cfg, device, local_rank=None, ddp=False):
     pylogger.info(f"Building Model")
     model = hydra.utils.instantiate(cfg, _recursive_=False)
-    model = model.to(device, memory_format=torch.channels_last)
+    model = model.to(device)
 
     if ddp:
         pylogger.info(f"Setting up distributed model")
@@ -242,7 +242,7 @@ def compute_loss(loss_fn, sr, hr, lq=None):
     loss = loss_fn(sr, hr)
     if lq is not None:
         _, _, c, h, w = lq.size()
-        loss += loss_fn(lq, resize(hr.contiguous(), (h, w)))
+        loss += loss_fn(lq, resize(hr, (h, w)))
     return loss
 
 def compute_metric(metric, sr, hr):
