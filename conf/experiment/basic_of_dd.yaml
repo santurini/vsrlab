@@ -1,0 +1,35 @@
+# @package _global_
+core:
+  run_id: "akfvaeilf"
+  run_name: "Real Basic OF"
+
+defaults:
+  - override /train/strategy: ddp
+  - override /nn/data: easy_schedule
+
+finetune: null
+
+nn:
+  data:
+    batch_size: 8
+    prefetch_factor: 4
+    num_workers: 8
+    datasets:
+      train:
+        path: "/home/aghinassi/Desktop/MergedVSR"
+  module:
+    optimizer:
+      lr: 1e-4
+    scheduler:
+      eta_min: 6.7e-5
+    set_lr: False
+
+train:
+  ddp: True
+  trainer:
+    devices: 2
+    max_steps: 100000
+    gradient_clip_val: 1
+    #num_grad_acc: 1
+  logger:
+    _target_: core.loggers.WandbLogger
