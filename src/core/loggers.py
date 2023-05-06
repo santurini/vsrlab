@@ -34,12 +34,12 @@ class WandbLogger(object):
     def log_images(stage, step, lr, sr, hr, lq=None):
         n, t, d, h, w = hr.size()
 
-        lr = F.resize(lr[0][-1], (h,w)).detach()
+        lr = resize(lr[0][-1].contiguous(), (h,w)).detach()
         hr = hr[0][-1].detach()
         sr = sr[0][-1].detach().clamp(0, 1)
 
         if lq is not None:
-            lq = F.resize(lr[0][-1], (h,w)).detach()
+            lq = resize(lr[0][-1].contiguous(), (h,w)).detach()
             grid = make_grid([lr, lq, sr, hr], nrow=4, ncol=1)
 
         else:
