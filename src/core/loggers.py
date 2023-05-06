@@ -31,7 +31,7 @@ class WandbLogger(object):
         )
 
     @staticmethod
-    def log_images(stage, step, lr, sr, hr, lq=None):
+    def log_images(stage, epoch, lr, sr, hr, lq=None):
         n, t, d, h, w = hr.size()
 
         lr = resize(lr[0, -1, :, :, :], (h,w)).detach()
@@ -45,7 +45,7 @@ class WandbLogger(object):
         else:
             grid = make_grid([lr, sr, hr], nrow=3, ncol=1)
 
-        wandb.log({f'Prediction {stage}': [wandb.Image(grid, caption=f'Stage {stage}, Step {step}')]})
+        wandb.log({f'Prediction {stage}': [wandb.Image(grid, caption=f'Stage {stage}, Epoch {epoch}')]})
 
     @staticmethod
     def log_dict(log_dict, stage="Train"):

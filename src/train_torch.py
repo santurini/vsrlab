@@ -29,7 +29,7 @@ import warnings
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
-def evaluate(rank, world_size, model, logger, device, val_dl, step, loss_fn, of_loss_fn, metric, cfg):
+def evaluate(rank, world_size, model, logger, device, val_dl, loss_fn, of_loss_fn, metric, cfg):
     model.eval()
     with torch.no_grad():
         for i, data in enumerate(val_dl):
@@ -44,7 +44,7 @@ def evaluate(rank, world_size, model, logger, device, val_dl, step, loss_fn, of_
                 logger.log_dict(compute_metric(metric, sr, hr), "Val")
 
         if rank == 0:
-            logger.log_images("Val", step, lr, sr, hr, lq)
+            logger.log_images("Val", epoch, lr, sr, hr, lq)
             save_checkpoint(cfg, model)
 
 
@@ -90,7 +90,7 @@ def run(cfg: DictConfig):
 
     # Loop over the dataset multiple times
     pylogger.info("Local Rank {} - Start Training ...".format(local_rank))
-    while step < cfg.train.trainer.max_steps:
+    for epoch in range(cfg.train.trainer.max_epochs):
         dt = time.time()
         model.train()
 
@@ -101,8 +101,8 @@ def run(cfg: DictConfig):
                 sr, lq = model(lr)
                 loss = compute_loss(loss_fn, sr, hr, lq, of_loss_fn)
 
-            step = update_weights(model,loss, scaler, scheduler,
-                                  optimizer, num_grad_acc, gradient_clip_val, step, i)
+            update_weights(model, loss, scaler, scheduler,
+                            optimizer, num_grad_acc, gradient_clip_val, i)
 
             if rank==0:
                 logger.log_dict({"Loss": loss.detach().item()}, "Train")
@@ -110,11 +110,11 @@ def run(cfg: DictConfig):
 
         if rank == 0:
             print("Logging on WandB ...")
-            logger.log_images("Train", step, lr, sr, hr, lq)
+            logger.log_images("Train", epoch, lr, sr, hr, lq)
 
         print("Starting Evaluation ...")
         evaluate(rank, world_size, model, logger, device,
-                    val_dl, step, loss_fn, of_loss_fn, metric, cfg)
+                    val_dl, loss_fn, of_loss_fn, metric, cfg)
 
         dt = time.time() - dt
         print(f"Elapsed time --> {dt:2f}")
