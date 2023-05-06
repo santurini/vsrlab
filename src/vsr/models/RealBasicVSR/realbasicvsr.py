@@ -15,9 +15,9 @@ class RealBasicVSR(nn.Module):
     def forward(self, lr):
         n, t, c, h, w = lr.size()
         for _ in range(3):  # at most 3 cleaning, determined empirically
-            lr = lr.view(-1, c, h, w)
+            lr = lr.reshape(-1, c, h, w)
             residues = self.cleaner(lr)
-            lr = (lr + residues).view(n, t, c, h, w)
+            lr = (lr + residues).reshape(n, t, c, h, w)
             if torch.mean(torch.abs(residues)) < self.threshold:
                 break
         sr  = self.basicvsr(lr)
@@ -28,9 +28,9 @@ class RealBasicVSR(nn.Module):
         n, t, c, h, w = lr.size()
         lq = lr
         for _ in range(3):  # at most 3 cleaning, determined empirically
-            lq = lq.view(-1, c, h, w)
+            lq = lq.reshape(-1, c, h, w)
             residues = self.cleaner(lq)
-            lq = (lq + residues).view(n, t, c, h, w)
+            lq = (lq + residues).reshape(n, t, c, h, w)
             if torch.mean(torch.abs(residues)) < self.threshold:
                 break
 
