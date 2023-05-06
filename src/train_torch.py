@@ -38,8 +38,9 @@ def evaluate(model, logger, device, val_dl, step, loss_fn, metric, cfg):
             sr, lq = model(lr)
             loss = compute_loss(loss_fn, sr, hr, lq)
 
+            dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
+
             if rank==0:
-                dist.all_reduce(loss, op=dist.ReduceOp.SUM)
                 logger.log_dict({"Loss": loss.detach().item() / world_size}, "Val")
                 logger.log_dict(compute_metric(metric, sr, hr), "Val")
 
@@ -109,13 +110,8 @@ def run(cfg: DictConfig):
             scheduler.step()
             optimizer.zero_grad()
 
-            print("rank:", rank, "loss:", loss)
-            print('reducing loss')
-            dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
-            print(loss)
             if rank==0:
-                print(loss)
-                logger.log_dict({"Loss": loss.detach().item() / world_size}, "Train")
+                logger.log_dict({"Loss": loss.detach().item()}, "Train")
                 logger.log_dict(compute_metric(metric, sr, hr), "Train")
 
         if rank == 0:
@@ -124,7 +120,7 @@ def run(cfg: DictConfig):
 
         print("Starting Evaluation ...")
         evaluate(model, logger, device, val_dl,
-                 step, loss_fn, metric, cfg)
+                    step, loss_fn, metric, cfg)
 
         dt = time.time() - dt
         print(f"Elapsed time --> {dt:2f}")
