@@ -84,7 +84,7 @@ def run(cfg: DictConfig):
     optimizer, scheduler = build_optimizer(cfg, model)
 
     print('metrics and losses')
-    of_loss_fn = OpticalFlowConsistency(device) if cfg.train.use_of_loss else None
+    of_loss_fn = OpticalFlowConsistency(device, 0.01) if cfg.train.use_of_loss else None
     loss_fn = CharbonnierLoss()
     metric = build_metric(cfg.nn.module.metric).to(device)
 
