@@ -56,9 +56,11 @@ def run(cfg: DictConfig):
     device = torch.device("cuda:{}".format(local_rank))
 
     # Encapsulate the model on the GPU assigned to the current process
+    print('model')
     model = build_model(cfg.nn.module.model, device, local_rank, cfg.train.ddp)
 
     # Mixed precision
+    print('scaler')
     scaler = torch.cuda.amp.GradScaler()
 
     # We only save the model who uses device "cuda:0"
@@ -67,10 +69,13 @@ def run(cfg: DictConfig):
         model = restore_model(model, cfg.finetune, local_rank)
 
     # Prepare dataset and dataloader
+    print('loaders')
     train_dl, val_dl, num_grad_acc, step, epoch = build_loaders(cfg)
 
+    print('optimizer')
     optimizer, scheduler = build_optimizer(cfg, model)
 
+    print('metrics')
     loss_fn = CharbonnierLoss()
     metric = build_metric(cfg.nn.module.metric)
 
@@ -80,6 +85,7 @@ def run(cfg: DictConfig):
         dt = time.time()
         model.train()
 
+        print('batch {}'.format(i))
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
