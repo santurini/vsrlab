@@ -32,5 +32,3 @@ train:
     max_steps: 100000
     gradient_clip_val: 1
     num_grad_acc: 4
-  logger:
-    _target_: core.loggers.WandbLogger
