@@ -77,7 +77,7 @@ def run(cfg: DictConfig):
 
     print('metrics')
     loss_fn = CharbonnierLoss()
-    metric = build_metric(cfg.nn.module.metric)
+    metric = build_metric(cfg.nn.module.metric).to(device)
 
     # Loop over the dataset multiple times
     pylogger.info("Local Rank {} - Start Training ...".format(local_rank))
