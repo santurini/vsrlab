@@ -170,7 +170,7 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
 def build_model(cfg, device, local_rank=None, ddp=False):
     pylogger.info(f"Building Model")
     model = hydra.utils.instantiate(cfg, _recursive_=False)
-    model = model.to(device)
+    model = model.to(device, memory_format=torch.channels_last)
 
     if ddp:
         pylogger.info(f"Setting up distributed model")
@@ -250,18 +250,17 @@ def compute_metric(metric, sr, hr):
 
     return metrics
 
-def update_weights(model,loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, steps, i, n):
+def update_weights(model,loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, steps, i):
     loss = loss / num_grad_acc
     scaler.scale(loss).backward()
 
-    #if (((i + 1) % num_grad_acc == 0) or ((i+1) == n)):
-    #    if grad_clip is not None:
-    scaler.unscale_(optimizer)
-    clip_grad_norm_(model.parameters(), grad_clip)
-    scaler.step(optimizer)
-    scaler.update()
-    scheduler.step()
-    optimizer.zero_grad()
+    if (i + 1) % num_grad_acc == 0:
+        scaler.unscale_(optimizer)
+        clip_grad_norm_(model.parameters(), grad_clip)
+        scaler.step(optimizer)
+        scaler.update()
+        scheduler.step()
+        optimizer.zero_grad()
 
     return steps
 

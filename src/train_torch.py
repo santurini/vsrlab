@@ -33,8 +33,8 @@ def evaluate(rank, world_size, model, logger, device, val_dl, step, loss_fn, met
     model.eval()
     with torch.no_grad():
         for i, data in enumerate(val_dl):
-            print("Batch {}/{}".format(i, len(val_dl)))
-            lr, hr = data[0].to(device), data[1].to(device)
+            lr, hr = data[0].to(device, memory_format=torch.channels_last), \
+                        data[1].to(device, memory_format=torch.channels_last)
             sr, lq = model(lr)
             loss = compute_loss(loss_fn, sr, hr, lq)
 
@@ -45,7 +45,6 @@ def evaluate(rank, world_size, model, logger, device, val_dl, step, loss_fn, met
                 logger.log_dict(compute_metric(metric, sr, hr), "Val")
 
         if rank == 0:
-            print("Logging on WandB ...")
             logger.log_images("Val", step, lr, sr, hr, lq)
             save_checkpoint(cfg, model)
 
@@ -57,9 +56,11 @@ def run(cfg: DictConfig):
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
 
     # Initialize logger
-    #if rank == 0:
-    pylogger.info("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
-    logger = build_logger(cfg.train.logger)
+    if rank==0:
+        pylogger.info("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
+        logger = build_logger(cfg.train.logger)
+    else:
+        logger = None
 
     device = torch.device("cuda:{}".format(local_rank))
 
@@ -94,8 +95,8 @@ def run(cfg: DictConfig):
         model.train()
 
         for i, data in enumerate(train_dl):
-            lr, hr = data[0].to(device), data[1].to(device)
-            print("Batch {}/{}".format(i, len(train_dl)))
+            lr, hr = data[0].to(device, memory_format=torch.channels_last), \
+                        data[1].to(device, memory_format=torch.channels_last)
 
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
