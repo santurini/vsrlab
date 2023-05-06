@@ -205,11 +205,13 @@ def build_loaders(cfg):
 
     if cfg.train.trainer.num_grad_acc is not None:
         num_grad_acc = cfg.train.trainer.num_grad_acc
+        gradient_clip_val = cfg.train.trainer.gradient_clip_val
         batch_size = cfg.nn.data.batch_size // num_grad_acc
         steps = 0
         epoch = 0
     else:
         num_grad_acc = 1
+        gradient_clip_val = cfg.train.trainer.gradient_clip_val
         batch_size = cfg.nn.data.batch_size
         steps = 0
         epoch = 0
@@ -234,7 +236,7 @@ def build_loaders(cfg):
                         pin_memory=True
                         )
 
-    return train_dl, val_dl, num_grad_acc, steps, epoch
+    return train_dl, val_dl, num_grad_acc, gradient_clip_val, steps, epoch
 
 def compute_loss(loss_fn, sr, hr, lq=None):
     loss = loss_fn(sr, hr)

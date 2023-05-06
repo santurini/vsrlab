@@ -79,7 +79,7 @@ def run(cfg: DictConfig):
 
     # Prepare dataset and dataloader
     print('loaders')
-    train_dl, val_dl, num_grad_acc, step, epoch = build_loaders(cfg)
+    train_dl, val_dl, num_grad_acc, gradient_clip_val, step, epoch = build_loaders(cfg)
 
     print('optimizer')
     optimizer, scheduler = build_optimizer(cfg, model)
@@ -112,7 +112,7 @@ def run(cfg: DictConfig):
             optimizer.zero_grad()'''
 
             step = update_weights(model,loss, scaler, scheduler,
-                                  optimizer, num_grad_acc, grad_clip, steps, i)
+                                  optimizer, num_grad_acc, gradient_clip_val, steps, i)
 
             if rank==0:
                 logger.log_dict({"Loss": loss.detach().item()}, "Train")
