@@ -234,7 +234,7 @@ def build_loaders(cfg):
                           num_workers=cfg.nn.data.num_workers,
                           prefetch_factor=cfg.nn.data.prefetch_factor,
                           persistent_workers=True,
-                          #pin_memory=True
+                          pin_memory=True
                           )
 
     # Test loader does not have to follow distributed sampling strategy
@@ -245,7 +245,7 @@ def build_loaders(cfg):
                         prefetch_factor=cfg.nn.data.prefetch_factor,
                         shuffle=False,
                         persistent_workers=True,
-                        #pin_memory=True
+                        pin_memory=True
                         )
 
     return train_dl, val_dl, num_grad_acc, gradient_clip_val, steps, epoch
