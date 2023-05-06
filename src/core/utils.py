@@ -40,9 +40,19 @@ def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> Opt
         return None
 
 def get_resources():
-    local_rank = int(os.environ['LOCAL_RANK'])
-    world_size = int(os.environ['WORLD_SIZE'])
-    rank = int(os.environ['RANK'])
+    if os.environ.get('OMPI_COMMAND'):
+        # from mpirun
+        print("Launching with mpirun")
+        rank = int(os.environ["OMPI_COMM_WORLD_RANK"])
+        local_rank = int(os.environ["OMPI_COMM_WORLD_LOCAL_RANK"])
+        world_size = int(os.environ["OMPI_COMM_WORLD_SIZE"])
+
+    else:
+        # from torchrun
+        print("Launching with torchrun")
+        local_rank = int(os.environ['LOCAL_RANK'])
+        world_size = int(os.environ['WORLD_SIZE'])
+        rank = int(os.environ['RANK'])
 
     dist.init_process_group(backend="nccl", rank=rank, world_size=world_size)
 
