@@ -11,6 +11,7 @@ import numpy as np
 import time
 import torch.distributed as dist
 from torch.distributed import destroy_process_group
+from torch.nn.utils import clip_grad_norm_
 
 import hydra
 import omegaconf
@@ -25,16 +26,15 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-@torch.no_grad()
-def evaluate(model, logger, device, test_loader, step, loss_fn, loss_dict, metric, metrics_dict, cfg):
+def evaluate(model, logger, device, test_loader, step, loss_fn, metric, cfg):
     model.eval()
-    for i, data in enumerate(test_loader):
-        lr, hr = data[0].to(device), data[1].to(device)
-        sr, lq = model(lr)
-        _, loss_dict = compute_loss(loss_fn, loss_dict, sr, hr)
-        metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
+    with torch.no_grad():
+        for i, data in enumerate(test_loader):
+            lr, hr = data[0].to(device), data[1].to(device)
+            sr, lq = model(lr)
+            _ = compute_loss(logger, "Val", loss_fn, sr, hr)
+            _ = compute_metric(logger, "Val", metric, sr, hr)
 
-    logger.log_dict(loss_dict | metrics_dict, average_by=len(test_loader), stage="Val")
     logger.log_images("Val", step, lr, sr, hr, lq)
     save_checkpoint(cfg, model)
 
@@ -68,8 +68,8 @@ def run(cfg: DictConfig):
 
     optimizer, scheduler = build_optimizer(cfg, model)
 
-    loss_fn, loss_dict = CharbonnierLoss(), {"Loss": 0}
-    metric, metrics_dict = build_metric(cfg.nn.module.metric)
+    loss_fn = CharbonnierLoss()
+    metric = build_metric(cfg.nn.module.metric)
 
     # Loop over the dataset multiple times
     print("Local Rank {} - Start Training ...".format(local_rank))
@@ -82,21 +82,25 @@ def run(cfg: DictConfig):
 
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
-                loss, loss_dict = compute_loss(loss_fn, loss_dict, sr, hr, lq)
+                loss = compute_loss(logger, "Train", loss_fn, sr, hr, lq)
+                _ = compute_metric(logger, "Train", metric, sr, hr)
 
-            step = update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc,
-                                   cfg.train.trainer.gradient_clip_val, step, i, len(train_dl))
-
-            metrics_dict = compute_metric(metric, metrics_dict, sr, hr)
+            loss = loss / num_grad_acc
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
+            clip_grad_norm_(model.parameters(), cfg.train.trainer.grad_clip)
+            scaler.step(optimizer)
+            scaler.update()
+            scheduler.step()
+            optimizer.zero_grad()
 
         if rank == 0:
             print("Logging on WandB ...")
-            logger.log_dict(loss_dict | metrics_dict, average_by=len(train_dl), stage="Train")
-            logger.log_images("Train", epoch, lr, sr, hr, lq)
+            logger.log_images("Train", step, lr, sr, hr, lq)
 
             print("Starting Evaluation ...")
             evaluate(model, logger, device, val_dl, step,
-                     loss_fn, loss_dict, metric, metrics_dict, cfg)
+                        loss_fn, metric, cfg)
 
             dt = time.time() - dt
             print(f"Elapsed time epoch {epoch} --> {dt:2f}")

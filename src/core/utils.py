@@ -182,8 +182,7 @@ def build_model(cfg, device, local_rank=None, ddp=False):
 
 def build_metric(cfg):
     metric = hydra.utils.instantiate(cfg, _recursive_=True, _convert_="partial")
-    metrics_dict = {k: 0 for k in cfg.metrics}
-    return metric, metrics_dict
+    return metric
 
 def build_logger(cfg):
     logger = hydra.utils.instantiate(cfg, _recursive_=False)
@@ -212,7 +211,9 @@ def build_loaders(cfg):
                           batch_size=batch_size,
                           sampler=train_sampler,
                           num_workers=cfg.nn.data.num_workers,
-                          prefetch_factor=cfg.nn.data.prefetch_factor
+                          prefetch_factor=cfg.nn.data.prefetch_factor,
+                          persistent_workers=True,
+                          pin_memory=True
                           )
 
     # Test loader does not have to follow distributed sampling strategy
@@ -220,40 +221,43 @@ def build_loaders(cfg):
                         batch_size=cfg.nn.data.batch_size,
                         num_workers=cfg.nn.data.num_workers,
                         prefetch_factor=cfg.nn.data.prefetch_factor,
-                        shuffle=False
+                        shuffle=False,
+                        persistent_workers=True,
+                        pin_memory=True
                         )
 
     return train_dl, val_dl, num_grad_acc, steps, epoch
 
-def compute_loss(loss_fn, loss_dict, sr, hr, lq=None):
+def compute_loss(logger, stage, loss_fn, sr, hr, lq=None):
     loss = loss_fn(sr, hr)
     if lq is not None:
         _, _, _, h, w = lq.size()
         loss += loss_fn(lq, resize(hr, (h, w)))
 
-    loss_dict["Loss"] += loss.detach().item()
-    return loss, loss_dict
+    logger.log_dict({"Loss": loss.detach().item()}, stage)
+    return loss
 
-def compute_metric(metric, metrics_dict, sr, hr):
+def compute_metric(logger, stage, metric, sr, hr):
     metrics = metric(
-        rearrange(sr.detach().clamp(0, 1).cpu().contiguous(), 'b t c h w -> (b t) c h w'),
-        rearrange(hr.detach().cpu().contiguous(), 'b t c h w -> (b t) c h w')
+        rearrange(sr.detach().clamp(0, 1), 'b t c h w -> (b t) c h w').contiguous(),
+        rearrange(hr.detach(), 'b t c h w -> (b t) c h w').contiguous()
     )
-    metrics_dict = dict(reduce(add, map(Counter, [metrics, metrics_dict])))
-    return metrics_dict
+    logger.log_dict(metrics, stage)
+
+    return metrics
 
 def update_weights(model,loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, steps, i, n):
     loss = loss / num_grad_acc
     scaler.scale(loss).backward()
 
-    if (((i + 1) % num_grad_acc == 0) or ((i+1) == n)):
-        if grad_clip is not None:
-            scaler.unscale_(optimizer)
-            clip_grad_norm_(model.parameters(), grad_clip)
-        scaler.step(optimizer)
-        scaler.update()
-        scheduler.step()
-        optimizer.zero_grad()
+    #if (((i + 1) % num_grad_acc == 0) or ((i+1) == n)):
+    #    if grad_clip is not None:
+    scaler.unscale_(optimizer)
+    clip_grad_norm_(model.parameters(), grad_clip)
+    scaler.step(optimizer)
+    scaler.update()
+    scheduler.step()
+    optimizer.zero_grad()
 
     return steps
 

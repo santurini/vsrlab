@@ -47,10 +47,10 @@ class WandbLogger(object):
         wandb.log({f'Prediction {stage}': [wandb.Image(grid, caption=f'Stage {stage}, Step {step}')]})
 
     @staticmethod
-    def log_dict(log_dict, average_by=1, stage="Train"):
+    def log_dict(log_dict, stage="Train"):
         out_dict = {}
         for key in log_dict.keys():
-            out_dict['/'.join([key, stage])] = log_dict[key] / average_by
+            out_dict['/'.join([key, stage])] = log_dict[key]
 
         wandb.log(out_dict)
 
