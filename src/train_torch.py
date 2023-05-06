@@ -1,3 +1,5 @@
+import logging
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -25,6 +27,7 @@ from core.losses import CharbonnierLoss
 import warnings
 
 warnings.filterwarnings('ignore')
+pylogger = logging.getLogger(__name__)
 
 def evaluate(model, logger, device, test_loader, step, loss_fn, metric, cfg):
     model.eval()
@@ -47,7 +50,7 @@ def run(cfg: DictConfig):
 
     # Initialize logger
     if rank == 0:
-        print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
+        pylogger.info("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
         logger = build_logger(cfg.train.logger)
 
     device = torch.device("cuda:{}".format(local_rank))
@@ -72,7 +75,7 @@ def run(cfg: DictConfig):
     metric = build_metric(cfg.nn.module.metric)
 
     # Loop over the dataset multiple times
-    print("Local Rank {} - Start Training ...".format(local_rank))
+    pylogger.info("Local Rank {} - Start Training ...".format(local_rank))
     while step < cfg.train.trainer.max_steps:
         dt = time.time()
         model.train()
@@ -95,15 +98,15 @@ def run(cfg: DictConfig):
             optimizer.zero_grad()
 
         if rank == 0:
-            print("Logging on WandB ...")
+            pylogger.info("Logging on WandB ...")
             logger.log_images("Train", step, lr, sr, hr, lq)
 
-            print("Starting Evaluation ...")
+            pylogger.info("Starting Evaluation ...")
             evaluate(model, logger, device, val_dl, step,
                         loss_fn, metric, cfg)
 
             dt = time.time() - dt
-            print(f"Elapsed time epoch {epoch} --> {dt:2f}")
+            pylogger.info(f"Elapsed time epoch {epoch} --> {dt:2f}")
 
     if rank == 0:
         logger.close()

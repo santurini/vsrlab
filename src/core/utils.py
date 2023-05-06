@@ -146,6 +146,7 @@ def build_scheduler(
         )
 
 def build_optimizer(cfg, model):
+    pylogger.info(f"Building scheduler and optimizer")
     optimizer = hydra.utils.instantiate(cfg.nn.module.optimizer,
                                         model.parameters(),
                                         _recursive_=False,
@@ -167,10 +168,12 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
     return Sequential(*augmentation)
 
 def build_model(cfg, device, local_rank=None, ddp=False):
+    pylogger.info(f"Building Model")
     model = hydra.utils.instantiate(cfg, _recursive_=False)
     model = model.to(device)
 
     if ddp:
+        pylogger.info(f"Setting up distributed model")
         ddp_model = torch.nn.parallel.DistributedDataParallel(
             model,
             device_ids=[local_rank],
@@ -181,6 +184,7 @@ def build_model(cfg, device, local_rank=None, ddp=False):
     return model
 
 def build_metric(cfg):
+    pylogger.info(f"Building Metrics")
     metric = hydra.utils.instantiate(cfg, _recursive_=True, _convert_="partial")
     return metric
 
@@ -190,6 +194,7 @@ def build_logger(cfg):
     return logger
 
 def build_loaders(cfg):
+    pylogger.info(f"Building Loaders")
     train_ds = hydra.utils.instantiate(cfg.nn.data.datasets.train, _recursive_=False)
     val_ds = hydra.utils.instantiate(cfg.nn.data.datasets.val, _recursive_=False)
 
