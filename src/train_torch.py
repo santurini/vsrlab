@@ -112,7 +112,7 @@ def run(cfg: DictConfig):
             optimizer.zero_grad()'''
 
             step = update_weights(model,loss, scaler, scheduler,
-                                  optimizer, num_grad_acc, gradient_clip_val, steps, i)
+                                  optimizer, num_grad_acc, gradient_clip_val, step, i)
 
             if rank==0:
                 logger.log_dict({"Loss": loss.detach().item()}, "Train")
