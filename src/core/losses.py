@@ -77,9 +77,9 @@ def rmse_loss(yhat, y):
     return torch.sqrt(torch.mean((yhat - y) ** 2))
 
 class OpticalFlowConsistency(nn.Module):
-    def __init__(self, weight=1.0):
+    def __init__(self, device, weight=1.0):
         super().__init__()
-        self.of = RAFT(small=False, scale_factor=8, pretrained=True)
+        self.of = RAFT(small=False, scale_factor=8, pretrained=True).to(device)
         self.weight = weight
 
         for p in self.of.parameters():
