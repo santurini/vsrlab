@@ -110,10 +110,10 @@ def run(cfg: DictConfig):
             optimizer.zero_grad()
 
             print("rank:", rank, "loss:", loss)
-
+            print('reducing loss')
+            dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
+            print(loss)
             if rank==0:
-                print('reducing loss')
-                dist.all_reduce(loss, op=dist.ReduceOp.SUM)
                 print(loss)
                 logger.log_dict({"Loss": loss.detach().item() / world_size}, "Train")
                 logger.log_dict(compute_metric(metric, sr, hr), "Train")
