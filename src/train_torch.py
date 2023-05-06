@@ -97,7 +97,7 @@ def run(cfg: DictConfig):
             loss = loss / num_grad_acc
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
-            clip_grad_norm_(model.parameters(), cfg.train.trainer.grad_clip)
+            clip_grad_norm_(model.parameters(), cfg.train.trainer.gradient_clip_val)
             scaler.step(optimizer)
             scaler.update()
             scheduler.step()
