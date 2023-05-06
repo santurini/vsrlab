@@ -237,10 +237,9 @@ def build_loaders(cfg):
     return train_dl, val_dl, num_grad_acc, steps, epoch
 
 def compute_loss(loss_fn, sr, hr, lq=None):
-    b, t, c, h, w = lr.size()
     loss = loss_fn(sr, hr)
     if lq is not None:
-        _, _, _, h, w = lq.size()
+        _, _, c, h, w = lq.size()
         loss += loss_fn(lq, F.resize(hr, (c, h, w)))
     return loss
 
