@@ -216,6 +216,7 @@ def build_loaders(cfg):
         steps = 0
         epoch = 0
 
+    print(num_grad_acc)
     train_dl = DataLoader(dataset=train_ds,
                           batch_size=batch_size,
                           sampler=train_sampler,
@@ -253,12 +254,12 @@ def compute_metric(metric, sr, hr):
 
     return metrics
 
-def update_weights(model,loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, step, i):
+def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, step, i):
     loss = loss / num_grad_acc
     scaler.scale(loss).backward()
 
     if (i + 1) % num_grad_acc == 0:
-        print("Updating at step {}".format(step))
+        print("Updating at batch {}".format(i))
         scaler.unscale_(optimizer)
         clip_grad_norm_(model.parameters(), grad_clip)
         scaler.step(optimizer)
