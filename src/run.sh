@@ -1,10 +1,11 @@
-#!/bin/bash
+#!/bin/zsh
+
+git pull
 
 export MASTER_ADDR=192.168.1.42
 export MASTER_PORT=1234
 
-#conda activate vsr
-git pull
+conda activate vsr
 
 mpirun -v -np 2 -host 192.168.1.42,192.168.0.166 \
         --rank-by node --map-by node \
