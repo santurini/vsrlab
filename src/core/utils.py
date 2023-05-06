@@ -9,6 +9,7 @@ import numpy as np
 import torch
 import torch.distributed as dist
 from torch.nn.utils import clip_grad_norm_
+import torchvision.transforms.functional as F
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data import DataLoader
 from omegaconf import DictConfig, ListConfig, OmegaConf
@@ -239,7 +240,7 @@ def compute_loss(loss_fn, sr, hr, lq=None):
     loss = loss_fn(sr, hr)
     if lq is not None:
         _, _, _, h, w = lq.size()
-        loss += loss_fn(lq, resize(hr, (h, w)))
+        loss += loss_fn(lq, F.resize(hr, (h, w)))
     return loss
 
 def compute_metric(metric, sr, hr):

@@ -1,6 +1,7 @@
 from typing import Any, List
 import wandb
 
+import torchvision.transforms.functional as F
 from torchvision.utils import make_grid
 from kornia.geometry.transform import resize
 
@@ -33,7 +34,7 @@ class WandbLogger(object):
     def log_images(stage, step, lr, sr, hr, lq=None):
         _, _, _, h, w = hr.size()
 
-        lr = resize(lr[0, -1, :, :, :], (h,w)).detach()
+        lr = F.resize(lr[0, -1, :, :, :], (h,w)).detach()
         hr = hr[0, -1, :, :, :].detach()
         sr = sr[0, -1, :, :, :].detach().clamp(0, 1)
 
