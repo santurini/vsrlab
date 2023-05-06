@@ -94,21 +94,11 @@ def run(cfg: DictConfig):
         model.train()
 
         for i, data in enumerate(train_dl):
-            lr, hr = data[0].to(device, memory_format=torch.channels_last_3d), \
-                         data[1].to(device, memory_format=torch.channels_last_3d)
+            lr, hr = data[0].to(device), data[1].to(device)
 
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
                 loss = compute_loss(loss_fn, sr, hr, lq)
-
-            '''loss = loss / num_grad_acc
-            scaler.scale(loss).backward()
-            scaler.unscale_(optimizer)
-            clip_grad_norm_(model.parameters(), cfg.train.trainer.gradient_clip_val)
-            scaler.step(optimizer)
-            scaler.update()
-            scheduler.step()
-            optimizer.zero_grad()'''
 
             step = update_weights(model,loss, scaler, scheduler,
                                   optimizer, num_grad_acc, gradient_clip_val, step, i)
