@@ -26,8 +26,8 @@ nn:
 
 train:
   ddp: True
+  use_of_loss: True
   trainer:
-    use_of_loss: True
     devices: 2
     max_steps: 100000
     gradient_clip_val: 1
