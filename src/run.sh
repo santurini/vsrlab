@@ -1,9 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 
 git pull
 
 export MASTER_ADDR=192.168.1.42
 export MASTER_PORT=1234
+
+echo $MASTER_ADDR
+echo $MASTER_PORT
 
 conda activate vsr
 
