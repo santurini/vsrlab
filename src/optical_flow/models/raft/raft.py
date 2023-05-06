@@ -83,5 +83,6 @@ class RAFT(nn.Module):
             coords1 = coords1 + delta_flow
 
         flow_up = upflow(coords1-coords0, scale_factor=self.scale_factor)
+        print(flow_up.shape)
             
         return flow_up

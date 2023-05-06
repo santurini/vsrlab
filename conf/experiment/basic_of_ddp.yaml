@@ -11,7 +11,7 @@ finetune: null
 
 nn:
   data:
-    batch_size: 4
+    batch_size: 16
     prefetch_factor: 8
     num_workers: 16
     datasets:
@@ -27,9 +27,10 @@ nn:
 train:
   ddp: True
   trainer:
+    use_of_loss: True
     devices: 2
     max_steps: 100000
     gradient_clip_val: 1
-    num_grad_acc: 1
+    num_grad_acc: 4
   logger:
     _target_: core.loggers.WandbLogger

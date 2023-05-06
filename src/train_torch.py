@@ -29,13 +29,13 @@ import warnings
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
-def evaluate(rank, world_size, model, logger, device, val_dl, step, loss_fn, metric, cfg):
+def evaluate(rank, world_size, model, logger, device, val_dl, step, loss_fn, of_loss_fn, metric, cfg):
     model.eval()
     with torch.no_grad():
         for i, data in enumerate(val_dl):
             lr, hr = data[0].to(device), data[1].to(device)
             sr, lq = model(lr)
-            loss = compute_loss(loss_fn, sr, hr, lq)
+            loss = compute_loss(loss_fn, sr, hr, lq, of_loss_fn)
 
             dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
 
@@ -83,7 +83,8 @@ def run(cfg: DictConfig):
     print('optimizer')
     optimizer, scheduler = build_optimizer(cfg, model)
 
-    print('metrics')
+    print('metrics and losses')
+    of_loss_fn = OpticalFlowConsistency() if cfg.train.use_of_loss else None
     loss_fn = CharbonnierLoss()
     metric = build_metric(cfg.nn.module.metric).to(device)
 
@@ -98,7 +99,7 @@ def run(cfg: DictConfig):
 
             with torch.cuda.amp.autocast():
                 sr, lq = model(lr)
-                loss = compute_loss(loss_fn, sr, hr, lq)
+                loss = compute_loss(loss_fn, sr, hr, lq, of_loss_fn)
 
             step = update_weights(model,loss, scaler, scheduler,
                                   optimizer, num_grad_acc, gradient_clip_val, step, i)
@@ -113,7 +114,7 @@ def run(cfg: DictConfig):
 
         print("Starting Evaluation ...")
         evaluate(rank, world_size, model, logger, device,
-                    val_dl, step, loss_fn, metric, cfg)
+                    val_dl, step, loss_fn, of_loss_fn, metric, cfg)
 
         dt = time.time() - dt
         print(f"Elapsed time --> {dt:2f}")

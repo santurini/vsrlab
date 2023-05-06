@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from kornia.geometry.transform import resize
-from optical_flow.models.spynet import Spynet
+from optical_flow.models.raft.raft import RAFT
 from torchvision import models
 
 LAYER_WEIGHTS = {'2': 0.1, '7': 0.1, '16': 0.8, '25': 0.9, '34': 1.0}
@@ -79,18 +79,21 @@ def rmse_loss(yhat, y):
 class OpticalFlowConsistency(nn.Module):
     def __init__(self, weight=1.0):
         super().__init__()
-        self.spynet = Spynet().requires_grad_(False)
+        self.of = RAFT(small=False, scale_factor=8, pretrained=True)
         self.weight = weight
+
+        for p in self.of.parameters():
+            p.requires_grad = None
 
     def forward(self, sr, hr):
         b, t, c, h, w = sr.shape
         img1 = sr[:, :-1, :, :, :].reshape(-1, c, h, w)
         img2 = sr[:, 1:, :, :, :].reshape(-1, c, h, w)
-        flow_sr = self.spynet(img2, img1)[-1]
+        flow_sr = self.of(img2, img1)
 
         img1 = hr[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
         img2 = hr[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
-        flow_hr = self.spynet(img2, img1)[-1]
+        flow_hr = self.of(img2, img1)
 
         return F.l1_loss(flow_sr, flow_hr) * self.weight
 
