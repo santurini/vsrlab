@@ -79,7 +79,7 @@ def rmse_loss(yhat, y):
 class OpticalFlowConsistency(nn.Module):
     def __init__(self, device, weight=1.0):
         super().__init__()
-        self.of = RAFT(small=False, scale_factor=8, pretrained=True).to(device)
+        self.of = RAFT(small=True, scale_factor=8, pretrained=True).to(device)
         self.weight = weight
 
         for p in self.of.parameters():
