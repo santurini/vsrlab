@@ -29,7 +29,7 @@ import warnings
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
-def evaluate(rank, world_size, model, logger, device, val_dl, loss_fn, of_loss_fn, metric, cfg):
+def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, of_loss_fn, metric, cfg):
     model.eval()
     with torch.no_grad():
         for i, data in enumerate(val_dl):
@@ -113,7 +113,7 @@ def run(cfg: DictConfig):
             logger.log_images("Train", epoch, lr, sr, hr, lq)
 
         print("Starting Evaluation ...")
-        evaluate(rank, world_size, model, logger, device,
+        evaluate(rank, world_size, epoch, model, logger, device,
                     val_dl, loss_fn, of_loss_fn, metric, cfg)
 
         dt = time.time() - dt
