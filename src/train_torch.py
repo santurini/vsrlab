@@ -45,7 +45,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, of
 
         if rank == 0:
             logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
-            logger.log_dict({k: v / len(val_dl) for k,v in val_metrics}, epoch, "Val")
+            logger.log_dict({k: v / len(val_dl) for k,v in val_metrics.items()}, epoch, "Val")
             logger.log_images("Val", epoch, lr, sr, hr, lq)
             save_checkpoint(cfg, model)
 
@@ -112,7 +112,7 @@ def run(cfg: DictConfig):
         if rank == 0:
             print("Logging on WandB ...")
             logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
-            logger.log_dict({k: v / len(train_dl) for k, v in train_metrics}, epoch, "Train")
+            logger.log_dict({k: v / len(train_dl) for k, v in train_metrics.items()}, epoch, "Train")
             logger.log_images("Train", epoch, lr, sr, hr, lq)
 
         print("Starting Evaluation ...")
