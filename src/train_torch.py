@@ -106,13 +106,13 @@ def run(cfg: DictConfig):
             update_weights(model, loss, scaler, scheduler,
                             optimizer, num_grad_acc, gradient_clip_val, i)
 
-            train_loss += loss.detach().item()
-            train_metrics = running_metrics(train_metrics, metric, sr, hr)
+            #train_loss += loss.detach().item()
+            #train_metrics = running_metrics(train_metrics, metric, sr, hr)
 
         if rank == 0:
             print("Logging on WandB ...")
-            logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
-            logger.log_dict({k: v / len(train_dl) for k, v in train_metrics.items()}, epoch, "Train")
+            #logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
+            #logger.log_dict({k: v / len(train_dl) for k, v in train_metrics.items()}, epoch, "Train")
             logger.log_images("Train", epoch, lr, sr, hr, lq)
 
         print("Starting Evaluation ...")
