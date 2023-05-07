@@ -32,8 +32,8 @@ pylogger = logging.getLogger(__name__)
 @torch.no_grad()
 def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, metric, cfg):
     model.eval()
-    val_loss = 0
-    val_metrics = {k: 0 for k in cfg.nn.module.metric.metrics}
+    val_loss, val_metrics = 0, {k: 0 for k in cfg.nn.module.metric.metrics}
+
     for i, data in enumerate(val_dl):
         lr, hr = data[0].to(device), data[1].to(device)
 
@@ -46,11 +46,9 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
         val_metrics = running_metrics(val_metrics, metric, sr, hr)
 
     if rank == 0:
-        print({"Loss": val_loss / len(val_dl)})
-        #logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
-        print({k: v / len(val_dl) for k,v in val_metrics.items()})
-        #logger.log_dict({k: v / len(val_dl) for k,v in val_metrics.items()}, epoch, "Val")
-        #logger.log_images("Val", epoch, lr, sr, hr, lq)
+        logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
+        logger.log_dict({k: v / len(val_dl) for k,v in val_metrics.items()}, epoch, "Val")
+        logger.log_images("Val", epoch, lr, sr, hr, lq)
         save_checkpoint(cfg, model)
 
 
@@ -91,13 +89,13 @@ def run(cfg: DictConfig):
 
     print('build metrics and losses ...')
     loss_fn, train_loss = CharbonnierLoss(), 0
-    metric, train_metrics = build_metric(cfg.nn.module.metric).to(device), {k: 0 for k in cfg.nn.module.metric.metrics}
+    metric,  = build_metric(cfg.nn.module.metric).to(device),
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Training ...".format(rank, local_rank))
     for epoch in range(cfg.train.trainer.max_epochs):
-        dt = time.time()
-        model.train()
+        model.train(); dt = time.time()
+        train_loss, train_metrics = 0, {k: 0 for k in cfg.nn.module.metric.metrics}
 
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
@@ -113,19 +111,16 @@ def run(cfg: DictConfig):
             train_metrics = running_metrics(train_metrics, metric, sr, hr)
 
         if rank == 0:
-            print("Logging on WandB ...")
-            print({"Loss": train_loss / len(train_dl)})
-            #logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
-            print({k: v / len(train_dl) for k, v in train_metrics.items()})
-            #logger.log_dict({k: v / len(train_dl) for k, v in train_metrics.items()}, epoch, "Train")
-            #logger.log_images("Train", epoch, lr, sr, hr, lq)
+            logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
+            logger.log_dict({k: v / len(train_dl) for k, v in train_metrics.items()}, epoch, "Train")
+            logger.log_images("Train", epoch, lr, sr, hr, lq)
 
         print("Starting Evaluation ...")
         evaluate(rank, world_size, epoch, model, logger, device,
                     val_dl, loss_fn, metric, cfg)
 
         dt = time.time() - dt
-        print(f"Elapsed time --> {dt:2f}")
+        print(f"Epoch {epoch} - Elapsed time --> {dt:2f}")
 
     if rank == 0:
         logger.close()
