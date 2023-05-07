@@ -250,7 +250,6 @@ def compute_loss(loss_fn, sr, hr, lq=None):
     if lq is not None:
         _, _, c, h, w = lq.size()
         loss += loss_fn(lq, resize(hr, (h, w)))
-
     return loss
 
 def compute_metric(metric, sr, hr):
