@@ -29,25 +29,26 @@ import warnings
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
+@torch.no_grad()
 def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, metric, cfg):
     model.eval()
     val_loss = 0
     val_metrics = {k: 0 for k in cfg.nn.module.metric.metrics}
-    with torch.no_grad():
+    with torch.cuda.amp.autocast():
         for i, data in enumerate(val_dl):
             lr, hr = data[0].to(device), data[1].to(device)
             sr, lq = model(lr)
             loss = compute_loss(loss_fn, sr, hr, lq)
 
-            dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
-            val_loss += loss.detach().item() / world_size
-            val_metrics = running_metrics(val_metrics, metric, sr, hr)
+        dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
+        val_loss += loss.detach().item() / world_size
+        val_metrics = running_metrics(val_metrics, metric, sr, hr)
 
-        if rank == 0:
-            logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
-            logger.log_dict({k: v / len(val_dl) for k,v in val_metrics.items()}, epoch, "Val")
-            logger.log_images("Val", epoch, lr, sr, hr, lq)
-            save_checkpoint(cfg, model)
+    if rank == 0:
+        logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
+        logger.log_dict({k: v / len(val_dl) for k,v in val_metrics.items()}, epoch, "Val")
+        logger.log_images("Val", epoch, lr, sr, hr, lq)
+        save_checkpoint(cfg, model)
 
 
 def run(cfg: DictConfig):
