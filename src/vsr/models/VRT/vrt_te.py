@@ -141,7 +141,7 @@ class TinyVRT(nn.Module):
         self.stage6 = nn.ModuleList(
             [nn.Sequential(
                 Rearrange('n c d h w ->  n d h w c'),
-                te.LayerNorm(embed_dims[len(scales)-1]),
+                nn.LayerNorm(embed_dims[len(scales)-1]),
                 te.Linear(embed_dims[len(scales)-1], embed_dims[len(scales)]),
                 Rearrange('n d h w c -> n c d h w')
             )]
