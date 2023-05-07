@@ -83,7 +83,7 @@ class TinyVRT(nn.Module):
             qkv_bias=True,
             qk_scale=None,
             drop_path_rate=0.2,
-            norm_layer=te.LayerNorm,
+            norm_layer=nn.LayerNorm,
             optical_flow="spynet",
             optical_flow_pretrained=True,
             optical_flow_train=False,
