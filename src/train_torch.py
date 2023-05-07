@@ -37,7 +37,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
         for i, data in enumerate(val_dl):
             lr, hr = data[0].to(device), data[1].to(device)
             sr, lq = model(lr)
-            loss, val_loss = compute_loss(loss_fn, sr, hr, lq)
+            loss = compute_loss(loss_fn, sr, hr, lq)
 
             dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
             val_loss += loss.detach().item() / world_size
