@@ -9,6 +9,10 @@ from vsr.models.VRT.modules_te.window_attention import Mlp_GEGLU
 
 import transformer_engine.pytorch as te
 
+class Contiguous:
+    def forward(x):
+        return x.contiguous()
+
 class Stage(nn.Module):
     """Residual Temporal Mutual Self Attention Group and Parallel Warping.
 
@@ -55,15 +59,15 @@ class Stage(nn.Module):
         # reshape the tensor
         if reshape == 'none':
             self.reshape = nn.Sequential(Rearrange('n c d h w -> n d h w c'),
-                                         te.LayerNorm(dim),
+                                         Contiguous(), te.LayerNorm(dim),
                                          Rearrange('n d h w c -> n c d h w'))
         elif reshape == 'down':
             self.reshape = nn.Sequential(Rearrange('n c d (h neih) (w neiw) -> n d h w (neiw neih c)', neih=2, neiw=2),
-                                         te.LayerNorm(4 * in_dim), te.Linear(4 * in_dim, dim),
+                                         Contiguous(), te.LayerNorm(4 * in_dim), te.Linear(4 * in_dim, dim),
                                          Rearrange('n d h w c -> n c d h w'))
         elif reshape == 'up':
             self.reshape = nn.Sequential(Rearrange('n (neiw neih c) d h w -> n d (h neih) (w neiw) c', neih=2, neiw=2),
-                                         te.LayerNorm(in_dim // 4), te.Linear(in_dim // 4, dim),
+                                         Contiguous(), te.LayerNorm(in_dim // 4), te.Linear(in_dim // 4, dim),
                                          Rearrange('n d h w c -> n c d h w'))
 
         # mutual and self attention
@@ -102,7 +106,7 @@ class Stage(nn.Module):
         self.pa_fuse = Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2), dim)
 
     def forward(self, x, flows_backward, flows_forward):
-        x = self.reshape(x.contiguous())
+        x = self.reshape(x)
         x = self.linear1(self.residual_group1(x).transpose(1, 4)).transpose(1, 4) + x
         x = self.linear2(self.residual_group2(x).transpose(1, 4)).transpose(1, 4) + x
 
