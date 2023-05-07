@@ -9,7 +9,10 @@ from vsr.models.VRT.modules_te.window_attention import Mlp_GEGLU
 
 import transformer_engine.pytorch as te
 
-class Contiguous:
+class Contiguous(nn.Module):
+    def __init__(self):
+        super().__init__()
+    @staticmethod
     def forward(x):
         return x.contiguous()
 
