@@ -219,13 +219,11 @@ def build_loaders(cfg):
         num_grad_acc = cfg.train.trainer.num_grad_acc
         gradient_clip_val = cfg.train.trainer.gradient_clip_val
         batch_size = cfg.nn.data.batch_size // num_grad_acc
-        steps = 0
         epoch = 0
     else:
         num_grad_acc = 1
         gradient_clip_val = cfg.train.trainer.gradient_clip_val
         batch_size = cfg.nn.data.batch_size
-        steps = 0
         epoch = 0
 
     train_dl = DataLoader(dataset=train_ds,
@@ -248,7 +246,7 @@ def build_loaders(cfg):
                         pin_memory=True
                         )
 
-    return train_dl, val_dl, num_grad_acc, gradient_clip_val, steps, epoch
+    return train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch
 
 def compute_loss(loss_fn, sr, hr, lq=None, of_loss=None):
     loss = loss_fn(sr, hr)
@@ -266,6 +264,12 @@ def compute_metric(metric, sr, hr):
     )
 
     return metrics
+
+def running_metrics(metrics_dict, metric, sr, hr):
+    metric_out = compute_metric(metric, sr, hr)
+    out = {k: x[k] + y[k] for k in set(metrics_dict) & set(metric_out)}
+    return out
+
 
 def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, i):
     loss = loss / num_grad_acc

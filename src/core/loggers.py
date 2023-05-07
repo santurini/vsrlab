@@ -22,7 +22,7 @@ class WandbLogger(object):
         self.tags = tags
 
     def init(self):
-        wandb.init(
+        self.run = wandb.init(
             dir = self.save_dir,
             project = self.project,
             name = self.name,
@@ -30,8 +30,7 @@ class WandbLogger(object):
             tags = self.tags,
         )
 
-    @staticmethod
-    def log_images(stage, epoch, lr, sr, hr, lq=None):
+    def log_images(self, stage, epoch, lr, sr, hr, lq=None):
         n, t, d, h, w = hr.size()
 
         lr = resize(lr[0, -1, :, :, :], (h,w)).detach()
@@ -45,15 +44,14 @@ class WandbLogger(object):
         else:
             grid = make_grid([lr, sr, hr], nrow=3, ncol=1)
 
-        wandb.log({f'Prediction {stage}': [wandb.Image(grid, caption=f'Stage {stage}, Epoch {epoch}')]})
+        self.run.log({f'Prediction {stage}': [wandb.Image(grid, caption=f'Stage {stage}, Epoch {epoch}')]})
 
-    @staticmethod
-    def log_dict(log_dict, stage="Train"):
+    def log_dict(self, log_dict, epoch, stage="Train"):
         out_dict = {}
         for key in log_dict.keys():
             out_dict['/'.join([key, stage])] = log_dict[key]
 
-        wandb.log(out_dict)
+        self.run.log(out_dict | {"epoch": epoch})
 
     @staticmethod
     def close():
