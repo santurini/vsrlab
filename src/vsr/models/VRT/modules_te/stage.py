@@ -9,13 +9,6 @@ from vsr.models.VRT.modules_te.window_attention import Mlp_GEGLU
 
 import transformer_engine.pytorch as te
 
-class Contiguous(nn.Module):
-    def __init__(self):
-        super().__init__()
-    @staticmethod
-    def forward(x):
-        return x.contiguous()
-
 class Stage(nn.Module):
     """Residual Temporal Mutual Self Attention Group and Parallel Warping.
 
@@ -62,15 +55,15 @@ class Stage(nn.Module):
         # reshape the tensor
         if reshape == 'none':
             self.reshape = nn.Sequential(Rearrange('n c d h w -> n d h w c'),
-                                         Contiguous(), te.LayerNorm(dim),
+                                         te.LayerNorm(dim),
                                          Rearrange('n d h w c -> n c d h w'))
         elif reshape == 'down':
             self.reshape = nn.Sequential(Rearrange('n c d (h neih) (w neiw) -> n d h w (neiw neih c)', neih=2, neiw=2),
-                                         Contiguous(), te.LayerNorm(4 * in_dim), te.Linear(4 * in_dim, dim),
+                                         te.LayerNorm(4 * in_dim), te.Linear(4 * in_dim, dim),
                                          Rearrange('n d h w c -> n c d h w'))
         elif reshape == 'up':
             self.reshape = nn.Sequential(Rearrange('n (neiw neih c) d h w -> n d (h neih) (w neiw) c', neih=2, neiw=2),
-                                         Contiguous(), te.LayerNorm(in_dim // 4), te.Linear(in_dim // 4, dim),
+                                         te.LayerNorm(in_dim // 4), te.Linear(in_dim // 4, dim),
                                          Rearrange('n d h w c -> n c d h w'))
 
         # mutual and self attention
