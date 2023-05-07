@@ -34,9 +34,10 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
     model.eval()
     val_loss = 0
     val_metrics = {k: 0 for k in cfg.nn.module.metric.metrics}
-    with torch.cuda.amp.autocast():
-        for i, data in enumerate(val_dl):
-            lr, hr = data[0].to(device), data[1].to(device)
+    for i, data in enumerate(val_dl):
+        lr, hr = data[0].to(device), data[1].to(device)
+
+        with torch.cuda.amp.autocast():
             sr, lq = model(lr)
             loss = compute_loss(loss_fn, sr, hr, lq)
 

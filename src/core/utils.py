@@ -257,7 +257,6 @@ def compute_metric(metric, sr, hr):
         rearrange(sr.detach().clamp(0, 1), 'b t c h w -> (b t) c h w').contiguous(),
         rearrange(hr.detach(), 'b t c h w -> (b t) c h w').contiguous()
     )
-
     return metrics
 
 def running_metrics(metrics_dict, metric, sr, hr):
