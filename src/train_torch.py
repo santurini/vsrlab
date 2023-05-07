@@ -103,12 +103,11 @@ def run(cfg: DictConfig):
                 sr, lq = model(lr)
                 loss = compute_loss(loss_fn, sr, hr, lq, of_loss_fn)
 
-
             update_weights(model, loss, scaler, scheduler,
                             optimizer, num_grad_acc, gradient_clip_val, i)
 
             train_loss += loss.detach().item()
-            train_metrics = running_metrics(metrics, metric, sr, hr)
+            train_metrics = running_metrics(train_metrics, metric, sr, hr)
 
         if rank == 0:
             print("Logging on WandB ...")
