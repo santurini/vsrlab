@@ -300,7 +300,7 @@ def main() -> None:
         qkv_bias=True,
         qk_scale=None,
         drop_path_rate=0.2,
-        norm_layer=te.LayerNorm,
+        norm_layer=nn.LayerNorm,
         optical_flow_pretrained=True,
         pa_frames=2,
         deformable_groups=8
