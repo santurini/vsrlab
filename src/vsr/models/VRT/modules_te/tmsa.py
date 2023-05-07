@@ -158,7 +158,7 @@ class TMSAG(nn.Module):
                  qkv_bias=False,
                  qk_scale=None,
                  drop_path=0.,
-                 norm_layer=te.LayerNorm,
+                 norm_layer=nn.LayerNorm,
                  ):
         super().__init__()
         self.input_resolution = input_resolution
