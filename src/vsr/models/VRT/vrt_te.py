@@ -207,7 +207,7 @@ class VRT(nn.Module):
 
     def forward(self, x):
         # x: (N, D, C, H, W)
-        x_lq = x.clone()
+        x_lq = self.iterative_refinement(x)
 
         # calculate flows
         flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(x)

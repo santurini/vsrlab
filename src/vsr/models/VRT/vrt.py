@@ -125,8 +125,6 @@ class VRT(nn.Module):
         self.upscale = upscale
         self.pa_frames = pa_frames
         self.indep_reconsts = [i.item() for i in torch.arange(len(depths))[indep_reconsts]]
-        self.rcl = Rearrange('b c t h w -> b t h w c')
-        self.rwl = Rearrange('b t h w c -> b c t h w')
 
         self.iterative_refinement = IterativeRefinement(
             refine_ch,
@@ -171,10 +169,10 @@ class VRT(nn.Module):
         # stage 8
         self.stage8 = nn.ModuleList(
             [nn.Sequential(
-                self.rcl,
+                Rearrange('b c t h w -> b t h w c'),
                 nn.LayerNorm(embed_dims[6]),
                 nn.Linear(embed_dims[6], embed_dims[7]),
-                self.rwl
+                Rearrange('b t h w c -> b c t h w')
             )]
         )
 
@@ -207,7 +205,7 @@ class VRT(nn.Module):
 
     def forward(self, x):
         # x: (N, D, C, H, W)
-        x_lq = x.clone()
+        x_lq = self.iterative_refinement(x)
 
         # calculate flows
         flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(x)
