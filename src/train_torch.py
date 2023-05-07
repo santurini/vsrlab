@@ -112,8 +112,10 @@ def run(cfg: DictConfig):
 
         if rank == 0:
             print("Logging on WandB ...")
-            logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
-            logger.log_dict({k: v / len(train_dl) for k, v in train_metrics.items()}, epoch, "Train")
+            print(train_loss / len(train_dl))
+            #logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
+            print({k: v / len(train_dl) for k, v in train_metrics.items()})
+            #logger.log_dict({k: v / len(train_dl) for k, v in train_metrics.items()}, epoch, "Train")
             logger.log_images("Train", epoch, lr, sr, hr, lq)
 
         print("Starting Evaluation ...")
