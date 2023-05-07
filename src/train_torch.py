@@ -35,7 +35,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
     val_metrics = {k: 0 for k in cfg.nn.module.metric.metrics}
     with torch.no_grad():
         for i, data in enumerate(val_dl):
-            lr, hr = data[0].contiguous().to(device), data[1].contiguous().to(device)
+            lr, hr = data[0].to(device), data[1].to(device)
             sr, lq = model(lr)
             loss = compute_loss(loss_fn, sr, hr, lq)
 

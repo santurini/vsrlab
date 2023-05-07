@@ -102,7 +102,7 @@ class Stage(nn.Module):
         self.pa_fuse = Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2), dim)
 
     def forward(self, x, flows_backward, flows_forward):
-        x = self.reshape(x)
+        x = self.reshape(x.contiguous())
         x = self.linear1(self.residual_group1(x).transpose(1, 4)).transpose(1, 4) + x
         x = self.linear2(self.residual_group2(x).transpose(1, 4)).transpose(1, 4) + x
 
