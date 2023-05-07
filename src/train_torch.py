@@ -29,7 +29,7 @@ import warnings
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
-def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, of_loss_fn, metric, cfg):
+def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, metric, cfg):
     model.eval()
     val_loss = 0
     val_metrics = {k: 0 for k in cfg.nn.module.metric.metrics}
@@ -116,7 +116,7 @@ def run(cfg: DictConfig):
 
         print("Starting Evaluation ...")
         evaluate(rank, world_size, epoch, model, logger, device,
-                    val_dl, loss_fn, of_loss_fn, metric, cfg)
+                    val_dl, loss_fn, metric, cfg)
 
         dt = time.time() - dt
         print(f"Elapsed time --> {dt:2f}")
