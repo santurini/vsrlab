@@ -91,7 +91,7 @@ def run(cfg: DictConfig):
     metric, train_metrics = build_metric(cfg.nn.module.metric).to(device), {k: 0 for k in cfg.nn.module.metric.metrics}
 
     # Loop over the dataset multiple times
-    print("Global Rank {} - Local Rank {} - Start Training ...".format(local_rank))
+    print("Global Rank {} - Local Rank {} - Start Training ...".format(rank, local_rank))
     for epoch in range(cfg.train.trainer.max_epochs):
         dt = time.time()
         model.train()
