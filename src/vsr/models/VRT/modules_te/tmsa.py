@@ -42,7 +42,7 @@ class TMSA(nn.Module):
                  qk_scale=None,
                  drop_path=0.,
                  act_layer=nn.GELU,
-                 norm_layer=te.LayerNorm
+                 norm_layer=nn.LayerNorm
                  ):
         super().__init__()
         self.dim = dim
