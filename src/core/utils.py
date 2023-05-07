@@ -22,10 +22,7 @@ from functools import reduce
 from operator import add
 from collections import Counter
 
-from core.losses import OpticalFlowConsistency
-
 CPU_DEVICE = torch.device("cpu")
-
 pylogger = logging.getLogger(__name__)
 
 def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> Optional[int]:
@@ -248,13 +245,12 @@ def build_loaders(cfg):
 
     return train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch
 
-def compute_loss(loss_fn, sr, hr, lq=None, of_loss=None):
+def compute_loss(loss_fn, sr, hr, lq=None):
     loss = loss_fn(sr, hr)
     if lq is not None:
         _, _, c, h, w = lq.size()
         loss += loss_fn(lq, resize(hr, (h, w)))
-    if of_loss:
-        loss += of_loss(sr, hr)
+
     return loss
 
 def compute_metric(metric, sr, hr):
