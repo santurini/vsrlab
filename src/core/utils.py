@@ -272,8 +272,8 @@ def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad
         scheduler.step()
         optimizer.zero_grad()
 
-def get_video(video_folder):
-    return torch.stack([F.to_tensor(Image.open(i)) for i in Path(video_folder).glob('*')]).unsqueeze(0)
+def get_video(video_folder, size):
+    return torch.stack([resize(F.to_tensor(Image.open(i)), size=size) for i in Path(video_folder).glob('*')]).unsqueeze(0)
 
 def batched(iterable, n):
     if n < 1:
