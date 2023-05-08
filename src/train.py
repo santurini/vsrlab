@@ -30,7 +30,7 @@ def run(cfg: DictConfig) -> str:
 
     if cfg.finetune:
         pylogger.info(f"Loading pretrained weights: <{cfg.finetune}>")
-        state_dict = get_state_dict(cfg.finetune)
+        state_dict = get_state_dict(cfg.finetune, 0)
         model.load_state_dict(state_dict, strict=False)
 
     callbacks: List[Callback] = build_callbacks(cfg.train.callbacks)
