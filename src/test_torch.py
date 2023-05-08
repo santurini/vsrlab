@@ -41,8 +41,8 @@ def run(config):
             output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
 
-            print(video_folder)
-            print(output_folder)
+            print("Video Folder:", video_folder)
+            print("Output Folder:", output_folder)
 
             for video_lr_path in video_paths:
                 model.eval();
@@ -53,9 +53,9 @@ def run(config):
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                print(video_hr_path)
-                print(video_lr_path)
-                print(save_folder)
+                print("Video HR Path:",video_hr_path)
+                print("Video LR Path:", video_lr_path)
+                print("Save Folder:", save_folder)
 
                 video_hr, video_lr = get_video(video_hr_path).to(device), \
                     get_video(video_lr_path).to(device)
