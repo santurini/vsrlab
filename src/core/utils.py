@@ -109,18 +109,17 @@ def save_test_config(cfg):
 
     return save_path
 
-def get_state_dict(path):
-    return torch.load(path)['state_dict']
+def get_state_dict(path, local_rank):
+    map_location = {"cuda:0": "cuda:{}".format(local_rank)}
+    return torch.load(path, map_location=map_location)['state_dict']
 
-def get_model_state_dict(path):
-    state_dict = get_state_dict(path)
+def get_model_state_dict(path, local_rank):
+    state_dict = get_state_dict(path, local_rank)
     out = {k.partition('model.')[-1]: v for k, v in state_dict.items() if k.startswith('model.')}
     return out
 
 def restore_model(model, path, local_rank):
-    map_location = {"cuda:0": "cuda:{}".format(local_rank)}
-    model.load_state_dict(torch.load(path, map_location=map_location)['state_dict'])
-    return model
+    return model.load_state_dict(get_model_state_dict(path, local_rank))
 
 def build_callbacks(cfg: ListConfig) -> List[Callback]:
     callbacks = list()
