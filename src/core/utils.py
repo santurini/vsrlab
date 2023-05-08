@@ -119,7 +119,8 @@ def get_model_state_dict(path, local_rank):
     return out
 
 def restore_model(model, path, local_rank):
-    return model.load_state_dict(get_model_state_dict(path, local_rank))
+    model.load_state_dict(get_model_state_dict(path, local_rank))
+    return model
 
 def build_callbacks(cfg: ListConfig) -> List[Callback]:
     callbacks = list()
