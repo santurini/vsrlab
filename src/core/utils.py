@@ -3,6 +3,7 @@ import os
 from itertools import islice
 from pathlib import Path
 from typing import List, Optional, Union
+from multiprocess import Pool
 
 import hydra
 import numpy as np
@@ -272,8 +273,12 @@ def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad
         scheduler.step()
         optimizer.zero_grad()
 
-def get_video(video_folder):
-    return torch.stack([F.to_tensor(Image.open(i)) for i in Path(video_folder).glob('*')]).unsqueeze(0)
+def img2tensor(path):
+    return F.to_tensor(Image.open(path))
+
+def get_video(video_folder, pool: Pool):
+    out = torch.stack(pool.map(img2tensor, list(Path(video_folder).glob('*'))))
+    return out.unsqueeze(0)
 
 def batched(iterable, n):
     if n < 1:

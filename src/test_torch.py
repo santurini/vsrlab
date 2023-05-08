@@ -4,6 +4,7 @@ import warnings
 import pandas as pd
 import omegaconf
 from torchvision.utils import save_image
+from multiprocess import Pool
 
 from core import PROJECT_ROOT
 from core.utils import *
@@ -19,8 +20,6 @@ def run(config):
     cfg = OmegaConf.load(os.path.join(config.cfg_dir, "config.yaml"))
     ckpt_path = os.path.join(config.cfg_dir, "last.ckpt")
 
-    print(ckpt_path)
-
     # Encapsulate the model on the GPU assigned to the current process
     print('build model ...')
     model = build_model(cfg.nn.module.model, device, local_rank, False)
@@ -34,6 +33,9 @@ def run(config):
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
+
+    # Setup multiprocess pool
+    pool = Pool(config.num_workers)
 
     for fps in [6, 8, 10, 12, 15]:
         for crf in [30, 32, 34, 36, 38, 40]:
@@ -52,8 +54,8 @@ def run(config):
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                video_hr, video_lr = get_video(video_hr_path).to(device), \
-                    get_video(video_lr_path).to(device)
+                video_hr, video_lr = get_video(video_hr_path, pool).to(device), \
+                    get_video(video_lr_path, pool).to(device)
 
                 outputs = []
                 for i in range(0, video_lr.size(1), config.window_size):
