@@ -2,6 +2,7 @@ import logging
 import os
 from itertools import islice
 from pathlib import Path
+from PIL import Image
 from typing import List, Optional, Union
 
 import hydra
@@ -17,10 +18,6 @@ from kornia.geometry.transform import resize
 from pytorch_lightning import seed_everything, Callback
 from torch.nn import Sequential
 from einops import rearrange
-
-from functools import reduce
-from operator import add
-from collections import Counter
 
 CPU_DEVICE = torch.device("cpu")
 pylogger = logging.getLogger(__name__)
@@ -279,7 +276,7 @@ def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad
 
 def get_video(video_folder):
     return torch.stack(
-        [to_tensor(Image.open(i))
+        [F.to_tensor(Image.open(i))
          for i in Path(video_folder).glob('*')]
     ).unsqueeze(0)
 

@@ -47,7 +47,7 @@ def parse_args():
 
 
 @torch.no_grad()
-def run(args):
+def run(cfg, args):
     rank, local_rank, world_size = (0, 0, 1)
     device = torch.device("cuda:{}".format(local_rank))
 
@@ -63,8 +63,8 @@ def run(args):
     model = restore_model(model, ckpt_path, local_rank)
 
     print('build metrics and losses ...')
-    metric, video_metrics  = build_metric(cfg.nn.module.metric).to(device), \
-                                {k: 0 for k in cfg.nn.module.metric.metrics}
+    metric, video_metrics  = build_metric(cfg.metric).to(device), \
+                                {k: 0 for k in cfg.metric.metrics}
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
@@ -73,7 +73,7 @@ def run(args):
     for video_lr_path in video_paths:
         model.eval(); dt = time.time()
 
-        video_name = os.path.basename(video)
+        video_name = os.path.basename(video_lr_path)
         video_hr_path = os.path.join(args.hr_dir, video_name)
 
 
