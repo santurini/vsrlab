@@ -113,7 +113,7 @@ def get_state_dict(path):
     return torch.load(path)['state_dict']
 
 def get_model_state_dict(path):
-    state_dict = torch.load(path)['state_dict']
+    state_dict = get_state_dict(path)
     out = {k.partition('model.')[-1]: v for k, v in state_dict.items() if k.startswith('model.')}
     return out
 
