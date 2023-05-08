@@ -30,7 +30,7 @@ def run(config):
     model = restore_model(model, ckpt_path, local_rank)
 
     print('build metrics and losses ...')
-    metric, video_metrics, video_pd = build_metric(config.metric), {k: 0 for k in config.metric.metrics}, []
+    metric, video_metrics, video_pd = build_metric(config.metric).to(device), {k: 0 for k in config.metric.metrics}, []
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
@@ -59,7 +59,7 @@ def run(config):
                     lr, hr = video_lr[:, i:i + config.window_size, ...].to(device), \
                         video_hr[:, i:i + config.window_size, ...].to(device)
                     sr, _ = model(lr)
-                    outputs.append(sr.cpu())
+                    outputs.append(sr)
 
                 outputs = torch.cat(outputs, dim=1)
                 for i, img in enumerate(outputs[0]):
