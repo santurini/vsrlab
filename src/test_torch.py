@@ -18,6 +18,8 @@ def run(config):
     cfg = OmegaConf.load(os.path.join(config.cfg_dir, "config.yaml"))
     ckpt_path = os.path.join(config.cfg_dir, "last.ckpt")
 
+    print(ckpt_path)
+
     # Encapsulate the model on the GPU assigned to the current process
     print('build model ...')
     model = build_model(cfg.nn.module.model, device, local_rank, False)
@@ -39,6 +41,9 @@ def run(config):
             output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
 
+            print(video_folder)
+            print(output_folder)
+
             for video_lr_path in video_paths:
                 model.eval();
                 dt = time.time()
@@ -47,6 +52,10 @@ def run(config):
                 video_hr_path = os.path.join(config.hr_dir, f"fps={fps}_crf=5", video_name)
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
+
+                print(video_hr_path)
+                print(video_lr_path)
+                print(save_folder)
 
                 video_hr, video_lr = get_video(video_hr_path).to(device), \
                     get_video(video_lr_path).to(device)
