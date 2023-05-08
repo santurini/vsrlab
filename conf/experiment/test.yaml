@@ -1,0 +1,8 @@
+# @package _global_
+metric:
+  _target_: core.metrics.MetricCollection
+  metrics:
+    PSNR:
+      _target_: piqa.PSNR
+    SSIM:
+      _target_: piqa.SSIM
