@@ -25,9 +25,9 @@ from collections import Counter
 CPU_DEVICE = torch.device("cpu")
 pylogger = logging.getLogger(__name__)
 
-def seed_index_everything(train_cfg: DictConfig, sampling_seed: int = 42) -> Optional[int]:
-    if "seed_index" in train_cfg and train_cfg.seed_index is not None:
-        seed_index = train_cfg.seed_index
+def seed_index_everything(cfg: DictConfig, sampling_seed: int = 42) -> Optional[int]:
+    if "seed_index" in cfg and cfg.seed_index is not None:
+        seed_index = cfg.seed_index
         np.random.seed(sampling_seed)
         seeds = np.random.randint(np.iinfo(np.int32).max, size=max(42, seed_index + 1))
         seed = seeds[seed_index]
@@ -81,7 +81,7 @@ def save_checkpoint(cfg, model):
         cfg.train.logger.save_dir,
         cfg.train.logger.project,
         cfg.train.logger.id,
-        "checkpoint"
+        "checkpoint",
         "last.ckpt"
     )
 
