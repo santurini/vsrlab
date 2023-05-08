@@ -49,7 +49,7 @@ def run(config):
                 dt = time.time()
 
                 video_name = os.path.basename(video_lr_path)
-                video_hr_path = os.path.join(config.hr_dir, f"fps={fps}_crf=5", video_name)
+                video_hr_path = os.path.join(config.hr_dir, f"fps={fps}_crf=5", "frames", video_name)
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
