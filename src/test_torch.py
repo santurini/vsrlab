@@ -10,29 +10,13 @@ from core.utils import *
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description='Inference script for VSR')
-    parser.add_argument('--cfg_dir', help='directory of model config')
-    parser.add_argument('--lr_dir', help='directory of the input lr video')
-    parser.add_argument('--hr_dir', help='directory of the input hr video')
-    parser.add_argument('--out_dir', help='directory of the output video')
-    parser.add_argument(
-        '--window_size',
-        type=int,
-        default=None,
-        help='maximum sequence length to be processed')
-    args = parser.parse_args()
-    return args
-
 @torch.no_grad()
 def run(config):
-    args = parse_args()
     rank, local_rank, world_size = (0, 0, 1)
     device = torch.device("cuda:{}".format(local_rank))
 
-    cfg = OmegaConf.load(os.path.join(args.cfg_dir, "config.yaml"))
-    ckpt_path = os.path.join(args.cfg_dir, "last.ckpt")
+    cfg = OmegaConf.load(os.path.join(config.cfg_dir, "config.yaml"))
+    ckpt_path = os.path.join(config.cfg_dir, "last.ckpt")
 
     # Encapsulate the model on the GPU assigned to the current process
     print('build model ...')
@@ -51,8 +35,8 @@ def run(config):
     for fps in [6, 8]:
         for crf in [30, 32]:
 
-            video_folder = os.path.join(args.lr_dir, f"fps={fps}_crf={crf}", "frames")
-            output_folder = os.path.join(args.out_dir, os.path.basename(args.cfg_dir))
+            video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
+            output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
 
             for video_lr_path in video_paths:
@@ -60,7 +44,7 @@ def run(config):
                 dt = time.time()
 
                 video_name = os.path.basename(video_lr_path)
-                video_hr_path = os.path.join(args.hr_dir, f"fps={fps}_crf=5", video_name)
+                video_hr_path = os.path.join(config.hr_dir, f"fps={fps}_crf=5", video_name)
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
@@ -68,9 +52,9 @@ def run(config):
                     get_video(video_lr_path).to(device)
 
                 outputs = []
-                for i in range(0, video_lr.size(1), args.window_size):
-                    lr, hr = video_lr[:, i:i + args.window_size, ...].to(device), \
-                        video_hr[:, i:i + args.window_size, ...].to(device)
+                for i in range(0, video_lr.size(1), config.window_size):
+                    lr, hr = video_lr[:, i:i + config.window_size, ...].to(device), \
+                        video_hr[:, i:i + config.window_size, ...].to(device)
                     sr, _ = model(lr)
                     outputs.append(sr.cpu())
 
