@@ -13,10 +13,10 @@ pylogger = logging.getLogger(__name__)
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Inference script for VSR')
-    parser.add_argument('cfg_dir', help='directory of model config')
-    parser.add_argument('lr_dir', help='directory of the input lr video')
-    parser.add_argument('hr_dir', help='directory of the input hr video')
-    parser.add_argument('out_dir', help='directory of the output video')
+    parser.add_argument('--cfg_dir', help='directory of model config')
+    parser.add_argument('--lr_dir', help='directory of the input lr video')
+    parser.add_argument('--hr_dir', help='directory of the input hr video')
+    parser.add_argument('--out_dir', help='directory of the output video')
     parser.add_argument(
         '--window_size',
         type=int,
