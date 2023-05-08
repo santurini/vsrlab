@@ -36,13 +36,10 @@ def run(config):
 
     for fps in [6, 8]:
         for crf in [30, 32]:
-
+            print('Configuration: fps -> {} - crf -> {} '.format(fps, crf))
             video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
             output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
-
-            print("Video Folder:", video_folder)
-            print("Output Folder:", output_folder)
 
             for video_lr_path in video_paths:
                 model.eval();
@@ -53,15 +50,12 @@ def run(config):
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                print("Video HR Path:",video_hr_path)
-                print("Video LR Path:", video_lr_path)
-                print("Save Folder:", save_folder)
-
                 video_hr, video_lr = get_video(video_hr_path).to(device), \
                     get_video(video_lr_path).to(device)
 
                 outputs = []
                 for i in range(0, video_lr.size(1), config.window_size):
+                    print('Sequence: {}/{}'.format(i, video_lr.size(1)//config.window_size))
                     lr, hr = video_lr[:, i:i + config.window_size, ...].to(device), \
                         video_hr[:, i:i + config.window_size, ...].to(device)
                     sr, _ = model(lr)
