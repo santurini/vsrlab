@@ -67,7 +67,30 @@ class Spynet(nn.Module):
         return flow
 
     def forward(self, ref, supp):
-        return self.compute_flow(ref, supp)
+        # upsize to a multiple of 32
+        h, w = ref.shape[2:4]
+        w_up = w if (w % 32) == 0 else 32 * (w // 32 + 1)
+        h_up = h if (h % 32) == 0 else 32 * (h // 32 + 1)
+        ref = F.interpolate(
+            input=ref, size=(h_up, w_up), mode='bilinear', align_corners=False)
+        supp = F.interpolate(
+            input=supp,
+            size=(h_up, w_up),
+            mode='bilinear',
+            align_corners=False)
+
+        # compute flow, and resize back to the original resolution
+        flow = F.interpolate(
+            input=self.compute_flow(ref, supp),
+            size=(h, w),
+            mode='bilinear',
+            align_corners=False)
+
+        # adjust the flow values
+        flow[:, 0, :, :] *= float(w) / float(w_up)
+        flow[:, 1, :, :] *= float(h) / float(h_up)
+
+        return flow
 
 def flow_warp(x, flow, interpolation='bilinear', padding_mode='zeros', align_corners=True):
     t, c, h, w = x.size()  # -> flow has channels last shape
