@@ -11,7 +11,7 @@ nn:
       lr: 1e-4
       betas: [ 0.9, 0.99 ]
     scheduler:
-      eta_min: 1e-7
+      eta_min: 1e-6
     model:
       _target_: vsr.models.VRT.vrt.TinyVRT
   data:

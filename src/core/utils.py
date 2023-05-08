@@ -119,7 +119,7 @@ def get_model_state_dict(path):
 
 def restore_model(model, path, local_rank):
     map_location = {"cuda:0": "cuda:{}".format(local_rank)}
-    model.load_state_dict(torch.load(path, map_location=map_location))
+    model.load_state_dict(torch.load(path, map_location=map_location)['state_dict'])
     return model
 
 def build_callbacks(cfg: ListConfig) -> List[Callback]:
@@ -276,6 +276,12 @@ def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad
         scaler.update()
         scheduler.step()
         optimizer.zero_grad()
+
+def get_video(video_folder):
+    return torch.stack(
+        [to_tensor(Image.open(i))
+         for i in Path(video_folder).glob('*')]
+    ).unsqueeze(0)
 
 def batched(iterable, n):
     if n < 1:

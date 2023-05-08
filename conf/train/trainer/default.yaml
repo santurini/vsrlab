@@ -1,6 +1,6 @@
 devices: 1
 accelerator: gpu
 precision: 16
-max_steps: 400000
+max_steps: 1000000
 num_sanity_val_steps: 2
 deterministic: ${train.deterministic}
