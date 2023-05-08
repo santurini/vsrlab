@@ -33,15 +33,14 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
         save_checkpoint(cfg, model)
 
 def run(cfg: DictConfig):
-    model_config = save_config(cfg)
     seed_index_everything(cfg.train)
-
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
 
     # Initialize logger
     if rank == 0:
         print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
         logger = build_logger(cfg.train.logger)
+        model_config = save_config(cfg)
     else:
         logger = None
 

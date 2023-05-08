@@ -10,7 +10,6 @@ metric:
   metrics:
     PSNR:
       _target_: piqa.PSNR
-
     SSIM:
       _target_: piqa.SSIM
 
@@ -21,11 +20,11 @@ discriminator:
 
 perceptual_loss:
   _target_: core.losses.PerceptualLoss
-  weight: 0.8
+  weight: 1.0
 
 adversarial_loss:
   _target_: core.losses.AdversarialLoss
-  weight: 1e-4
+  weight: 2e-5
 
 defaults:
   - model: baby_realbasic
