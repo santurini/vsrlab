@@ -3,7 +3,7 @@ cfg_dir: /home/aghinassi/VSR/checkpoints/basic_gan
 lr_dir: /mnt/hdd/dataset/pexels/compressed
 hr_dir: /mnt/hdd/dataset/pexels/groundtruth
 out_dir: /mnt/hdd/dataset/pexels
-window_size: 30
+window_size: 120
 
 metric:
   _target_: core.metrics.MetricCollection
