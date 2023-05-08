@@ -3,7 +3,7 @@ core:
   run_id: 'lbasdgflablg'
   run_name: "Real Basic Default - GAN (2e-5)"
 
-finetune: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasicvsr_standard/checkpoints/last.ckpt'
+finetune: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasicvsr_curriculum_hard/checkpoints/last.ckpt'
 
 defaults:
   - override /nn/data: default
