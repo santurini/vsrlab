@@ -30,17 +30,18 @@ def run(config):
     model = restore_model(model, ckpt_path, local_rank)
 
     print('build metrics and losses ...')
-    metric, video_metrics, video_pd = build_metric(config.metric).to(device), {k: 0 for k in config.metric.metrics}, []
+    metric, video_pd = build_metric(config.metric).to(device), []
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
 
-    for fps in [6, 8]:
-        for crf in [30, 32]:
+    for fps in [6, 8, 10, 12, 15]:
+        for crf in [30, 32, 34, 36, 38, 40]:
             print('Configuration: fps -> {} - crf -> {} '.format(fps, crf))
             video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
             output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
+            video_metrics = {k: 0 for k in config.metric.metrics}
 
             for video_lr_path in video_paths:
                 model.eval();
