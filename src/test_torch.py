@@ -59,6 +59,8 @@ def run(config):
                 for i in range(0, video_lr.size(1), config.window_size):
                     lr, hr = video_lr[:, i:i + config.window_size, ...].to(device), \
                         video_hr[:, i:i + config.window_size, ...].to(device)
+
+                    print(lr.shape)
                     sr, _ = model(lr)
                     outputs.append(sr)
 
