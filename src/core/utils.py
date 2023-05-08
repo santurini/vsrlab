@@ -3,7 +3,7 @@ import os
 from itertools import islice
 from pathlib import Path
 from typing import List, Optional, Union
-from multiprocess import Pool
+from multiprocessing import Pool
 
 import hydra
 import numpy as np
