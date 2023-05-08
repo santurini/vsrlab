@@ -1,26 +1,21 @@
 import logging
 import math
+from distutils.version import LooseVersion
 
 import torch
 import torch.nn as nn
-from distutils.version import LooseVersion
-from einops import rearrange
-from einops.layers.torch import Rearrange
-from kornia.geometry.transform import resize
-
-from optical_flow.models.irr.irr import IRRPWCNet
 from core.losses import CharbonnierLoss
 from core.modules.conv import ResidualBlock
-
+from einops import rearrange
+from einops.layers.torch import Rearrange
+from optical_flow.models.irr.irr import IRRPWCNet
 from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
 from vsr.models.VRT.modules.stage import Stage
 from vsr.models.VRT.modules.tmsa import RTMSA
 
-
 pylogger = logging.getLogger(__name__)
 
 loss_fn = CharbonnierLoss()
-
 
 class Upsample(nn.Sequential):
     def __init__(self, scale, num_feat):
@@ -56,6 +51,7 @@ class IterativeRefinement(nn.Module):
         self.steps = steps
         self.resblock = ResidualBlock(3, mid_ch, blocks)
         self.conv = nn.Conv2d(mid_ch, 3, 3, 1, 1, bias=True)
+
     def forward(self, x):
         n, t, c, h, w = x.size()
         for _ in range(self.steps):  # at most 3 cleaning, determined empirically
@@ -90,7 +86,7 @@ class TinyVRT(nn.Module):
             optical_flow_train=False,
             pa_frames=2,
             deformable_groups=8
-                ):
+    ):
         super().__init__()
         self.in_chans = in_chans
         self.out_chans = out_chans
@@ -105,7 +101,7 @@ class TinyVRT(nn.Module):
         )
 
         # conv_first
-        conv_first_in_chans = in_chans*(1+2*4)
+        conv_first_in_chans = in_chans * (1 + 2 * 4)
         self.conv_first = nn.Conv3d(conv_first_in_chans, embed_dims[0], kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
         # main body
@@ -136,14 +132,14 @@ class TinyVRT(nn.Module):
                         reshape=reshapes[i],
                         max_residue_magnitude=10 / scales[i]
                     )
-                )
+                    )
 
         # last stage
         self.stage6 = nn.ModuleList(
             [nn.Sequential(
                 Rearrange('n c d h w ->  n d h w c'),
-                nn.LayerNorm(embed_dims[len(scales)-1]),
-                nn.Linear(embed_dims[len(scales)-1], embed_dims[len(scales)]),
+                nn.LayerNorm(embed_dims[len(scales) - 1]),
+                nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
                 Rearrange('n d h w c -> n c d h w')
             )]
         )
@@ -183,12 +179,13 @@ class TinyVRT(nn.Module):
         flows_backward, flows_forward = getattr(self, f'get_flows_{self.optical_flow_name}')(x)
 
         # warp input
-        x_backward, x_forward = self.get_aligned_image(x,  flows_backward[0], flows_forward[0])
+        x_backward, x_forward = self.get_aligned_image(x, flows_backward[0], flows_forward[0])
         x = torch.cat([x, x_backward, x_forward], 2)
 
         # video sr
         x = self.conv_first(x.transpose(1, 2))
-        x = x + self.conv_after_body(self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)).transpose(1, 4)
+        x = x + self.conv_after_body(self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)).transpose(
+            1, 4)
         x = self.conv_last(self.upsample(self.conv_before_upsample(x))).transpose(1, 2)
         _, _, C, H, W = x.shape
 
@@ -199,9 +196,9 @@ class TinyVRT(nn.Module):
     def forward_features(self, x, flows_backward, flows_forward):
         '''Main network for feature extraction.'''
 
-        x1 = self.stage1(x, flows_backward[0::3], flows_forward[0::3]) # =
-        x2 = self.stage2(x1, flows_backward[1::3], flows_forward[1::3]) # stride 2
-        x3 = self.stage3(x2, flows_backward[2::3], flows_forward[2::3]) # stride 4
+        x1 = self.stage1(x, flows_backward[0::3], flows_forward[0::3])  # =
+        x2 = self.stage2(x1, flows_backward[1::3], flows_forward[1::3])  # stride 2
+        x3 = self.stage3(x2, flows_backward[2::3], flows_forward[2::3])  # stride 4
         x = self.stage4(x3, flows_backward[1::3], flows_forward[1::3])  # stride 2
         x = self.stage5(x + x2, flows_backward[0::3], flows_forward[0::3])  # =
         x = x + x1
@@ -226,11 +223,13 @@ class TinyVRT(nn.Module):
 
         # backward
         flows_backward = self.optical_flow(x_1, x_2)
-        flows_backward = [flow.view(b, n-1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_backward, range(n_scales))]
+        flows_backward = [flow.view(b, n - 1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in
+                          zip(flows_backward, range(n_scales))]
 
         # forward
         flows_forward = self.optical_flow(x_2, x_1)
-        flows_forward = [flow.view(b, n-1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_forward, range(n_scales))]
+        flows_forward = [flow.view(b, n - 1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in
+                         zip(flows_forward, range(n_scales))]
 
         return flows_backward, flows_forward
 
@@ -242,8 +241,10 @@ class TinyVRT(nn.Module):
 
         n_scales = len(self.optical_flow.return_levels)
         flows_forward, flows_backward = self.optical_flow(x_2, x_1)
-        flows_forward = [flow.view(b, n-1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_forward, range(n_scales))]
-        flows_backward = [flow.view(b, n - 1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in zip(flows_backward, range(n_scales))]
+        flows_forward = [flow.view(b, n - 1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in
+                         zip(flows_forward, range(n_scales))]
+        flows_backward = [flow.view(b, n - 1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in
+                          zip(flows_backward, range(n_scales))]
 
         return flows_backward, flows_forward
 
@@ -256,14 +257,14 @@ class TinyVRT(nn.Module):
         for i in range(n - 1, 0, -1):
             x_i = x[:, i, ...]
             flow = flows_backward[:, i - 1, ...]
-            x_backward.insert(0, flow_warp(x_i, flow.permute(0, 2, 3, 1), 'nearest4')) # frame i+1 aligned towards i
+            x_backward.insert(0, flow_warp(x_i, flow.permute(0, 2, 3, 1), 'nearest4'))  # frame i+1 aligned towards i
 
         # forward
         x_forward = [torch.zeros_like(x[:, 0, ...]).repeat(1, 4, 1, 1)]
         for i in range(0, n - 1):
             x_i = x[:, i, ...]
             flow = flows_forward[:, i, ...]
-            x_forward.append(flow_warp(x_i, flow.permute(0, 2, 3, 1), 'nearest4')) # frame i-1 aligned towards i
+            x_forward.append(flow_warp(x_i, flow.permute(0, 2, 3, 1), 'nearest4'))  # frame i-1 aligned towards i
 
         return [torch.stack(x_backward, 1), torch.stack(x_forward, 1)]
 

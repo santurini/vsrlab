@@ -1,30 +1,11 @@
-import logging
-
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-from torchvision.utils import make_grid
-from kornia.geometry.transform import resize
-
-import os
-import random
-import numpy as np
 import time
-import torch.distributed as dist
-from torch.distributed import destroy_process_group
-from torch.nn.utils import clip_grad_norm_
-
-import hydra
-import omegaconf
-from omegaconf import DictConfig
-import wandb
-
-from core.utils import *
-from core import PROJECT_ROOT
-from core.losses import CharbonnierLoss
-
 import warnings
+
+import pandas as pd
+import omegaconf
+
+from core import PROJECT_ROOT
+from core.utils import *
 
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
@@ -32,7 +13,6 @@ pylogger = logging.getLogger(__name__)
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Inference script for VSR')
-    parser.add_argument('checkpoint', help='checkpoint file')
     parser.add_argument('cfg_dir', help='directory of model config')
     parser.add_argument('lr_dir', help='directory of the input lr video')
     parser.add_argument('hr_dir', help='directory of the input hr video')
@@ -45,9 +25,8 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-
 @torch.no_grad()
-def run(cfg, args):
+def run(config, args):
     rank, local_rank, world_size = (0, 0, 1)
     device = torch.device("cuda:{}".format(local_rank))
 
@@ -63,42 +42,51 @@ def run(cfg, args):
     model = restore_model(model, ckpt_path, local_rank)
 
     print('build metrics and losses ...')
-    metric, video_metrics  = build_metric(cfg.metric).to(device), \
-                                {k: 0 for k in cfg.metric.metrics}
+    metric, video_metrics, video_pd = build_metric(config.metric).to(device), {k: 0 for k in config.metric.metrics}, []
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
-    video_paths = list(Path(args.lr_dir).glob('*'))
 
-    for video_lr_path in video_paths:
-        model.eval(); dt = time.time()
+    for fps in [6, 8]:
+        for crf in [30, 32]:
 
-        video_name = os.path.basename(video_lr_path)
-        video_hr_path = os.path.join(args.hr_dir, video_name)
+            video_folder = os.path.join(args.lr_dir, f"fps={fps}_crf={crf}", "frames")
+            output_folder = os.path.join(args.out_dir, os.path.basename(args.cfg_dir))
+            video_paths = list(Path(video_folder).glob('*'))
 
+            for video_lr_path in video_paths:
+                model.eval();
+                dt = time.time()
 
-        video_hr, video_lr = get_video(video_hr_path).to(device), \
-                                get_video(video_lr_path).to(device)
+                video_name = os.path.basename(video_lr_path)
+                video_hr_path = os.path.join(args.hr_dir, f"fps={fps}_crf=5", video_name)
+                save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
+                Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-        outputs = []
-        for i in range(0, video_lr.size(1), args.window_size):
-            lr, hr = video_lr[:, i:i + args.window_size, ...].to(device), \
+                video_hr, video_lr = get_video(video_hr_path).to(device), \
+                    get_video(video_lr_path).to(device)
+
+                outputs = []
+                for i in range(0, video_lr.size(1), args.window_size):
+                    lr, hr = video_lr[:, i:i + args.window_size, ...].to(device), \
                         video_hr[:, i:i + args.window_size, ...].to(device)
-            sr = model(lr)
-            outputs.append(sr.cpu())
+                    sr, _ = model(lr)
+                    outputs.append(sr.cpu())
 
-        outputs = torch.cat(outputs, dim=1)[0]
-        for i, img in enumerate(outputs):
-            save_image(img, os.path.join(args.out_dir, video_name, f"img{i}.png"))
+                outputs = torch.cat(outputs, dim=1)
+                for i, img in enumerate(outputs[0]):
+                    save_image(img, os.path.join(save_folder, f"img{i}.png"))
 
-        video_metrics = running_metrics(video_metrics, metric, outputs, video_hr)
+                video_metrics = running_metrics(video_metrics, metric, outputs, video_hr)
 
-        dt = time.time() - dt
-        print(f"Inference Time --> {dt:2f}")
+                dt = time.time() - dt
+                print(f"Inference Time --> {dt:2f}")
 
-    video_metrics = {k: v / len(video_paths) for k,v in video_metrics.items()}
+            video_pd.append({"fps": fps, "crf": crf} | {k: v / len(video_paths) for k, v in video_metrics.items()})
 
-    return args.out_dir
+    pd.DataFrame(video_pd).to_csv(os.path.join(output_folder, 'metrics.csv'))
+
+    return output_folder
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
 def main(config: omegaconf.DictConfig):

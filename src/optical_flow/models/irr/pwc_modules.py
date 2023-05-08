@@ -36,7 +36,6 @@ def initialize_msra(modules):
         elif isinstance(layer, nn.Sequential):
             pass
 
-
 def compute_cost_volume(feat1, feat2, param_dict):
     """
     only implemented for:
@@ -59,11 +58,9 @@ def compute_cost_volume(feat1, feat2, param_dict):
     cost_volume = torch.cat(cost_list, axis=1)
     return cost_volume
 
-
 def upsample2d_as(inputs, target_as, mode="bilinear"):
     _, _, h, w = target_as.size()
     return tf.interpolate(inputs, [h, w], mode=mode, align_corners=True)
-
 
 def rescale_flow(flow, div_flow, width_im, height_im, to_local=True):
     if to_local:
@@ -78,7 +75,6 @@ def rescale_flow(flow, div_flow, width_im, height_im, to_local=True):
     v = v * v_scale
 
     return torch.cat([u, v], dim=1)
-
 
 class FeatureExtractor(nn.Module):
     def __init__(self, num_chs):
@@ -101,14 +97,12 @@ class FeatureExtractor(nn.Module):
 
         return feature_pyramid[::-1]
 
-
 def get_grid(x):
     grid_H = torch.linspace(-1.0, 1.0, x.size(3)).view(1, 1, 1, x.size(3)).expand(x.size(0), 1, x.size(2), x.size(3))
     grid_V = torch.linspace(-1.0, 1.0, x.size(2)).view(1, 1, x.size(2), 1).expand(x.size(0), 1, x.size(2), x.size(3))
     grid = torch.cat([grid_H, grid_V], 1)
     grids_cuda = grid.float().requires_grad_(False).cuda()
     return grids_cuda
-
 
 class WarpingLayer(nn.Module):
     def __init__(self):
@@ -122,7 +116,7 @@ class WarpingLayer(nn.Module):
         flo_list.append(flo_w)
         flo_list.append(flo_h)
         flow_for_grid = torch.stack(flo_list).transpose(0, 1)
-        grid = torch.add(get_grid(x), flow_for_grid).transpose(1, 2).transpose(2, 3)        
+        grid = torch.add(get_grid(x), flow_for_grid).transpose(1, 2).transpose(2, 3)
         x_warp = tf.grid_sample(x, grid, align_corners=True)
 
         mask = torch.ones(x.size(), requires_grad=False).cuda()
@@ -147,7 +141,6 @@ class OpticalFlowEstimator(nn.Module):
     def forward(self, x):
         x_intm = self.convs(x)
         return x_intm, self.conv_last(x_intm)
-
 
 class FlowEstimatorDense(nn.Module):
     def __init__(self, ch_in):

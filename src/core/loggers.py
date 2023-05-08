@@ -1,9 +1,8 @@
 from typing import Any, List
-import wandb
 
-import torchvision.transforms.functional as F
-from torchvision.utils import make_grid
+import wandb
 from kornia.geometry.transform import resize
+from torchvision.utils import make_grid
 
 class WandbLogger(object):
     def __init__(
@@ -13,7 +12,7 @@ class WandbLogger(object):
             id: str = 'sanity',
             name: str = 'Sanity Checking',
             tags: List[Any] = None
-                 ):
+    ):
 
         self.save_dir = save_dir
         self.project = project
@@ -23,22 +22,22 @@ class WandbLogger(object):
 
     def init(self):
         self.run = wandb.init(
-            dir = self.save_dir,
-            project = self.project,
-            name = self.name,
-            id = self.id,
-            tags = self.tags,
+            dir=self.save_dir,
+            project=self.project,
+            name=self.name,
+            id=self.id,
+            tags=self.tags,
         )
 
     def log_images(self, stage, epoch, lr, sr, hr, lq=None):
         n, t, d, h, w = hr.size()
 
-        lr = resize(lr[0, -1, :, :, :], (h,w)).detach()
+        lr = resize(lr[0, -1, :, :, :], (h, w)).detach()
         hr = hr[0, -1, :, :, :].detach()
         sr = sr[0, -1, :, :, :].detach().clamp(0, 1)
 
         if lq is not None:
-            lq = resize(lq[0, -1, :, :, :], (h,w)).detach()
+            lq = resize(lq[0, -1, :, :, :], (h, w)).detach()
             grid = make_grid([lr, lq, sr, hr], nrow=4, ncol=1)
 
         else:

@@ -48,7 +48,7 @@ datasets:
 
       - _target_: kornia.augmentation.RandomGaussianBlur
         kernel_size: 5
-        sigma: [0.5, 1.5]
+        sigma: [ 0.5, 1.5 ]
         same_on_batch: False
         keepdim: True
         p: 0.6

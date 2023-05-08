@@ -1,15 +1,14 @@
 import logging
-from  collections import OrderedDict
+from collections import OrderedDict
 
 import torch
 import torch.nn as nn
+from core import PROJECT_ROOT
 from optical_flow.models.irr.irr_modules import RefineFlow
 from optical_flow.models.irr.pwc_modules import (
     conv, upsample2d_as, rescale_flow, initialize_msra, compute_cost_volume,
     WarpingLayer, FeatureExtractor, ContextNetwork, FlowEstimatorDense
 )
-
-from core import PROJECT_ROOT
 
 pylogger = logging.getLogger(__name__)
 

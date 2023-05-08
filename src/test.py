@@ -80,7 +80,6 @@ def test(cfg: DictConfig) -> str:
 
             df = df.append([metrics], ignore_index=True)
 
-
         pylogger.info(f"<Appending metrics>")
         metrics = df.mean(axis=0).to_dict()
         df_final = df_final.append([metrics], ignore_index=True)

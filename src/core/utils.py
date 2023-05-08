@@ -2,22 +2,22 @@ import logging
 import os
 from itertools import islice
 from pathlib import Path
-from PIL import Image
 from typing import List, Optional, Union
 
 import hydra
 import numpy as np
 import torch
 import torch.distributed as dist
-from torch.nn.utils import clip_grad_norm_
 import torchvision.transforms.functional as F
-from torch.utils.data.distributed import DistributedSampler
-from torch.utils.data import DataLoader
-from omegaconf import DictConfig, ListConfig, OmegaConf
+from PIL import Image
+from einops import rearrange
 from kornia.geometry.transform import resize
+from omegaconf import DictConfig, ListConfig, OmegaConf
 from pytorch_lightning import seed_everything, Callback
 from torch.nn import Sequential
-from einops import rearrange
+from torch.nn.utils import clip_grad_norm_
+from torch.utils.data import DataLoader
+from torch.utils.data.distributed import DistributedSampler
 
 CPU_DEVICE = torch.device("cpu")
 pylogger = logging.getLogger(__name__)
@@ -53,7 +53,6 @@ def get_resources():
     dist.init_process_group(backend="nccl", rank=rank, world_size=world_size)
 
     return rank, local_rank, world_size
-
 
 def cleanup():
     dist.destroy_process_group()
@@ -95,7 +94,7 @@ def save_test_config(cfg):
         out_dir,
         model,
         version
-        ])
+    ])
 
     Path(save_path).mkdir(exist_ok=True, parents=True)
     file_name = Path(save_path) / "config.yaml"
@@ -142,9 +141,9 @@ def build_scheduler(
         for sched in scheduler:
             chained_scheduler.append(
                 hydra.utils.instantiate(
-                sched,
-                optimizer,
-                _recursive_=False
+                    sched,
+                    optimizer,
+                    _recursive_=False
                 )
             )
 
@@ -226,7 +225,7 @@ def build_loaders(cfg):
                           num_workers=cfg.nn.data.num_workers,
                           prefetch_factor=cfg.nn.data.prefetch_factor,
                           persistent_workers=True,
-                          #pin_memory=True
+                          # pin_memory=True
                           )
 
     # Test loader does not have to follow distributed sampling strategy
@@ -237,7 +236,7 @@ def build_loaders(cfg):
                         prefetch_factor=cfg.nn.data.prefetch_factor,
                         shuffle=False,
                         persistent_workers=True,
-                        #pin_memory=True
+                        # pin_memory=True
                         )
 
     return train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch
@@ -260,7 +259,6 @@ def running_metrics(metrics_dict, metric, sr, hr):
     metric_out = compute_metric(metric, sr, hr)
     out = {k: metrics_dict[k] + metric_out[k] for k in set(metrics_dict) & set(metric_out)}
     return out
-
 
 def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, i):
     loss = loss / num_grad_acc

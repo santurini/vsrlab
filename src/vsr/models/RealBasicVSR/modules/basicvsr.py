@@ -4,14 +4,14 @@ import torch
 import torch.nn as nn
 from core.modules.conv import ResidualBlock
 from core.modules.upsampling import PixelShufflePack
-from optical_flow.models.spynet import Spynet, flow_warp
-from optical_flow.models.raft.raft import RAFT
 from optical_flow.models.irr.irr import IRRPWCNet
+from optical_flow.models.spynet import Spynet, flow_warp
 
 pylogger = logging.getLogger(__name__)
 
 class BasicVSR(nn.Module):
-    def __init__(self, mid_channels=64, res_blocks=30, upscale=4, is_mirror=False, optical_flow='spynet', pretrained_flow=False, train_flow=False):
+    def __init__(self, mid_channels=64, res_blocks=30, upscale=4, is_mirror=False, optical_flow='spynet',
+                 pretrained_flow=False, train_flow=False):
         super().__init__()
         self.is_mirror = is_mirror
         self.mid_channels = mid_channels
@@ -19,7 +19,8 @@ class BasicVSR(nn.Module):
         self.forward_resblocks = ResidualBlock(mid_channels + 3, mid_channels, res_blocks)
         self.point_conv = nn.Sequential(nn.Conv2d(mid_channels * 2, mid_channels, 1, 1), nn.LeakyReLU(0.1))
         self.upsample = nn.Sequential(*[PixelShufflePack(mid_channels, mid_channels, 2) for _ in range(upscale // 2)])
-        self.conv_last = nn.Sequential(nn.Conv2d(mid_channels, 64, 3, 1, 1), nn.LeakyReLU(0.1), nn.Conv2d(64, 3, 3, 1, 1))
+        self.conv_last = nn.Sequential(nn.Conv2d(mid_channels, 64, 3, 1, 1), nn.LeakyReLU(0.1),
+                                       nn.Conv2d(64, 3, 3, 1, 1))
         self.upscale = nn.Upsample(scale_factor=upscale, mode='bilinear', align_corners=False)
 
         self.optical_flow_name = optical_flow

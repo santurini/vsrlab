@@ -1,30 +1,11 @@
-import logging
-
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-from torchvision.utils import make_grid
-from kornia.geometry.transform import resize
-
-import os
-import random
-import numpy as np
 import time
-import torch.distributed as dist
-from torch.distributed import destroy_process_group
-from torch.nn.utils import clip_grad_norm_
+import warnings
 
-import hydra
 import omegaconf
-from omegaconf import DictConfig
-import wandb
 
-from core.utils import *
 from core import PROJECT_ROOT
 from core.losses import CharbonnierLoss
-
-import warnings
+from core.utils import *
 
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
@@ -47,10 +28,9 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
 
     if rank == 0:
         logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
-        logger.log_dict({k: v / len(val_dl) for k,v in val_metrics.items()}, epoch, "Val")
+        logger.log_dict({k: v / len(val_dl) for k, v in val_metrics.items()}, epoch, "Val")
         logger.log_images("Val", epoch, lr, sr, hr, lq)
         save_checkpoint(cfg, model)
-
 
 def run(cfg: DictConfig):
     model_config = save_config(cfg)
@@ -59,7 +39,7 @@ def run(cfg: DictConfig):
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
 
     # Initialize logger
-    if rank==0:
+    if rank == 0:
         print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
         logger = build_logger(cfg.train.logger)
     else:
@@ -89,12 +69,13 @@ def run(cfg: DictConfig):
 
     print('build metrics and losses ...')
     loss_fn, train_loss = CharbonnierLoss(), 0
-    metric,  = build_metric(cfg.nn.module.metric).to(device),
+    metric, = build_metric(cfg.nn.module.metric).to(device),
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Training ...".format(rank, local_rank))
     for epoch in range(cfg.train.trainer.max_epochs):
-        model.train(); dt = time.time()
+        model.train();
+        dt = time.time()
         train_loss, train_metrics = 0, {k: 0 for k in cfg.nn.module.metric.metrics}
 
         for i, data in enumerate(train_dl):
@@ -105,7 +86,7 @@ def run(cfg: DictConfig):
                 loss = compute_loss(loss_fn, sr, hr, lq)
 
             update_weights(model, loss, scaler, scheduler,
-                            optimizer, num_grad_acc, gradient_clip_val, i)
+                           optimizer, num_grad_acc, gradient_clip_val, i)
 
             train_loss += loss.detach().item()
             train_metrics = running_metrics(train_metrics, metric, sr, hr)
@@ -117,7 +98,7 @@ def run(cfg: DictConfig):
 
         print("Starting Evaluation ...")
         evaluate(rank, world_size, epoch, model, logger, device,
-                    val_dl, loss_fn, metric, cfg)
+                 val_dl, loss_fn, metric, cfg)
 
         dt = time.time() - dt
         print(f"Epoch {epoch} - Elapsed time --> {dt:2f}")

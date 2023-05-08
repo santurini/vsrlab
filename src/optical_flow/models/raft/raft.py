@@ -28,7 +28,7 @@ class RAFT(nn.Module):
             self.corr_levels = 4
             self.corr_radius = 3
             self.fnet = SmallEncoder(output_dim=128, norm_fn='instance')
-            self.cnet = SmallEncoder(output_dim=self.hidden_dim+self.context_dim, norm_fn='none')
+            self.cnet = SmallEncoder(output_dim=self.hidden_dim + self.context_dim, norm_fn='none')
             self.update_block = SmallUpdateBlock(self.corr_levels, self.corr_radius, hidden_dim=self.hidden_dim)
 
             if pretrained:
@@ -36,14 +36,14 @@ class RAFT(nn.Module):
                 state_dict = torch.load(f'{PROJECT_ROOT}/src/optical_flow/weights/raft-small.pth')
                 new_dict = OrderedDict([(k.partition('module.')[-1], v) for k, v in state_dict.items()])
                 self.load_state_dict(new_dict, strict=True)
-        
+
         else:
             self.hidden_dim = 128
             self.context_dim = 128
             self.corr_levels = 4
             self.corr_radius = 4
             self.fnet = BasicEncoder(output_dim=256, norm_fn='instance')
-            self.cnet = BasicEncoder(output_dim=self.hidden_dim+self.context_dim, norm_fn='batch')
+            self.cnet = BasicEncoder(output_dim=self.hidden_dim + self.context_dim, norm_fn='batch')
             self.update_block = BasicUpdateBlock(self.corr_levels, self.corr_radius, hidden_dim=self.hidden_dim)
 
             if pretrained:
@@ -55,8 +55,8 @@ class RAFT(nn.Module):
     @staticmethod
     def initialize_flow(img):
         N, C, H, W = img.shape
-        coords0 = coords_grid(N, H//8, W//8).type_as(img)
-        coords1 = coords_grid(N, H//8, W//8).type_as(img)
+        coords0 = coords_grid(N, H // 8, W // 8).type_as(img)
+        coords1 = coords_grid(N, H // 8, W // 8).type_as(img)
 
         return coords0, coords1
 
@@ -82,6 +82,6 @@ class RAFT(nn.Module):
 
             coords1 = coords1 + delta_flow
 
-        flow_up = upflow(coords1-coords0, scale_factor=self.scale_factor)
-            
+        flow_up = upflow(coords1 - coords0, scale_factor=self.scale_factor)
+
         return flow_up

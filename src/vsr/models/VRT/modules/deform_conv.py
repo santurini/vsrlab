@@ -113,7 +113,7 @@ class DCNv2PackFlowGuided(ModulatedDeformConvPack):
         super(DCNv2PackFlowGuided, self).__init__(*args, **kwargs)
 
         self.conv_offset = nn.Sequential(
-            nn.Conv2d((1+self.pa_frames//2) * self.in_channels + self.pa_frames, self.out_channels, 3, 1, 1),
+            nn.Conv2d((1 + self.pa_frames // 2) * self.in_channels + self.pa_frames, self.out_channels, 3, 1, 1),
             nn.LeakyReLU(negative_slope=0.1, inplace=True),
             nn.Conv2d(self.out_channels, self.out_channels, 3, 1, 1),
             nn.LeakyReLU(negative_slope=0.1, inplace=True),
@@ -136,10 +136,10 @@ class DCNv2PackFlowGuided(ModulatedDeformConvPack):
 
         # offset
         offset = self.max_residue_magnitude * torch.tanh(torch.cat((o1, o2), dim=1))
-        offset = offset + flows[0].flip(1).repeat(1, offset.size(1)//2, 1, 1)
+        offset = offset + flows[0].flip(1).repeat(1, offset.size(1) // 2, 1, 1)
 
         # mask
         mask = torch.sigmoid(mask)
 
         return torchvision.ops.deform_conv2d(x, offset, self.weight, self.bias, self.stride, self.padding,
-                                         self.dilation, mask)
+                                             self.dilation, mask)

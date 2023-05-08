@@ -20,7 +20,7 @@ class RealBasicVSR(nn.Module):
             lr = (lr + residues).reshape(n, t, c, h, w)
             if torch.mean(torch.abs(residues)) < self.threshold:
                 break
-        sr  = self.basicvsr(lr)
+        sr = self.basicvsr(lr)
 
         return sr, lr
 
@@ -34,7 +34,7 @@ class RealBasicVSR(nn.Module):
             if torch.mean(torch.abs(residues)) < self.threshold:
                 break
 
-        sr  = self.basicvsr(lq)
+        sr = self.basicvsr(lq)
 
         loss = F.l1_loss(hr, sr) + F.l1_loss(resize(hr, (h, w), antialias=True), lq)
 

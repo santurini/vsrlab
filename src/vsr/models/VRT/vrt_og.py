@@ -4,24 +4,23 @@
 # LICENSE file in the root directory of this source tree.
 
 
-import os
-import warnings
 import math
-import torch
-import torch.nn as nn
-import torchvision
-import torch.nn.functional as F
-import torch.utils.checkpoint as checkpoint
+import warnings
 from distutils.version import LooseVersion
-from torch.nn.modules.utils import _pair, _single
-import numpy as np
 from functools import reduce, lru_cache
 from operator import mul
-from einops import rearrange
-from einops.layers.torch import Rearrange
 
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.utils.checkpoint as checkpoint
+import torchvision
 from core import PROJECT_ROOT
 from core.losses import CharbonnierLoss
+from einops import rearrange
+from einops.layers.torch import Rearrange
+from torch.nn.modules.utils import _pair, _single
 
 loss_fn = CharbonnierLoss()
 
@@ -141,7 +140,6 @@ def _no_grad_trunc_normal_(tensor, mean, std, a, b):
         tensor.clamp_(min=a, max=b)
         return tensor
 
-
 def trunc_normal_(tensor, mean=0., std=1., a=-2., b=2.):
     r"""Fills the input Tensor with values drawn from a truncated
     normal distribution.
@@ -167,7 +165,6 @@ def trunc_normal_(tensor, mean=0., std=1., a=-2., b=2.):
     """
     return _no_grad_trunc_normal_(tensor, mean, std, a, b)
 
-
 def drop_path(x, drop_prob: float = 0., training: bool = False):
     """Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
     From: https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/layers/drop.py
@@ -175,12 +172,11 @@ def drop_path(x, drop_prob: float = 0., training: bool = False):
     if drop_prob == 0. or not training:
         return x
     keep_prob = 1 - drop_prob
-    shape = (x.shape[0], ) + (1, ) * (x.ndim - 1)  # work with diff dim tensors, not just 2D ConvNets
+    shape = (x.shape[0],) + (1,) * (x.ndim - 1)  # work with diff dim tensors, not just 2D ConvNets
     random_tensor = keep_prob + torch.rand(shape, dtype=x.dtype, device=x.device)
     random_tensor.floor_()  # binarize
     output = x.div(keep_prob) * random_tensor
     return output
-
 
 class DropPath(nn.Module):
     """Drop paths (Stochastic Depth) per sample  (when applied in main path of residual blocks).
@@ -193,7 +189,6 @@ class DropPath(nn.Module):
 
     def forward(self, x):
         return drop_path(x, self.drop_prob, self.training)
-
 
 def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corners=True, use_pad_mask=False):
     """Warp an image or feature map with optical flow.
@@ -218,7 +213,8 @@ def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corne
     n, _, h, w = x.size()
     # create mesh grid
     # grid_y, grid_x = torch.meshgrid(torch.arange(0, h).type_as(x), torch.arange(0, w).type_as(x)) # an illegal memory access on TITAN RTX + PyTorch1.9.1
-    grid_y, grid_x = torch.meshgrid(torch.arange(0, h, dtype=x.dtype, device=x.device), torch.arange(0, w, dtype=x.dtype, device=x.device))
+    grid_y, grid_x = torch.meshgrid(torch.arange(0, h, dtype=x.dtype, device=x.device),
+                                    torch.arange(0, w, dtype=x.dtype, device=x.device))
     grid = torch.stack((grid_x, grid_y), 2).float()  # W(x), H(y), 2
     grid.requires_grad = False
 
@@ -231,10 +227,14 @@ def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corne
         vgrid_y_floor = 2.0 * torch.floor(vgrid[:, :, :, 1]) / max(h - 1, 1) - 1.0
         vgrid_y_ceil = 2.0 * torch.ceil(vgrid[:, :, :, 1]) / max(h - 1, 1) - 1.0
 
-        output00 = F.grid_sample(x, torch.stack((vgrid_x_floor, vgrid_y_floor), dim=3), mode='nearest', padding_mode=padding_mode, align_corners=align_corners)
-        output01 = F.grid_sample(x, torch.stack((vgrid_x_floor, vgrid_y_ceil), dim=3), mode='nearest', padding_mode=padding_mode, align_corners=align_corners)
-        output10 = F.grid_sample(x, torch.stack((vgrid_x_ceil, vgrid_y_floor), dim=3), mode='nearest', padding_mode=padding_mode, align_corners=align_corners)
-        output11 = F.grid_sample(x, torch.stack((vgrid_x_ceil, vgrid_y_ceil), dim=3), mode='nearest', padding_mode=padding_mode, align_corners=align_corners)
+        output00 = F.grid_sample(x, torch.stack((vgrid_x_floor, vgrid_y_floor), dim=3), mode='nearest',
+                                 padding_mode=padding_mode, align_corners=align_corners)
+        output01 = F.grid_sample(x, torch.stack((vgrid_x_floor, vgrid_y_ceil), dim=3), mode='nearest',
+                                 padding_mode=padding_mode, align_corners=align_corners)
+        output10 = F.grid_sample(x, torch.stack((vgrid_x_ceil, vgrid_y_floor), dim=3), mode='nearest',
+                                 padding_mode=padding_mode, align_corners=align_corners)
+        output11 = F.grid_sample(x, torch.stack((vgrid_x_ceil, vgrid_y_ceil), dim=3), mode='nearest',
+                                 padding_mode=padding_mode, align_corners=align_corners)
 
         return torch.cat([output00, output01, output10, output11], 1)
 
@@ -242,10 +242,10 @@ def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corne
         vgrid_x = 2.0 * vgrid[:, :, :, 0] / max(w - 1, 1) - 1.0
         vgrid_y = 2.0 * vgrid[:, :, :, 1] / max(h - 1, 1) - 1.0
         vgrid_scaled = torch.stack((vgrid_x, vgrid_y), dim=3)
-        output = F.grid_sample(x, vgrid_scaled, mode=interp_mode, padding_mode=padding_mode, align_corners=align_corners)
+        output = F.grid_sample(x, vgrid_scaled, mode=interp_mode, padding_mode=padding_mode,
+                               align_corners=align_corners)
 
         return output
-
 
 class DCNv2PackFlowGuided(ModulatedDeformConvPack):
     """Flow-guided deformable alignment module.
@@ -276,7 +276,7 @@ class DCNv2PackFlowGuided(ModulatedDeformConvPack):
         super(DCNv2PackFlowGuided, self).__init__(*args, **kwargs)
 
         self.conv_offset = nn.Sequential(
-            nn.Conv2d((1+self.pa_frames//2) * self.in_channels + self.pa_frames, self.out_channels, 3, 1, 1),
+            nn.Conv2d((1 + self.pa_frames // 2) * self.in_channels + self.pa_frames, self.out_channels, 3, 1, 1),
             nn.LeakyReLU(negative_slope=0.1, inplace=True),
             nn.Conv2d(self.out_channels, self.out_channels, 3, 1, 1),
             nn.LeakyReLU(negative_slope=0.1, inplace=True),
@@ -300,7 +300,7 @@ class DCNv2PackFlowGuided(ModulatedDeformConvPack):
         # offset
         offset = self.max_residue_magnitude * torch.tanh(torch.cat((o1, o2), dim=1))
         if self.pa_frames == 2:
-            offset = offset + flows[0].flip(1).repeat(1, offset.size(1)//2, 1, 1)
+            offset = offset + flows[0].flip(1).repeat(1, offset.size(1) // 2, 1, 1)
         elif self.pa_frames == 4:
             offset1, offset2 = torch.chunk(offset, 2, dim=1)
             offset1 = offset1 + flows[0].flip(1).repeat(1, offset1.size(1) // 2, 1, 1)
@@ -318,8 +318,7 @@ class DCNv2PackFlowGuided(ModulatedDeformConvPack):
         mask = torch.sigmoid(mask)
 
         return torchvision.ops.deform_conv2d(x, offset, self.weight, self.bias, self.stride, self.padding,
-                                         self.dilation, mask)
-
+                                             self.dilation, mask)
 
 class BasicModule(nn.Module):
     """Basic Module for SpyNet.
@@ -337,7 +336,6 @@ class BasicModule(nn.Module):
 
     def forward(self, tensor_input):
         return self.basic_module(tensor_input)
-
 
 class SpyNet(nn.Module):
     """SpyNet architecture.
@@ -396,10 +394,11 @@ class SpyNet(nn.Module):
             ], 1)) + upsampled_flow
 
             if level in self.return_levels:
-                scale = 2**(5-level) # level=5 (scale=1), level=4 (scale=2), level=3 (scale=4), level=2 (scale=8)
-                flow_out = F.interpolate(input=flow, size=(h//scale, w//scale), mode='bilinear', align_corners=False)
-                flow_out[:, 0, :, :] *= float(w//scale) / float(w_floor//scale)
-                flow_out[:, 1, :, :] *= float(h//scale) / float(h_floor//scale)
+                scale = 2 ** (5 - level)  # level=5 (scale=1), level=4 (scale=2), level=3 (scale=4), level=2 (scale=8)
+                flow_out = F.interpolate(input=flow, size=(h // scale, w // scale), mode='bilinear',
+                                         align_corners=False)
+                flow_out[:, 0, :, :] *= float(w // scale) / float(w_floor // scale)
+                flow_out[:, 1, :, :] *= float(h // scale) / float(h_floor // scale)
                 flow_list.insert(0, flow_out)
 
         return flow_list
@@ -418,7 +417,6 @@ class SpyNet(nn.Module):
 
         return flow_list[0] if len(flow_list) == 1 else flow_list
 
-
 def window_partition(x, window_size):
     """ Partition the input into windows. Attention will be conducted within the windows.
 
@@ -435,7 +433,6 @@ def window_partition(x, window_size):
     windows = x.permute(0, 1, 3, 5, 2, 4, 6, 7).contiguous().view(-1, reduce(mul, window_size), C)
 
     return windows
-
 
 def window_reverse(windows, window_size, B, D, H, W):
     """ Reverse windows back to the original input. Attention was conducted within the windows.
@@ -455,7 +452,6 @@ def window_reverse(windows, window_size, B, D, H, W):
 
     return x
 
-
 def get_window_size(x_size, window_size, shift_size=None):
     """ Get the window size and the shift size """
 
@@ -472,7 +468,6 @@ def get_window_size(x_size, window_size, shift_size=None):
         return tuple(use_window_size)
     else:
         return tuple(use_window_size), tuple(use_shift_size)
-
 
 @lru_cache()
 def compute_mask(D, H, W, window_size, shift_size, device):
@@ -491,7 +486,6 @@ def compute_mask(D, H, W, window_size, shift_size, device):
     attn_mask = attn_mask.masked_fill(attn_mask != 0, float(-100.0)).masked_fill(attn_mask == 0, float(0.0))
 
     return attn_mask
-
 
 class Upsample(nn.Sequential):
     """Upsample module for video SR.
@@ -534,7 +528,6 @@ class Upsample(nn.Sequential):
             raise ValueError(f'scale {scale} is not supported. ' 'Supported scales: 2^n and 3.')
         super(Upsample, self).__init__(*m)
 
-
 class Mlp_GEGLU(nn.Module):
     """ Multilayer perceptron with gated linear unit (GEGLU). Ref. "GLU Variants Improve Transformer".
 
@@ -562,7 +555,6 @@ class Mlp_GEGLU(nn.Module):
         x = self.fc2(x)
 
         return x
-
 
 class WindowAttention(nn.Module):
     """ Window based multi-head mutual attention and self attention.
@@ -620,8 +612,10 @@ class WindowAttention(nn.Module):
         # mutual attention
         if self.mut_attn:
             qkv = self.qkv_mut(x + self.position_bias.repeat(1, 2, 1)).reshape(B_, N, 3, self.num_heads,
-                                                                               C // self.num_heads).permute(2, 0, 3, 1, 4)
-            (q1, q2), (k1, k2), (v1, v2) = torch.chunk(qkv[0], 2, dim=2), torch.chunk(qkv[1], 2, dim=2), torch.chunk(qkv[2], 2, dim=2)  # B_, nH, N/2, C
+                                                                               C // self.num_heads).permute(2, 0, 3, 1,
+                                                                                                            4)
+            (q1, q2), (k1, k2), (v1, v2) = torch.chunk(qkv[0], 2, dim=2), torch.chunk(qkv[1], 2, dim=2), torch.chunk(
+                qkv[2], 2, dim=2)  # B_, nH, N/2, C
             x1_aligned = self.attention(q2, k1, v1, mask, (B_, N // 2, C), relative_position_encoding=False)
             x2_aligned = self.attention(q1, k2, v2, mask, (B_, N // 2, C), relative_position_encoding=False)
             x_out = torch.cat([torch.cat([x1_aligned, x2_aligned], 1), x_out], 2)
@@ -700,7 +694,6 @@ class WindowAttention(nn.Module):
         pos_embed = torch.cat((pos_y, pos_x), dim=3).permute(0, 3, 1, 2)
 
         return pos_embed.flatten(2).permute(0, 2, 1).contiguous()
-
 
 class TMSA(nn.Module):
     """ Temporal Mutual Self Attention (TMSA).
@@ -828,7 +821,6 @@ class TMSA(nn.Module):
 
         return x
 
-
 class TMSAG(nn.Module):
     """ Temporal Mutual Self Attention Group (TMSAG).
 
@@ -912,7 +904,6 @@ class TMSAG(nn.Module):
 
         return x
 
-
 class RTMSA(nn.Module):
     """ Residual Temporal Mutual Self Attention (RTMSA). Only used in stage 8.
 
@@ -967,7 +958,6 @@ class RTMSA(nn.Module):
 
     def forward(self, x):
         return x + self.linear(self.residual_group(x).transpose(1, 4)).transpose(1, 4)
-
 
 class Stage(nn.Module):
     """Residual Temporal Mutual Self Attention Group and Parallel Warping.
@@ -1076,7 +1066,8 @@ class Stage(nn.Module):
 
         if self.pa_frames:
             x = x.transpose(1, 2)
-            x_backward, x_forward = getattr(self, f'get_aligned_feature_{self.pa_frames}frames')(x, flows_backward, flows_forward)
+            x_backward, x_forward = getattr(self, f'get_aligned_feature_{self.pa_frames}frames')(x, flows_backward,
+                                                                                                 flows_forward)
             x = self.pa_fuse(torch.cat([x, x_backward, x_forward], 2).permute(0, 1, 3, 4, 2)).permute(0, 4, 1, 2, 3)
 
         return x
@@ -1122,7 +1113,8 @@ class Stage(nn.Module):
             x_i_warped = flow_warp(x_i, flow1.permute(0, 2, 3, 1), 'bilinear')  # frame i+1 aligned towards i
             x_ii_warped = flow_warp(x_ii, flow2.permute(0, 2, 3, 1), 'bilinear')  # frame i+2 aligned towards i
             x_backward.insert(0,
-                self.pa_deform(torch.cat([x_i, x_ii], 1), [x_i_warped, x_ii_warped], x[:, i - 2, ...], [flow1, flow2]))
+                              self.pa_deform(torch.cat([x_i, x_ii], 1), [x_i_warped, x_ii_warped], x[:, i - 2, ...],
+                                             [flow1, flow2]))
 
         # forward
         x_forward = [torch.zeros_like(x[:, 0, ...])]
@@ -1204,7 +1196,6 @@ class Stage(nn.Module):
 
         return [torch.stack(x_backward, 1), torch.stack(x_forward, 1)]
 
-
 class VRT(nn.Module):
     """ Video Restoration Transformer (VRT).
         A PyTorch impl of : `VRT: A Video Restoration Transformer`  -
@@ -1271,7 +1262,7 @@ class VRT(nn.Module):
         self.indep_reconsts = [i.item() for i in torch.arange(len(depths))[indep_reconsts]]
 
         # conv_first
-        conv_first_in_chans = in_chans*(1+2*4)
+        conv_first_in_chans = in_chans * (1 + 2 * 4)
         self.conv_first = nn.Conv3d(conv_first_in_chans, embed_dims[0], kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
         # main body
@@ -1306,7 +1297,7 @@ class VRT(nn.Module):
                         max_residue_magnitude=10 / scales[i],
                         use_checkpoint_attn=use_checkpoint_attns[i],
                         use_checkpoint_ffn=use_checkpoint_ffns[i],
-                        )
+                    )
                     )
 
         # stage 8
@@ -1355,12 +1346,13 @@ class VRT(nn.Module):
         flows_backward, flows_forward = self.get_flows(x)
 
         # warp input
-        x_backward, x_forward = self.get_aligned_image_2frames(x,  flows_backward[0], flows_forward[0])
+        x_backward, x_forward = self.get_aligned_image_2frames(x, flows_backward[0], flows_forward[0])
         x = torch.cat([x, x_backward, x_forward], 2)
 
         # video sr
         x = self.conv_first(x.transpose(1, 2))
-        x = x + self.conv_after_body(self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)).transpose(1, 4)
+        x = x + self.conv_after_body(self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)).transpose(
+            1, 4)
         x = self.conv_last(self.upsample(self.conv_before_upsample(x))).transpose(1, 2)
         _, _, C, H, W = x.shape
 
@@ -1406,13 +1398,18 @@ class VRT(nn.Module):
             flows_backward, flows_forward = self.get_flow_2frames(x)
         elif self.pa_frames == 4:
             flows_backward_2frames, flows_forward_2frames = self.get_flow_2frames(x)
-            flows_backward_4frames, flows_forward_4frames = self.get_flow_4frames(flows_forward_2frames, flows_backward_2frames)
+            flows_backward_4frames, flows_forward_4frames = self.get_flow_4frames(flows_forward_2frames,
+                                                                                  flows_backward_2frames)
             flows_backward = flows_backward_2frames + flows_backward_4frames
             flows_forward = flows_forward_2frames + flows_forward_4frames
         elif self.pa_frames == 6:
             flows_backward_2frames, flows_forward_2frames = self.get_flow_2frames(x)
-            flows_backward_4frames, flows_forward_4frames = self.get_flow_4frames(flows_forward_2frames, flows_backward_2frames)
-            flows_backward_6frames, flows_forward_6frames = self.get_flow_6frames(flows_forward_2frames, flows_backward_2frames, flows_forward_4frames, flows_backward_4frames)
+            flows_backward_4frames, flows_forward_4frames = self.get_flow_4frames(flows_forward_2frames,
+                                                                                  flows_backward_2frames)
+            flows_backward_6frames, flows_forward_6frames = self.get_flow_6frames(flows_forward_2frames,
+                                                                                  flows_backward_2frames,
+                                                                                  flows_forward_4frames,
+                                                                                  flows_backward_4frames)
             flows_backward = flows_backward_2frames + flows_backward_4frames + flows_backward_6frames
             flows_forward = flows_forward_2frames + flows_forward_4frames + flows_forward_6frames
 
@@ -1427,12 +1424,12 @@ class VRT(nn.Module):
 
         # backward
         flows_backward = self.spynet(x_1, x_2)
-        flows_backward = [flow.view(b, n-1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in
+        flows_backward = [flow.view(b, n - 1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in
                           zip(flows_backward, range(4))]
 
         # forward
         flows_forward = self.spynet(x_2, x_1)
-        flows_forward = [flow.view(b, n-1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in
+        flows_forward = [flow.view(b, n - 1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in
                          zip(flows_forward, range(4))]
 
         return flows_backward, flows_forward
@@ -1498,14 +1495,14 @@ class VRT(nn.Module):
         for i in range(n - 1, 0, -1):
             x_i = x[:, i, ...]
             flow = flows_backward[:, i - 1, ...]
-            x_backward.insert(0, flow_warp(x_i, flow.permute(0, 2, 3, 1), 'nearest4')) # frame i+1 aligned towards i
+            x_backward.insert(0, flow_warp(x_i, flow.permute(0, 2, 3, 1), 'nearest4'))  # frame i+1 aligned towards i
 
         # forward
         x_forward = [torch.zeros_like(x[:, 0, ...]).repeat(1, 4, 1, 1)]
         for i in range(0, n - 1):
             x_i = x[:, i, ...]
             flow = flows_forward[:, i, ...]
-            x_forward.append(flow_warp(x_i, flow.permute(0, 2, 3, 1), 'nearest4')) # frame i-1 aligned towards i
+            x_forward.append(flow_warp(x_i, flow.permute(0, 2, 3, 1), 'nearest4'))  # frame i-1 aligned towards i
 
         return [torch.stack(x_backward, 1), torch.stack(x_forward, 1)]
 

@@ -2,11 +2,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.utils.checkpoint as checkpoint
 from einops import rearrange
-
-from vsr.models.VRT.modules.window_attention import *
 from vsr.models.VRT.modules.stochastic_depth import DropPath
+from vsr.models.VRT.modules.window_attention import *
 
 class TMSA(nn.Module):
     """ Temporal Mutual Self Attention (TMSA).
@@ -123,7 +121,6 @@ class TMSA(nn.Module):
 
         return x
 
-
 class TMSAG(nn.Module):
     """ Temporal Mutual Self Attention Group (TMSAG).
 
@@ -202,7 +199,6 @@ class TMSAG(nn.Module):
         x = rearrange(x, 'b d h w c -> b c d h w')
 
         return x
-
 
 class RTMSA(nn.Module):
     """ Residual Temporal Mutual Self Attention (RTMSA). Only used in stage 8.

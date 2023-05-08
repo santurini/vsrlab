@@ -1,10 +1,9 @@
-import math
 import logging
+import math
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from core import PROJECT_ROOT
 
 pylogger = logging.getLogger(__name__)
@@ -43,10 +42,14 @@ def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corne
         vgrid_y_floor = 2.0 * torch.floor(vgrid[:, :, :, 1]) / max(h - 1, 1) - 1.0
         vgrid_y_ceil = 2.0 * torch.ceil(vgrid[:, :, :, 1]) / max(h - 1, 1) - 1.0
 
-        output00 = F.grid_sample(x, torch.stack((vgrid_x_floor, vgrid_y_floor), dim=3), mode='nearest', padding_mode=padding_mode, align_corners=align_corners)
-        output01 = F.grid_sample(x, torch.stack((vgrid_x_floor, vgrid_y_ceil), dim=3), mode='nearest', padding_mode=padding_mode, align_corners=align_corners)
-        output10 = F.grid_sample(x, torch.stack((vgrid_x_ceil, vgrid_y_floor), dim=3), mode='nearest', padding_mode=padding_mode, align_corners=align_corners)
-        output11 = F.grid_sample(x, torch.stack((vgrid_x_ceil, vgrid_y_ceil), dim=3), mode='nearest', padding_mode=padding_mode, align_corners=align_corners)
+        output00 = F.grid_sample(x, torch.stack((vgrid_x_floor, vgrid_y_floor), dim=3), mode='nearest',
+                                 padding_mode=padding_mode, align_corners=align_corners)
+        output01 = F.grid_sample(x, torch.stack((vgrid_x_floor, vgrid_y_ceil), dim=3), mode='nearest',
+                                 padding_mode=padding_mode, align_corners=align_corners)
+        output10 = F.grid_sample(x, torch.stack((vgrid_x_ceil, vgrid_y_floor), dim=3), mode='nearest',
+                                 padding_mode=padding_mode, align_corners=align_corners)
+        output11 = F.grid_sample(x, torch.stack((vgrid_x_ceil, vgrid_y_ceil), dim=3), mode='nearest',
+                                 padding_mode=padding_mode, align_corners=align_corners)
 
         return torch.cat([output00, output01, output10, output11], 1)
 
@@ -54,12 +57,14 @@ def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corne
         vgrid_x = 2.0 * vgrid[:, :, :, 0] / max(w - 1, 1) - 1.0
         vgrid_y = 2.0 * vgrid[:, :, :, 1] / max(h - 1, 1) - 1.0
         vgrid_scaled = torch.stack((vgrid_x, vgrid_y), dim=3)
-        output = F.grid_sample(x, vgrid_scaled, mode=interp_mode, padding_mode=padding_mode, align_corners=align_corners)
+        output = F.grid_sample(x, vgrid_scaled, mode=interp_mode, padding_mode=padding_mode,
+                               align_corners=align_corners)
 
         return output
 
 class BasicModule(nn.Module):
     """Basic Module for SpyNet"""
+
     def __init__(self):
         super().__init__()
 
@@ -72,7 +77,6 @@ class BasicModule(nn.Module):
 
     def forward(self, tensor_input):
         return self.basic_module(tensor_input)
-
 
 class SpyNet(nn.Module):
     """SpyNet architecture.
@@ -129,10 +133,11 @@ class SpyNet(nn.Module):
             ], 1)) + upsampled_flow
 
             if level in self.return_levels:
-                scale = 2**(5-level) # level=5 (scale=1), level=4 (scale=2), level=3 (scale=4), level=2 (scale=8)
-                flow_out = F.interpolate(input=flow, size=(h//scale, w//scale), mode='bilinear', align_corners=False)
-                flow_out[:, 0, :, :] *= float(w//scale) / float(w_floor//scale)
-                flow_out[:, 1, :, :] *= float(h//scale) / float(h_floor//scale)
+                scale = 2 ** (5 - level)  # level=5 (scale=1), level=4 (scale=2), level=3 (scale=4), level=2 (scale=8)
+                flow_out = F.interpolate(input=flow, size=(h // scale, w // scale), mode='bilinear',
+                                         align_corners=False)
+                flow_out[:, 0, :, :] *= float(w // scale) / float(w_floor // scale)
+                flow_out[:, 1, :, :] *= float(h // scale) / float(h_floor // scale)
                 flow_list.insert(0, flow_out)
 
         return flow_list

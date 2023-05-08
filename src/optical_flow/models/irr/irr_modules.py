@@ -15,7 +15,6 @@ def conv(in_planes, out_planes, kernel_size=3, stride=1, dilation=1, isReLU=True
                       padding=((kernel_size - 1) * dilation) // 2, bias=True)
         )
 
-
 def upsample_factor2(inputs, target_as):
     inputs = tf.interpolate(inputs, scale_factor=2, mode="nearest")
     _, _, h, w = target_as.size()
@@ -27,7 +26,6 @@ def upsample_factor2(inputs, target_as):
 def subtract_mean(x):
     return x - x.mean(2).mean(2).unsqueeze(2).unsqueeze(2).expand_as(x)
 
-    
 class RefineFlow(nn.Module):
     def __init__(self, ch_in):
         super(RefineFlow, self).__init__()

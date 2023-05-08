@@ -4,7 +4,6 @@ from operator import mul
 
 import torch
 import torch.nn as nn
-
 from vsr.models.VRT.modules.trunc_norm import trunc_normal_
 
 def window_partition(x, window_size):
@@ -18,11 +17,11 @@ def window_partition(x, window_size):
         windows: (B*num_windows, window_size*window_size, C)
     """
     B, D, H, W, C = x.shape
-    x = x.view(B, D // window_size[0], window_size[0], H // window_size[1], window_size[1], W // window_size[2], window_size[2], C)
+    x = x.view(B, D // window_size[0], window_size[0], H // window_size[1], window_size[1], W // window_size[2],
+               window_size[2], C)
     windows = x.permute(0, 1, 3, 5, 2, 4, 6, 7).contiguous().view(-1, reduce(mul, window_size), C)
 
     return windows
-
 
 def window_reverse(windows, window_size, B, D, H, W):
     """ Reverse windows back to the original input. Attention was conducted within the windows.
@@ -36,7 +35,8 @@ def window_reverse(windows, window_size, B, D, H, W):
     Returns:
         x: (B, D, H, W, C)
     """
-    x = windows.view(B, D // window_size[0], H // window_size[1], W // window_size[2], window_size[0], window_size[1], window_size[2], -1)
+    x = windows.view(B, D // window_size[0], H // window_size[1], W // window_size[2], window_size[0], window_size[1],
+                     window_size[2], -1)
     x = x.permute(0, 1, 4, 2, 5, 3, 6, 7).contiguous().view(B, D, H, W, -1)
 
     return x
@@ -78,6 +78,7 @@ def compute_mask(D, H, W, window_size, shift_size, device):
 
 class Mlp_GEGLU(nn.Module):
     """ Multilayer perceptron with gated linear unit (GEGLU)"""
+
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
         super().__init__()
         out_features = out_features or in_features
@@ -150,8 +151,12 @@ class WindowAttention(nn.Module):
 
         # mutual attention
         if self.mut_attn:
-            qkv = self.qkv_mut(x + self.position_bias.repeat(1, 2, 1)).reshape(B_, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4).type_as(x)
-            (q1, q2), (k1, k2), (v1, v2) = torch.chunk(qkv[0], 2, dim=2), torch.chunk(qkv[1], 2, dim=2), torch.chunk(qkv[2], 2, dim=2)  # B_, nH, N/2, C
+            qkv = self.qkv_mut(x + self.position_bias.repeat(1, 2, 1)).reshape(B_, N, 3, self.num_heads,
+                                                                               C // self.num_heads).permute(2, 0, 3, 1,
+                                                                                                            4).type_as(
+                x)
+            (q1, q2), (k1, k2), (v1, v2) = torch.chunk(qkv[0], 2, dim=2), torch.chunk(qkv[1], 2, dim=2), torch.chunk(
+                qkv[2], 2, dim=2)  # B_, nH, N/2, C
             x1_aligned = self.attention(q2, k1, v1, mask, (B_, N // 2, C), relative_position_encoding=False)
             x2_aligned = self.attention(q1, k2, v2, mask, (B_, N // 2, C), relative_position_encoding=False)
             x_out = torch.cat([torch.cat([x1_aligned, x2_aligned], 1), x_out], 2)

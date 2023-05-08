@@ -6,10 +6,9 @@ import omegaconf
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from core import PROJECT_ROOT
-from core.utils import build_scheduler
 from core.losses import CharbonnierLoss
+from core.utils import build_scheduler
 from einops import rearrange
 from kornia.geometry.transform import resize
 from omegaconf import DictConfig
@@ -191,7 +190,8 @@ class LitBase(pl.LightningModule):
         sr = out["sr"][0, -1, :, :, :].detach().clamp(0, 1)
 
         grid = make_grid([lr, sr, hr], nrow=3, ncol=1)
-        self.logger.log_image(key=f'Prediction {stage}', images=[grid], caption=[f'Stage {stage}, Step {self.global_step}'])
+        self.logger.log_image(key=f'Prediction {stage}', images=[grid],
+                              caption=[f'Stage {stage}, Step {self.global_step}'])
 
     @staticmethod
     def get_log_flag(idx, log_interval):

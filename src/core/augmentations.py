@@ -78,7 +78,7 @@ def read_video(path):
         rate = str(container.streams.video[0].average_rate.numerator)
         height = container.streams.video[0].height
         width = container.streams.video[0].width
-        codec =  container.streams.video[0].codec.name
+        codec = container.streams.video[0].codec.name
 
     return frames, codec, rate, height, width
 
@@ -100,13 +100,12 @@ def write_video(path, frames, codec, rate, crf, height, width):
             container.mux(packet)
 
 def compress_video(path_hr, path_lr, crf, scale_factor):
+    frames_hr, codec, rate, height, width = read_video(path_hr)
 
-    frames_hr, codec, rate, height, width =  read_video(path_hr)
+    assert height % scale_factor == 0, f"{height=} should be divisible by scale factor"
+    assert width % scale_factor == 0, f"{width=} should be divisible by scale factor"
 
-    assert height%scale_factor==0, f"{height=} should be divisible by scale factor"
-    assert width%scale_factor==0, f"{width=} should be divisible by scale factor"
-
-    write_video(path_lr, frames_hr, codec, rate, crf, height//scale_factor, width//scale_factor)
+    write_video(path_lr, frames_hr, codec, rate, crf, height // scale_factor, width // scale_factor)
 
 def compress_video_folder(folder, crf, scale_factor):
     os.mkdir(os.path.join(folder, f'lr_crf_{crf}'))
