@@ -73,7 +73,7 @@ def save_config(cfg):
 
     return save_path
 
-def save_checkpoint(cfg, model):
+def save_checkpoint(cfg, model, ddp=True):
     save_path = os.path.join(
         cfg.train.logger.save_dir,
         cfg.train.logger.project,
@@ -83,7 +83,10 @@ def save_checkpoint(cfg, model):
     )
 
     Path(save_path).parent.mkdir(exist_ok=True, parents=True)
-    torch.save(model.state_dict(), save_path)
+    if ddp:
+        torch.save(model.module.state_dict(), save_path)
+    else:
+        torch.save(model.state_dict(), save_path)
 
 def save_test_config(cfg):
     model = cfg.model_name

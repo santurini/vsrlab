@@ -30,7 +30,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
         logger.log_dict({"LossG": val_loss / len(val_dl)}, epoch, "Val")
         logger.log_dict({k: v / len(val_dl) for k, v in val_metrics.items()}, epoch, "Val")
         logger.log_images("Val", epoch, lr, sr, hr)
-        save_checkpoint(cfg, model)
+        save_checkpoint(cfg, model, cfg.train.ddp)
 
 def generator_step(model, discriminator, loss_fn, perceptual_loss, adversarial_loss, lr, hr):
     b, t, c, h, w = hr.shape
