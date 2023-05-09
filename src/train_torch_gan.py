@@ -19,7 +19,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
         lr, hr = data[0].to(device), data[1].to(device)
 
         with torch.cuda.amp.autocast():
-            sr, _ = model(lr)
+            sr, lq = model(lr)
             loss = compute_loss(loss_fn, sr, hr)
 
         val_loss += loss.detach().item() / world_size
