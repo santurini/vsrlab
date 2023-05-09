@@ -34,7 +34,7 @@ def run(config):
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
-    pool = Pool(4)
+    pool = Pool(8)
 
     for fps in [6, 8, 10, 12, 15]:
         for crf in [30, 32, 34, 36, 38, 40]:
