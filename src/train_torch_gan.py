@@ -39,8 +39,8 @@ def generator_step(model, discriminator, loss_fn, perceptual_loss, adversarial_l
         sr, lq = model(lr)
         pixel_loss = compute_loss(loss_fn, sr, hr, lq)
         disc_sr = discriminator(sr.view(-1, c, h, w))
+        perceptual_g = perceptual_loss(sr, hr)
 
-    perceptual_g = perceptual_loss(sr, hr)
     disc_fake_loss = adversarial_loss(disc_sr, 1, False)
     loss = pixel_loss + perceptual_g + disc_fake_loss
 
@@ -101,7 +101,7 @@ def run(cfg: DictConfig):
     print('build metrics and losses ...')
     loss_fn = CharbonnierLoss()
     adversarial_loss = hydra.utils.instantiate(cfg.nn.module.adversarial_loss, _recursive_=False)
-    perceptual_loss = hydra.utils.instantiate(cfg.nn.module.perceptual_loss, _recursive_=False)
+    perceptual_loss = hydra.utils.instantiate(cfg.nn.module.perceptual_loss, _recursive_=False).to(device)
     metric = build_metric(cfg.nn.module.metric).to(device)
 
     # Loop over the dataset multiple times
