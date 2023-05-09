@@ -37,7 +37,7 @@ class WandbLogger(object):
         sr = sr[0, -1, :, :, :].detach().clamp(0, 1).cpu()
 
         if lq is not None:
-            lq = resize(lq[0, -1, :, :, :], (h, w)).detach()
+            lq = resize(lq[0, -1, :, :, :], (h, w)).detach().cpu()
             grid = make_grid([lr, lq, sr, hr], nrow=4, ncol=1)
 
         else:
