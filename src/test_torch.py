@@ -11,7 +11,7 @@ from core.utils import *
 
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
-torch.set_num_threads(4)
+torch.set_num_threads(1)
 
 @torch.no_grad()
 def run(config):
