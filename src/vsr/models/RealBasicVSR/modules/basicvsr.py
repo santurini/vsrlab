@@ -25,7 +25,7 @@ class BasicVSR(nn.Module):
 
         self.optical_flow_name = optical_flow
         if optical_flow == "spynet":
-            self.optical_flow = Spynet(pretrained_flow)
+            self.spynet = Spynet(pretrained_flow)
         elif optical_flow == "irr":
             self.optical_flow = IRRPWCNet(pretrained_flow, [-1])
         else:
