@@ -76,7 +76,7 @@ def run(cfg: DictConfig):
 
     # Encapsulate the model on the GPU assigned to the current process
     print('build model ...')
-    model = build_model(cfg.nn.module.model, device, local_rank, cfg.train.ddp)
+    model = build_model(cfg.nn.module.model, device, local_rank, cfg.finetune, cfg.train.ddp)
 
     print('build discriminator ...')
     discriminator = build_model(cfg.nn.module.discriminator, device, local_rank, cfg.train.ddp)
@@ -84,11 +84,6 @@ def run(cfg: DictConfig):
     # Mixed precision
     print('build scaler ...')
     scaler = torch.cuda.amp.GradScaler()
-
-    # We only save the model who uses device "cuda:0"
-    # To resume, the device for the saved model would also be "cuda:0"
-    if cfg.finetune is not None:
-        model = restore_model(model, cfg.finetune, local_rank)
 
     # Prepare dataset and dataloader
     print('build loaders ...')
