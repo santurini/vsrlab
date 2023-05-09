@@ -126,13 +126,11 @@ def run(cfg: DictConfig):
             sr, loss_g, perceptual_g, adversarial_g = generator_step(model, discriminator, loss_fn,
                                                     perceptual_loss, adversarial_loss, lr, hr)
 
-            print("update generator")
             update_weights(model, loss_g, scaler, scheduler_g,
                            optimizer_g, num_grad_acc, gradient_clip_val, i)
 
             loss_d = discriminator_step(discriminator, adversarial_loss, sr, hr)
 
-            print("update discriminator")
             update_weights(discriminator, loss_d, scaler, scheduler_d,
                            optimizer_d, num_grad_acc, gradient_clip_val, i)
 
