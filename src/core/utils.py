@@ -121,8 +121,7 @@ def get_model_state_dict(path, local_rank, from_lightning=True):
         out = {k.partition('model.')[-1]: v for k, v in state_dict.items() if k.startswith('model.')}
         return out
     state_dict = get_state_dict(path, local_rank, False)
-    out = {k.partition('module.')[-1]: v for k, v in state_dict.items() if k.startswith('module.')}
-    return out
+    return state_dict
 
 def restore_model(model, path, local_rank, from_lightning=True):
     model.load_state_dict(get_model_state_dict(path, local_rank, from_lightning))
