@@ -101,7 +101,7 @@ def run(cfg: DictConfig):
     print('build metrics and losses ...')
     loss_fn = CharbonnierLoss()
     adversarial_loss = hydra.utils.instantiate(cfg.nn.module.adversarial_loss, _recursive_=False)
-    perceptual_loss = hydra.utils.instantiate(cfg.nn.module.perceptual_loss, _recursive_=False).to(device)
+    perceptual_loss = hydra.utils.instantiate(cfg.nn.module.perceptual_loss, _recursive_=False)
     metric = build_metric(cfg.nn.module.metric).to(device)
 
     # Loop over the dataset multiple times
