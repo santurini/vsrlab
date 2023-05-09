@@ -35,7 +35,7 @@ nn:
             keepdim: True
 
 train:
-  ddp: True
+  ddp: False
   trainer:
     devices: 1
     max_epochs: 1000000

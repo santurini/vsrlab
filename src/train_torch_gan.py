@@ -22,7 +22,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
             sr, _ = model(lr)
             loss = compute_loss(loss_fn, sr, hr)
 
-        dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
+        #dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
         val_loss += loss.detach().item().cpu() / world_size
         val_metrics = running_metrics(val_metrics, metric, sr, hr)
 
