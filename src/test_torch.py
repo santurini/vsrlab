@@ -67,7 +67,7 @@ def run(config):
 
                 outputs = torch.cat(outputs, dim=1)
                 for i, img in enumerate(outputs[0]):
-                    save_image(img, os.path.join(save_folder, f"img{i}.png"))
+                    save_image(img, os.path.join(save_folder, "img{:05d}.png".format(i)))
 
                 video_metrics = running_metrics(video_metrics, metric, outputs, video_hr)
 
