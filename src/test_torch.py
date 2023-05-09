@@ -4,7 +4,7 @@ import warnings
 import pandas as pd
 import omegaconf
 from torchvision.utils import save_image
-from multiprocessing import Pool
+from torch.multiprocessing import Pool
 
 from core import PROJECT_ROOT
 from core.utils import *
@@ -12,6 +12,7 @@ from core.utils import *
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
+@torch.no_grad()
 def run(config):
     rank, local_rank, world_size = (0, 0, 1)
     device = torch.device("cuda:{}".format(local_rank))
@@ -32,7 +33,6 @@ def run(config):
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
-
     pool = Pool(config.num_workers)
 
     for fps in [6, 8, 10, 12, 15]:
@@ -60,9 +60,7 @@ def run(config):
                     lr, hr = video_lr[:, i:i + config.window_size, ...].to(device), \
                         video_hr[:, i:i + config.window_size, ...].to(device)
 
-                    with torch.no_grad():
-                        sr, _ = model(lr)
-
+                    sr, _ = model(lr)
                     outputs.append(sr)
 
                 outputs = torch.cat(outputs, dim=1)
