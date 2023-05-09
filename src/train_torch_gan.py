@@ -44,7 +44,7 @@ def generator_step(model, discriminator, loss_fn, perceptual_loss, adversarial_l
     disc_fake_loss = adversarial_loss(disc_sr, 1, False)
     loss = pixel_loss + perceptual_g + disc_fake_loss
 
-    return sr, loss, perceptual_g, disc_fake_loss
+    return sr, loss, perceptual_g.cpu(), disc_fake_loss.cpu()
 
 def discriminator_step(discriminator, adversarial_loss, sr, hr):
     sr = rearrange(sr, 'b t c h w -> (b t) c h w')
@@ -54,10 +54,7 @@ def discriminator_step(discriminator, adversarial_loss, sr, hr):
         disc_hr = discriminator(hr)
         disc_sr = discriminator(sr.detach())
 
-    disc_true_loss = adversarial_loss(disc_hr, 1, True)
-    disc_fake_loss = adversarial_loss(disc_sr, 0, True)
-    loss = disc_fake_loss + disc_true_loss
-
+    loss = adversarial_loss(disc_hr, 1, True) + adversarial_loss(disc_sr, 0, True)
     return loss
 
 def run(cfg: DictConfig):
