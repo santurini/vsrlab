@@ -11,7 +11,7 @@ from core.utils import *
 
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
-torch.set_num_threads(1)
+torch.set_num_threads(4)
 
 @torch.no_grad()
 def run(config):
@@ -53,8 +53,9 @@ def run(config):
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
+                start = time.time()
                 video_hr, video_lr = get_video(video_hr_path, pool).to(device), get_video(video_lr_path, pool).to(device)
-                print('Data Loaded')
+                print('Data Loaded in:', time.time() - start)
 
                 outputs = []
                 for i in range(0, video_lr.size(1), config.window_size):
