@@ -54,7 +54,7 @@ def run(config):
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                print("loading videos")
+                print(video_hr_path)
                 video_hr, video_lr = get_video(video_hr_path, pool).to(device), \
                     get_video(video_lr_path, pool).to(device)
 

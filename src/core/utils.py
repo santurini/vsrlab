@@ -303,7 +303,7 @@ def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad
 def img2tensor(path):
     return F.to_tensor(Image.open(path))
 
-def get_video(video_folder, pool: Pool):
+def get_video(video_folder: str, pool: Pool):
     out = torch.stack(pool.map(img2tensor, list(sorted(Path(video_folder).glob('*')))))
     print('done')
     return out.unsqueeze(0)
