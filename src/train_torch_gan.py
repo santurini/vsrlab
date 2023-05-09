@@ -44,7 +44,7 @@ def generator_step(model, discriminator, loss_fn, perceptual_loss, adversarial_l
     disc_fake_loss = adversarial_loss(disc_sr, 1, False)
     loss = pixel_loss + perceptual_g + disc_fake_loss
 
-    return sr, loss, perceptual_g, disc_fake_loss
+    return sr, lq, loss, perceptual_g, disc_fake_loss
 
 def discriminator_step(discriminator, adversarial_loss, sr, hr):
     sr = rearrange(sr, 'b t c h w -> (b t) c h w')
@@ -116,14 +116,13 @@ def run(cfg: DictConfig):
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Training ...".format(rank, local_rank))
     for epoch in range(cfg.train.trainer.max_epochs):
-        model.train();
-        dt = time.time()
+        model.train(); dt = time.time()
         train_losses, train_metrics = create_gan_losses_dict(), {k: 0 for k in cfg.nn.module.metric.metrics}
 
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
-            sr, loss_g, perceptual_g, adversarial_g = generator_step(model, discriminator, loss_fn,
+            sr, lq, loss_g, perceptual_g, adversarial_g = generator_step(model, discriminator, loss_fn,
                                                     perceptual_loss, adversarial_loss, lr, hr)
 
             update_weights(model, loss_g, scaler, scheduler_g,
