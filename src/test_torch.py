@@ -12,7 +12,6 @@ from core.utils import *
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
-@torch.no_grad()
 def run(config):
     rank, local_rank, world_size = (0, 0, 1)
     device = torch.device("cuda:{}".format(local_rank))
@@ -34,6 +33,8 @@ def run(config):
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
 
+    pool = Pool(config.num_workers)
+
     for fps in [6, 8, 10, 12, 15]:
         for crf in [30, 32, 34, 36, 38, 40]:
             print('Configuration: fps -> {} - crf -> {} '.format(fps, crf))
@@ -51,15 +52,17 @@ def run(config):
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                video_hr, video_lr = get_video(video_hr_path, Pool(config.num_workers)).to(device), \
-                    get_video(video_lr_path, Pool(config.num_workers)).to(device)
+                video_hr, video_lr = get_video(video_hr_path, pool).to(device), \
+                    get_video(video_lr_path, pool).to(device)
 
                 outputs = []
                 for i in range(0, video_lr.size(1), config.window_size):
                     lr, hr = video_lr[:, i:i + config.window_size, ...].to(device), \
                         video_hr[:, i:i + config.window_size, ...].to(device)
 
-                    sr, _ = model(lr)
+                    with torch.no_grad():
+                        sr, _ = model(lr)
+
                     outputs.append(sr)
 
                 outputs = torch.cat(outputs, dim=1)
