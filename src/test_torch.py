@@ -58,7 +58,7 @@ def run(config):
                 print('Data Loaded in:', time.time() - start)
 
                 start = time.time()
-                video_hr, video_lr = get_video_b(video_hr_path, pool).to(device), get_video_b(video_lr_path, pool).to(device)
+                video_hr, video_lr = get_video_b(video_hr_path).to(device), get_video_b(video_lr_path).to(device)
                 print('Data Loaded in:', time.time() - start)
 
                 outputs = []
