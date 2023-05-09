@@ -56,7 +56,7 @@ class PerceptualLoss(nn.Module):
         w = y.shape[-1]
         yhat = yhat.reshape(-1, 3, h, w)
         y = y.reshape(-1, 3, h, w)
-        x_features = self.vgg(yhat)
+        x_features = self.vgg(yhat.cpu())
         gt_features = self.vgg(y.detach())
         percep_loss = 0
         for k in x_features.keys():
