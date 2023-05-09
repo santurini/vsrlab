@@ -84,7 +84,8 @@ def run(cfg: DictConfig):
 
     # Mixed precision
     print('build scaler ...')
-    scaler = torch.cuda.amp.GradScaler()
+    scaler_g = torch.cuda.amp.GradScaler()
+    scaler_d = torch.cuda.amp.GradScaler()
 
     # We only save the model who uses device "cuda:0"
     # To resume, the device for the saved model would also be "cuda:0"
@@ -125,12 +126,12 @@ def run(cfg: DictConfig):
             sr, loss_g, perceptual_g, adversarial_g = generator_step(model, discriminator, loss_fn,
                                                     perceptual_loss, adversarial_loss, lr, hr)
 
-            update_weights(model, loss_g, scaler, scheduler_g,
+            update_weights(model, loss_g, scaler_g, scheduler_g,
                            optimizer_g, num_grad_acc, gradient_clip_val, i)
 
             loss_d = discriminator_step(discriminator, adversarial_loss, sr, hr)
 
-            update_weights(model, loss_d, scaler, scheduler_d,
+            update_weights(model, loss_d, scaler_d, scheduler_d,
                            optimizer_d, num_grad_acc, gradient_clip_val, i)
 
             train_losses = running_losses(loss_g, perceptual_g, adversarial_g, loss_d, train_losses)
