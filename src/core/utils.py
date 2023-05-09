@@ -267,7 +267,7 @@ def compute_metric(metric, sr, hr):
 
 def running_metrics(metrics_dict, metric, sr, hr):
     metric_out = compute_metric(metric, sr, hr)
-    out = {k: (metrics_dict[k] + metric_out[k]).cpu() for k in set(metrics_dict) & set(metric_out)}
+    out = {k: (metrics_dict[k] + metric_out[k]).cpu().item() for k in set(metrics_dict) & set(metric_out)}
     return out
 
 def create_gan_losses_dict():
@@ -279,10 +279,10 @@ def create_gan_losses_dict():
     }
 
 def running_losses(loss_g, perceptual_g, adversarial_g, loss_d, lossess_dict):
-    lossess_dict["LossG"] += loss_g.detach().item().cpu()
-    lossess_dict["PerceptualG"] += perceptual_g.detach().item().cpu()
-    lossess_dict["AdversarialG"] += adversarial_g.detach().item().cpu()
-    lossess_dict["LossD"] += loss_d.detach().item().cpu()
+    lossess_dict["LossG"] += loss_g.detach().cpu().item()
+    lossess_dict["PerceptualG"] += perceptual_g.detach().cpu().item()
+    lossess_dict["AdversarialG"] += adversarial_g.detach().cpu().item()
+    lossess_dict["LossD"] += loss_d.detach().cpu().item()
 
     return lossess_dict
 

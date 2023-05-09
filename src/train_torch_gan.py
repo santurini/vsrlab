@@ -23,7 +23,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
             loss = compute_loss(loss_fn, sr, hr)
 
         #dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
-        val_loss += loss.detach().item().cpu() / world_size
+        val_loss += loss.detach().cpu().item()/ world_size
         val_metrics = running_metrics(val_metrics, metric, sr, hr)
 
     if rank == 0:
@@ -44,7 +44,7 @@ def generator_step(model, discriminator, loss_fn, perceptual_loss, adversarial_l
     disc_fake_loss = adversarial_loss(disc_sr, 1, False)
     loss = pixel_loss + perceptual_g + disc_fake_loss
 
-    return sr, loss, perceptual_g.cpu(), disc_fake_loss.cpu()
+    return sr, loss, perceptual_g, disc_fake_loss
 
 def discriminator_step(discriminator, adversarial_loss, sr, hr):
     sr = rearrange(sr, 'b t c h w -> (b t) c h w')
