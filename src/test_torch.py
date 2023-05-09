@@ -35,7 +35,7 @@ def run(config):
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
 
     # Setup multiprocess pool
-    pool = Pool(config.num_workers)
+    pool = Pool(4)
 
     for fps in [6, 8, 10, 12, 15]:
         for crf in [30, 32, 34, 36, 38, 40]:
