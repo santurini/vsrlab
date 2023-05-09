@@ -304,12 +304,6 @@ def img2tensor(path):
     return F.to_tensor(Image.open(path))
 
 def get_video(video_folder, pool: Pool):
-    out = torch.stack(pool.map(img2tensor, list(sorted(Path(video_folder).glob('*')))))
+    paths = list(sorted(Path(video_folder).glob('*')))
+    out = torch.stack(pool.map(img2tensor, paths))
     return out.unsqueeze(0)
-
-def batched(iterable, n):
-    if n < 1:
-        raise ValueError('n must be at least one')
-    it = iter(iterable)
-    while batch := tuple(islice(it, n)):
-        yield batch
