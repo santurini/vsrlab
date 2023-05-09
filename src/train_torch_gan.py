@@ -76,7 +76,7 @@ def run(cfg: DictConfig):
 
     # Encapsulate the model on the GPU assigned to the current process
     print('build model ...')
-    model = build_model(cfg.nn.module.model, device, local_rank, cfg.finetune, cfg.train.ddp)
+    model = build_model(cfg.nn.module.model, device, local_rank, cfg.train.ddp, cfg.finetune)
 
     print('build discriminator ...')
     discriminator = build_model(cfg.nn.module.discriminator, device, local_rank, cfg.train.ddp)
