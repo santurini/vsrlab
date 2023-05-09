@@ -84,8 +84,7 @@ def run(cfg: DictConfig):
 
     # Mixed precision
     print('build scaler ...')
-    scaler_g = torch.cuda.amp.GradScaler()
-    scaler_d = torch.cuda.amp.GradScaler()
+    scaler = torch.cuda.amp.GradScaler()
 
     # We only save the model who uses device "cuda:0"
     # To resume, the device for the saved model would also be "cuda:0"
@@ -101,6 +100,7 @@ def run(cfg: DictConfig):
                                                cfg.nn.module.optimizer.generator,
                                                cfg.nn.module.scheduler.generator
                                                )
+
     optimizer_d, scheduler_d = build_optimizer(model,
                                                cfg.nn.module.optimizer.discriminator,
                                                cfg.nn.module.scheduler.discriminator
@@ -108,17 +108,17 @@ def run(cfg: DictConfig):
 
 
     print('build metrics and losses ...')
-    loss_fn, train_losses = CharbonnierLoss(), create_gan_losses_dict()
+    loss_fn = CharbonnierLoss()
     adversarial_loss = hydra.utils.instantiate(cfg.nn.module.adversarial_loss, _recursive_=False)
     perceptual_loss = hydra.utils.instantiate(cfg.nn.module.perceptual_loss, _recursive_=False).to(device)
-    metric, = build_metric(cfg.nn.module.metric).to(device),
+    metric = build_metric(cfg.nn.module.metric).to(device),
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Training ...".format(rank, local_rank))
     for epoch in range(cfg.train.trainer.max_epochs):
         model.train();
         dt = time.time()
-        train_loss, train_metrics = 0, {k: 0 for k in cfg.nn.module.metric.metrics}
+        train_losses, train_metrics = create_gan_losses_dict(), {k: 0 for k in cfg.nn.module.metric.metrics}
 
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
@@ -126,12 +126,12 @@ def run(cfg: DictConfig):
             sr, loss_g, perceptual_g, adversarial_g = generator_step(model, discriminator, loss_fn,
                                                     perceptual_loss, adversarial_loss, lr, hr)
 
-            update_weights(model, loss_g, scaler_g, scheduler_g,
+            update_weights(model, loss_g, scaler, scheduler_g,
                            optimizer_g, num_grad_acc, gradient_clip_val, i)
 
             loss_d = discriminator_step(discriminator, adversarial_loss, sr, hr)
 
-            update_weights(model, loss_d, scaler_d, scheduler_d,
+            update_weights(model, loss_d, scaler, scheduler_d,
                            optimizer_d, num_grad_acc, gradient_clip_val, i)
 
             train_losses = running_losses(loss_g, perceptual_g, adversarial_g, loss_d, train_losses)
