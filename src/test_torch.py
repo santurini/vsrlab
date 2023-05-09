@@ -11,6 +11,7 @@ from core.utils import *
 
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
+torch.set_num_threads(1)
 
 @torch.no_grad()
 def run(config):
@@ -33,6 +34,7 @@ def run(config):
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
+    pool = Pool(4)
 
     for fps in [6, 8, 10, 12, 15]:
         for crf in [30, 32, 34, 36, 38, 40]:
@@ -51,7 +53,7 @@ def run(config):
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                video_hr, video_lr = get_video(video_hr_path).to(device), get_video(video_lr_path).to(device)
+                video_hr, video_lr = get_video(video_hr_path, pool).to(device), get_video(video_lr_path, pool).to(device)
 
                 outputs = []
                 for i in range(0, video_lr.size(1), config.window_size):
