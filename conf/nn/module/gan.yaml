@@ -20,11 +20,11 @@ discriminator:
 
 perceptual_loss:
   _target_: core.losses.PerceptualLoss
-  weight: 1.0
+  weight: 1e-1
 
 adversarial_loss:
   _target_: core.losses.AdversarialLoss
-  weight: 2e-5
+  weight: 1e-5
 
 defaults:
   - model: baby_realbasic

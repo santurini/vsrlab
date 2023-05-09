@@ -158,9 +158,9 @@ def build_scheduler(
             chained_scheduler
         )
 
-def build_optimizer(cfg, model):
+def build_optimizer(model, optim_cfg, sched_cfg):
     pylogger.info(f"Building scheduler and optimizer")
-    optimizer = hydra.utils.instantiate(cfg.nn.module.optimizer,
+    optimizer = hydra.utils.instantiate(optim_cfg,
                                         model.parameters(),
                                         _recursive_=False,
                                         _convert_="partial"
@@ -168,7 +168,7 @@ def build_optimizer(cfg, model):
 
     scheduler = build_scheduler(
         optimizer,
-        cfg.nn.module.scheduler
+        sched_cfg
     )
 
     return optimizer, scheduler
@@ -266,6 +266,22 @@ def running_metrics(metrics_dict, metric, sr, hr):
     metric_out = compute_metric(metric, sr, hr)
     out = {k: metrics_dict[k] + metric_out[k] for k in set(metrics_dict) & set(metric_out)}
     return out
+
+def create_gan_losses_dict():
+    return {
+        "LossG": 0,
+        "PerceptualG": 0,
+        "AdversarialG": 0,
+        "LossD": 0,
+    }
+
+def running_losses(loss_g, perceptual_g, adversarial_g, loss_d, lossess_dict):
+    lossess_dict["LossG"] += loss_g.detach().item()
+    lossess_dict["PerceptualG"] += perceptual_g.detach().item()
+    lossess_dict["AdversarialG"] += adversarial_g.detach().item()
+    lossess_dict["LossD"] += loss_d.detach().item()
+
+    return lossess_dict
 
 def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, i):
     loss = loss / num_grad_acc
