@@ -40,8 +40,6 @@ def generator_step(model, discriminator, loss_fn, perceptual_loss, adversarial_l
         pixel_loss = compute_loss(loss_fn, sr, hr, lq)
         disc_sr = discriminator(sr.view(-1, c, h, w))
 
-    print(float(sr).dtype)
-    print(sr.dtype)
     perceptual_g = perceptual_loss(sr, hr)
     disc_fake_loss = adversarial_loss(disc_sr, 1, False)
     loss = pixel_loss + perceptual_g + disc_fake_loss
