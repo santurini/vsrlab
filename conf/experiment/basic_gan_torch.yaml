@@ -9,6 +9,7 @@ from_lightning: True
 defaults:
   - override /nn/data: default
   - override /nn/module: gan
+  - override /nn/module/optimizer: gan_adam8bit
 
 nn:
   data:
