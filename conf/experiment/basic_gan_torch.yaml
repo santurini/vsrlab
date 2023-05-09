@@ -3,7 +3,7 @@ core:
   run_id: 'vqfrbmnbid'
   run_name: "Real Basic Hard - GAN (Adv 2e-5, Per 1e-1)"
 
-finetune: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasicvsr_curriculum_hard/checkpoints/last.ckpt'
+finetune: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasicvsr_standard/checkpoints/last.ckpt'
 
 defaults:
   - override /nn/data: default
