@@ -34,7 +34,7 @@ def run(config):
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
-    pool = Pool(16)
+    pool = Pool(config.num_workers)
 
     for fps in [6, 8, 10, 12, 15]:
         for crf in [30, 32, 34, 36, 38, 40]:
@@ -53,13 +53,7 @@ def run(config):
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                start = time.time()
                 video_hr, video_lr = get_video(video_hr_path, pool).to(device), get_video(video_lr_path, pool).to(device)
-                print('Data Loaded in:', time.time() - start)
-
-                start = time.time()
-                video_hr, video_lr = get_video_b(video_hr_path).to(device), get_video_b(video_lr_path).to(device)
-                print('Data Loaded in:', time.time() - start)
 
                 outputs = []
                 for i in range(0, video_lr.size(1), config.window_size):
