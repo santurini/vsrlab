@@ -4,6 +4,7 @@ core:
   run_name: "VRT Default - GAN"
 
 finetune: '/home/aghinassi/VSR/checkpoints/vrt_def_ddp/last.ckpt'
+from_lightning: False
 
 defaults:
   - override /nn/data: default

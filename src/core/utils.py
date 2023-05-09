@@ -182,13 +182,13 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
         augmentation.append(hydra.utils.instantiate(aug, _recursive_=False))
     return Sequential(*augmentation)
 
-def build_model(cfg, device, local_rank=None, ddp=False, finetune=None):
+def build_model(cfg, device, local_rank=None, ddp=False, finetune=None, from_lightning=True):
     pylogger.info(f"Building Model")
     model = hydra.utils.instantiate(cfg, _recursive_=False)
     model = model.to(device)
 
     if finetune is not None:
-        model = restore_model(model, finetune, local_rank)
+        model = restore_model(model, finetune, local_rank, from_lightning)
 
     if ddp:
         pylogger.info(f"Setting up distributed model")

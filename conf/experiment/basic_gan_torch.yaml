@@ -4,6 +4,7 @@ core:
   run_name: "Real Basic Default - GAN (Adv 2e-5, Per 1e-1)"
 
 finetune: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasicvsr_standard/checkpoints/last.ckpt'
+from_lightning: True
 
 defaults:
   - override /nn/data: default
