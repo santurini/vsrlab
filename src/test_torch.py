@@ -52,8 +52,8 @@ def run(config):
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                video_hr, video_lr = get_video(video_hr_path, pool).to(device), \
-                    get_video(video_lr_path, pool).to(device)
+                video_hr, video_lr = get_video(video_hr_path, pool), get_video(video_lr_path, pool) #.to(device), \
+                     #.to(device)
 
                 outputs = []
                 for i in range(0, video_lr.size(1), config.window_size):
