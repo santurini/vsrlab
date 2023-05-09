@@ -57,6 +57,10 @@ def run(config):
                 video_hr, video_lr = get_video(video_hr_path, pool).to(device), get_video(video_lr_path, pool).to(device)
                 print('Data Loaded in:', time.time() - start)
 
+                start = time.time()
+                video_hr, video_lr = get_video_b(video_hr_path, pool).to(device), get_video_b(video_lr_path, pool).to(device)
+                print('Data Loaded in:', time.time() - start)
+
                 outputs = []
                 for i in range(0, video_lr.size(1), config.window_size):
                     lr, hr = video_lr[:, i:i + config.window_size, ...].to(device), \
