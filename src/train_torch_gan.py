@@ -32,24 +32,24 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
         logger.log_images("Val", epoch, lr, sr, hr, lq)
         save_checkpoint(cfg, model)
 
-def generator_step(model, discriminator, loss_fn, perceptual, adversarial, lr, hr):
+def generator_step(model, discriminator, loss_fn, perceptual_loss, adversarial_loss, lr, hr):
     b, t, c, h, w = hr.shape
     sr, lq = model(lr)
     pixel_loss = compute_loss(loss_fn, sr, hr, lq)
-    perceptual_loss = perceptual(sr, hr)
+    perceptual_g = perceptual_loss(sr.float(), hr)
     disc_sr = discriminator(sr.view(-1, c, h, w))
-    disc_fake_loss = adversarial(disc_sr, 1, False)
-    loss = pixel_loss + perceptual_loss + disc_fake_loss
+    disc_fake_loss = adversarial_loss(disc_sr, 1, False)
+    loss = pixel_loss + perceptual_g + disc_fake_loss
 
-    return loss, perceptual_loss, disc_fake_loss
+    return loss, perceptual_g, disc_fake_loss
 
 def discriminator_step(discriminator, adversarial_loss, sr, hr):
     sr = rearrange(sr, 'b t c h w -> (b t) c h w')
     hr = rearrange(hr, 'b t c h w -> (b t) c h w')
     disc_hr = discriminator(hr)
-    disc_true_loss = adversarial(disc_hr, 1, True)
+    disc_true_loss = adversarial_loss(disc_hr, 1, True)
     disc_sr = discriminator(sr.detach())
-    disc_fake_loss = adversarial(disc_sr, 0, True)
+    disc_fake_loss = adversarial_loss(disc_sr, 0, True)
     loss = disc_fake_loss + disc_true_loss
 
     return loss
