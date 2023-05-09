@@ -19,8 +19,8 @@ discriminator:
   mid_ch: 64
 
 perceptual_loss:
-  _target_: core.losses.PerceptualLoss
-  weight: 1.0
+  _target_: core.losses.OpticalFlowConsistency
+  weight: 1e-2
 
 adversarial_loss:
   _target_: core.losses.AdversarialLoss
