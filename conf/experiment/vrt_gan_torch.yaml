@@ -1,6 +1,6 @@
 # @package _global_
 core:
-  run_id: 'afewifva'
+  run_id: 'fwslrgbfis'
   run_name: "VRT Default - GAN"
 
 finetune: '/home/aghinassi/VSR/checkpoints/vrt_def_ddp/last.ckpt'
