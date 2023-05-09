@@ -34,10 +34,13 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
 
 def generator_step(model, discriminator, loss_fn, perceptual_loss, adversarial_loss, lr, hr):
     b, t, c, h, w = hr.shape
-    sr, lq = model(lr)
-    pixel_loss = compute_loss(loss_fn, sr, hr, lq)
-    perceptual_g = perceptual_loss(sr.float(), hr)
-    disc_sr = discriminator(sr.view(-1, c, h, w))
+
+    with torch.cuda.amp.autocast():
+        sr, lq = model(lr)
+        pixel_loss = compute_loss(loss_fn, sr, hr, lq)
+        disc_sr = discriminator(sr.view(-1, c, h, w))
+
+    perceptual_g = perceptual_loss(sr, hr)
     disc_fake_loss = adversarial_loss(disc_sr, 1, False)
     loss = pixel_loss + perceptual_g + disc_fake_loss
 
@@ -46,9 +49,12 @@ def generator_step(model, discriminator, loss_fn, perceptual_loss, adversarial_l
 def discriminator_step(discriminator, adversarial_loss, sr, hr):
     sr = rearrange(sr, 'b t c h w -> (b t) c h w')
     hr = rearrange(hr, 'b t c h w -> (b t) c h w')
-    disc_hr = discriminator(hr)
+
+    with torch.cuda.amp.autocast():
+        disc_hr = discriminator(hr)
+        disc_sr = discriminator(sr.detach())
+
     disc_true_loss = adversarial_loss(disc_hr, 1, True)
-    disc_sr = discriminator(sr.detach())
     disc_fake_loss = adversarial_loss(disc_sr, 0, True)
     loss = disc_fake_loss + disc_true_loss
 
@@ -115,15 +121,13 @@ def run(cfg: DictConfig):
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
-            with torch.cuda.amp.autocast():
-                loss_g, perceptual_g, adversarial_g = generator_step(model, discriminator, loss_fn,
-                                                        perceptual_loss, adversarial_loss, lr, hr)
+            loss_g, perceptual_g, adversarial_g = generator_step(model, discriminator, loss_fn,
+                                                    perceptual_loss, adversarial_loss, lr, hr)
 
             update_weights(model, loss_g, scaler, scheduler_g,
                            optimizer_g, num_grad_acc, gradient_clip_val, i)
 
-            with torch.cuda.amp.autocast():
-                loss_d = discriminator_step(discriminator, adversarial_loss, sr, hr)
+            loss_d = discriminator_step(discriminator, adversarial_loss, sr, hr)
 
             update_weights(model, loss_d, scaler, scheduler_d,
                            optimizer_d, num_grad_acc, gradient_clip_val, i)
