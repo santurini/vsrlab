@@ -22,12 +22,11 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
             sr, _ = model(lr)
             loss = compute_loss(loss_fn, sr, hr)
 
-        dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
         val_loss += loss.detach().item() / world_size
         val_metrics = running_metrics(val_metrics, metric, sr, hr)
 
     if rank == 0:
-        logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
+        logger.log_dict({"LossG": val_loss / len(val_dl)}, epoch, "Val")
         logger.log_dict({k: v / len(val_dl) for k, v in val_metrics.items()}, epoch, "Val")
         logger.log_images("Val", epoch, lr, sr, hr, lq)
         save_checkpoint(cfg, model)
