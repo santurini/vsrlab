@@ -19,7 +19,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
         lr, hr = data[0].to(device), data[1].to(device)
 
         with torch.cuda.amp.autocast():
-            sr, lq = model(lr)
+            sr, _ = model(lr)
             loss = compute_loss(loss_fn, sr, hr)
 
         dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
@@ -29,7 +29,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
     if rank == 0:
         logger.log_dict({"LossG": val_loss / len(val_dl)}, epoch, "Val")
         logger.log_dict({k: v / len(val_dl) for k, v in val_metrics.items()}, epoch, "Val")
-        logger.log_images("Val", epoch, lr, sr, hr, lq)
+        logger.log_images("Val", epoch, lr, sr, hr)
         save_checkpoint(cfg, model)
 
 def generator_step(model, discriminator, loss_fn, perceptual_loss, adversarial_loss, lr, hr):
@@ -44,7 +44,7 @@ def generator_step(model, discriminator, loss_fn, perceptual_loss, adversarial_l
     disc_fake_loss = adversarial_loss(disc_sr, 1, False)
     loss = pixel_loss + perceptual_g + disc_fake_loss
 
-    return sr, lq, loss, perceptual_g, disc_fake_loss
+    return sr, loss, perceptual_g, disc_fake_loss
 
 def discriminator_step(discriminator, adversarial_loss, sr, hr):
     sr = rearrange(sr, 'b t c h w -> (b t) c h w')
@@ -116,7 +116,7 @@ def run(cfg: DictConfig):
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
-            sr, lq, loss_g, perceptual_g, adversarial_g = generator_step(model, discriminator, loss_fn,
+            sr, loss_g, perceptual_g, adversarial_g = generator_step(model, discriminator, loss_fn,
                                                     perceptual_loss, adversarial_loss, lr, hr)
 
             update_weights(model, loss_g, scaler, scheduler_g,
@@ -133,7 +133,7 @@ def run(cfg: DictConfig):
         if rank == 0:
             logger.log_dict({k: v / len(train_dl) for k, v in train_losses.items()}, epoch, "Train")
             logger.log_dict({k: v / len(train_dl) for k, v in train_metrics.items()}, epoch, "Train")
-            logger.log_images("Train", epoch, lr, sr, hr, lq)
+            logger.log_images("Train", epoch, lr, sr, hr)
 
         print("Starting Evaluation ...")
         evaluate(rank, world_size, epoch, model, logger, device,

@@ -32,9 +32,9 @@ class WandbLogger(object):
     def log_images(self, stage, epoch, lr, sr, hr, lq=None):
         n, t, d, h, w = hr.size()
 
-        lr = resize(lr[0, -1, :, :, :], (h, w)).detach()
-        hr = hr[0, -1, :, :, :].detach()
-        sr = sr[0, -1, :, :, :].detach().clamp(0, 1)
+        lr = resize(lr[0, -1, :, :, :], (h, w)).detach().cpu()
+        hr = hr[0, -1, :, :, :].detach().cpu()
+        sr = sr[0, -1, :, :, :].detach().clamp(0, 1).cpu()
 
         if lq is not None:
             lq = resize(lq[0, -1, :, :, :], (h, w)).detach()
