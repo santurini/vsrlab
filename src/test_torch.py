@@ -4,7 +4,7 @@ import warnings
 import pandas as pd
 import omegaconf
 from torchvision.utils import save_image
-from multiprocess import Pool
+from multiprocessing import Pool
 
 from core import PROJECT_ROOT
 from core.utils import *
