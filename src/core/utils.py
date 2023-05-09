@@ -3,7 +3,7 @@ import os
 from itertools import islice
 from pathlib import Path
 from typing import List, Optional, Union
-from multiprocessing import Pool
+from torch.multiprocessing import Pool
 
 import hydra
 import numpy as np
@@ -303,6 +303,7 @@ def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad
 def img2tensor(path):
     return F.to_tensor(Image.open(path))
 
-def get_video(video_folder: str, pool: Pool):
+def get_video(video_folder: str):
+    pool = Pool(4)
     out = torch.stack(pool.map(img2tensor, list(sorted(Path(video_folder).glob('*')))))
     return out.unsqueeze(0)
