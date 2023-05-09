@@ -101,7 +101,7 @@ def run(cfg: DictConfig):
                                                cfg.nn.module.scheduler.generator
                                                )
 
-    optimizer_d, scheduler_d = build_optimizer(model,
+    optimizer_d, scheduler_d = build_optimizer(discriminator,
                                                cfg.nn.module.optimizer.discriminator,
                                                cfg.nn.module.scheduler.discriminator
                                                )
@@ -133,7 +133,7 @@ def run(cfg: DictConfig):
             loss_d = discriminator_step(discriminator, adversarial_loss, sr, hr)
 
             print("update discriminator")
-            update_weights(model, loss_d, scaler, scheduler_d,
+            update_weights(discriminator, loss_d, scaler, scheduler_d,
                            optimizer_d, num_grad_acc, gradient_clip_val, i)
 
             train_losses = running_losses(loss_g, perceptual_g, adversarial_g, loss_d, train_losses)
