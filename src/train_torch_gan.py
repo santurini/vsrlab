@@ -22,6 +22,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
             sr, lq = model(lr)
             loss = compute_loss(loss_fn, sr, hr)
 
+        dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
         val_loss += loss.detach().item() / world_size
         val_metrics = running_metrics(val_metrics, metric, sr, hr)
 
@@ -78,8 +79,7 @@ def run(cfg: DictConfig):
     model = build_model(cfg.nn.module.model, device, local_rank, cfg.train.ddp)
 
     print('build discriminator ...')
-    discriminator = hydra.utils.instantiate(cfg.nn.module.discriminator, _recursive_=False)
-    discriminator = discriminator.to(device)
+    discriminator = build_model(cfg.nn.module.discriminator, device, local_rank, cfg.train.ddp)
 
     # Mixed precision
     print('build scaler ...')
