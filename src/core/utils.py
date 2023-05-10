@@ -179,8 +179,8 @@ def build_metric(cfg):
     return metric
 
 def build_logger(cfg):
-    logger = hydra.utils.instantiate(cfg, _recursive_=False)
-    logger.init()
+    logger = hydra.utils.instantiate(cfg.train.logger, _recursive_=False)
+    logger.init(cfg)
     return logger
 
 def build_loaders(cfg):

@@ -41,7 +41,7 @@ def run(cfg: DictConfig):
     # Initialize logger
     if rank == 0:
         print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
-        logger = build_logger(cfg.train.logger)
+        logger = build_logger(cfg)
         model_config = save_config(cfg)
     else:
         logger = None

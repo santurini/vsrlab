@@ -1,8 +1,11 @@
 from typing import Any, List
 
 import wandb
+
 from kornia.geometry.transform import resize
 from torchvision.utils import make_grid
+
+from omegaconf import OmegaConf
 
 class WandbLogger(object):
     def __init__(
@@ -20,13 +23,15 @@ class WandbLogger(object):
         self.id = id
         self.tags = tags
 
-    def init(self):
+    def init(self, cfg):
+        cfg = OmegaConf.to_container(cfg, resolve=True)
         self.run = wandb.init(
             dir=self.save_dir,
             project=self.project,
             name=self.name,
             id=self.id,
             tags=self.tags,
+            config=cfg
         )
 
     def log_images(self, stage, epoch, lr, sr, hr, lq=None):
