@@ -31,7 +31,7 @@ def run(config):
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
     pool = ThreadPoolExecutor(config.num_workers)
 
-    for fps in [6, 8, 10, 12, 15]:
+    for fps in [15, 12, 10, 8, 6]:
         for crf in [30, 32, 34, 36, 38, 40]:
             print('Configuration: fps -> {} - crf -> {} '.format(fps, crf))
             video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
