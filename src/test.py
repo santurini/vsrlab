@@ -57,7 +57,7 @@ def run(config):
                         video_hr[:, i:i + config.window_size, ...].to(device)
 
                     sr, _ = model(lr)
-                    outputs.append(sr)
+                    outputs.append(sr.cpu())
 
                 outputs = torch.cat(outputs, dim=1)
                 for i, img in enumerate(outputs[0]):
