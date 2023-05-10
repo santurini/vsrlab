@@ -57,8 +57,8 @@ class WandbLogger(object):
 
         self.run.log(out_dict | {"epoch": epoch})
 
-    def save(self, path):
-        self.run.save(path)
+    def save(self, save_path, base_path):
+        self.run.save(glob_str=save_path, base_path=base_path)
 
     @staticmethod
     def close():

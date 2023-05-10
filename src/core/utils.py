@@ -74,10 +74,14 @@ def save_config(cfg):
     return save_path
 
 def save_checkpoint(cfg, model, logger, ddp=True):
-    save_path = os.path.join(
+    base_path = os.path.join(
         cfg.train.logger.save_dir,
         cfg.train.logger.project,
-        cfg.train.logger.id,
+        cfg.train.logger.id
+    )
+
+    save_path = os.path.join(
+        base_path,
         "checkpoint",
         "last.ckpt"
     )
@@ -85,10 +89,10 @@ def save_checkpoint(cfg, model, logger, ddp=True):
     Path(save_path).parent.mkdir(exist_ok=True, parents=True)
     if ddp:
         torch.save(model.module.state_dict(), save_path)
-        logger.save(save_path)
+        logger.save(save_path, base_path)
     else:
         torch.save(model.state_dict(), save_path)
-        logger.save(save_path)
+        logger.save(save_path, base_path)
 
 def get_state_dict(path, local_rank, from_lightning=True):
     if from_lightning:
