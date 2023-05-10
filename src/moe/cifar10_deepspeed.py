@@ -99,6 +99,8 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
 
+deepspeed.init_distributed()
+
 net = Net()
 
 parameters = filter(lambda p: p.requires_grad, net.parameters())
