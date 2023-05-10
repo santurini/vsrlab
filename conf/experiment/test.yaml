@@ -1,5 +1,5 @@
 # @package _global_
-cfg_dir: /home/aghinassi/VSR/checkpoints/basic_gan
+cfg_dir: /home/aghinassi/VSR/checkpoints/vrt_gan_of
 lr_dir: /mnt/hdd/dataset/pexels/compressed
 hr_dir: /mnt/hdd/dataset/pexels/groundtruth
 out_dir: /mnt/hdd/dataset/pexels
@@ -14,5 +14,4 @@ metric:
       _target_: piqa.PSNR
     SSIM:
       _target_: piqa.SSIM
-    OFLoss:
-      _target_: core.losses.OpticalFlowConsistency
+
