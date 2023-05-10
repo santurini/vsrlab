@@ -13,7 +13,7 @@ pylogger = logging.getLogger(__name__)
 @torch.no_grad()
 def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, metric, cfg):
     model.eval()
-    val_loss, val_metrics = 0, {k: 0 for k in cfg.nn.module.metric.metrics}
+    val_loss, val_metrics = 0, {k: 0 for k in cfg.train.metric.metrics}
 
     for i, data in enumerate(val_dl):
         lr, hr = data[0].to(device), data[1].to(device)
@@ -75,10 +75,10 @@ def run(cfg: DictConfig):
 
     # Encapsulate the model on the GPU assigned to the current process
     print('build model ...')
-    model = build_model(cfg.nn.module.model, device, local_rank, cfg.train.ddp, cfg.finetune, cfg.from_lightning)
+    model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp, cfg.train.restore, cfg.train.from_lightning)
 
     print('build discriminator ...')
-    discriminator = build_model(cfg.nn.module.discriminator, device, local_rank, cfg.train.ddp)
+    discriminator = build_model(cfg.train.discriminator, device, local_rank, cfg.train.ddp)
 
     # Mixed precision
     print('build scaler ...')
@@ -90,27 +90,27 @@ def run(cfg: DictConfig):
 
     print('build optimizers and schedulers ...')
     optimizer_g, scheduler_g = build_optimizer(model,
-                                               cfg.nn.module.optimizer.generator,
-                                               cfg.nn.module.scheduler.generator
+                                               cfg.train.optimizer.generator,
+                                               cfg.train.scheduler.generator
                                                )
 
     optimizer_d, scheduler_d = build_optimizer(discriminator,
-                                               cfg.nn.module.optimizer.discriminator,
-                                               cfg.nn.module.scheduler.discriminator
+                                               cfg.train.optimizer.discriminator,
+                                               cfg.train.scheduler.discriminator
                                                )
 
 
     print('build metrics and losses ...')
     loss_fn = CharbonnierLoss()
-    adversarial_loss = hydra.utils.instantiate(cfg.nn.module.adversarial_loss, _recursive_=False)
-    perceptual_loss = hydra.utils.instantiate(cfg.nn.module.perceptual_loss, _recursive_=False).to(device)
-    metric = build_metric(cfg.nn.module.metric).to(device)
+    adversarial_loss = hydra.utils.instantiate(cfg.train.adversarial_loss, _recursive_=False)
+    perceptual_loss = hydra.utils.instantiate(cfg.train.perceptual_loss, _recursive_=False).to(device)
+    metric = build_metric(cfg.train.metric).to(device)
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Training ...".format(rank, local_rank))
-    for epoch in range(cfg.train.trainer.max_epochs):
+    for epoch in range(cfg.train.max_epochs):
         model.train(); dt = time.time()
-        train_losses, train_metrics = create_gan_losses_dict(), {k: 0 for k in cfg.nn.module.metric.metrics}
+        train_losses, train_metrics = create_gan_losses_dict(), {k: 0 for k in cfg.train.metric.metrics}
 
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)

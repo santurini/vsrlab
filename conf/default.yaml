@@ -1,6 +1,6 @@
 core:
   project_name: 'video-super-resolution'
-  run_id: "check"
+  run_id: "sanity"
   run_name: "Sanity Checking"
   storage_dir: ${oc.env:LOGGING_DIR}
   version: 0.0.1
@@ -8,6 +8,5 @@ core:
 
 defaults:
   - hydra: default
-  - nn: default
   - train: default
   - _self_

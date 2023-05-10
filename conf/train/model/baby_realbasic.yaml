@@ -1,7 +1,7 @@
 _target_: vsr.models.RealBasicVSR.realbasicvsr.RealBasicVSR
 cleaning_blocks: 5
 mid_channels: 64
-upscale: ${nn.data.datasets.train.scale}
+upscale: ${train.data.datasets.train.scale}
 is_mirror: False
 res_blocks: 5
 optical_flow: "spynet"

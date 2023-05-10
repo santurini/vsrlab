@@ -1,18 +1,24 @@
-# reproducibility
+defaults:
+  - data: default
+  - logger: default
+  - model: baby_realbasic
+  - optimizer: adam
+  - scheduler: cosine
+
+metric:
+  _target_: core.metrics.MetricCollection
+  metrics:
+    PSNR:
+      _target_: piqa.PSNR
+    SSIM:
+      _target_: piqa.SSIM
+
 seed_index: null
-deterministic: False
+
+ddp: True
+max_epochs: 5000000
+gradient_clip_val: 1
+num_grad_acc: 1
 
 restore: null
-
-ddp: False
-
-monitor:
-  metric: 'loss/val'
-  mode: 'min'
-
-defaults:
-  - trainer: default
-  - callbacks: default
-  - logger: default
-  - strategy: default
-
+from_lightning: False

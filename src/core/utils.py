@@ -88,27 +88,6 @@ def save_checkpoint(cfg, model, ddp=True):
     else:
         torch.save(model.state_dict(), save_path)
 
-def save_test_config(cfg):
-    model = cfg.model_name
-    version = Path(cfg.finetune).stem
-    output_path = ''.join(['sr', Path(cfg.path_lr).name.partition('lr')[-1]])
-    out_dir = str(Path(Path(cfg.path_lr).parent) / Path(output_path))
-
-    save_path = '_'.join([
-        out_dir,
-        model,
-        version
-    ])
-
-    Path(save_path).mkdir(exist_ok=True, parents=True)
-    file_name = Path(save_path) / "config.yaml"
-
-    with open(file_name, 'w') as file:
-        yaml_str = OmegaConf.to_yaml(cfg, resolve=True)
-        file.write(yaml_str)
-
-    return save_path
-
 def get_state_dict(path, local_rank, from_lightning=True):
     if from_lightning:
         return torch.load(path)['state_dict']
@@ -126,13 +105,6 @@ def get_model_state_dict(path, local_rank, from_lightning=True):
 def restore_model(model, path, local_rank, from_lightning=True):
     model.load_state_dict(get_model_state_dict(path, local_rank, from_lightning))
     return model
-
-def build_callbacks(cfg: ListConfig) -> List[Callback]:
-    callbacks = list()
-    for callback in cfg:
-        pylogger.info(f"Adding callback <{callback['_target_'].split('.')[-1]}>")
-        callbacks.append(hydra.utils.instantiate(callback, _recursive_=False))
-    return callbacks
 
 def build_scheduler(
         optimizer,
@@ -213,39 +185,39 @@ def build_logger(cfg):
 
 def build_loaders(cfg):
     pylogger.info(f"Building Loaders")
-    train_ds = hydra.utils.instantiate(cfg.nn.data.datasets.train, _recursive_=False)
-    val_ds = hydra.utils.instantiate(cfg.nn.data.datasets.val, _recursive_=False)
+    train_ds = hydra.utils.instantiate(cfg.train.data.datasets.train, _recursive_=False)
+    val_ds = hydra.utils.instantiate(cfg.train.data.datasets.val, _recursive_=False)
 
     # Restricts data loading to a subset of the dataset exclusive to the current process
     train_sampler = DistributedSampler(dataset=train_ds) if cfg.train.ddp else None
     val_sampler = DistributedSampler(dataset=val_ds) if cfg.train.ddp else None
 
-    if cfg.train.trainer.num_grad_acc is not None:
-        num_grad_acc = cfg.train.trainer.num_grad_acc
-        gradient_clip_val = cfg.train.trainer.gradient_clip_val
-        batch_size = cfg.nn.data.batch_size // num_grad_acc
+    if cfg.train.num_grad_acc is not None:
+        num_grad_acc = cfg.train.num_grad_acc
+        gradient_clip_val = cfg.train.gradient_clip_val
+        batch_size = cfg.train.data.batch_size // num_grad_acc
         epoch = 0
     else:
         num_grad_acc = 1
-        gradient_clip_val = cfg.train.trainer.gradient_clip_val
-        batch_size = cfg.nn.data.batch_size
+        gradient_clip_val = cfg.train.gradient_clip_val
+        batch_size = cfg.train.data.batch_size
         epoch = 0
 
     train_dl = DataLoader(dataset=train_ds,
                           batch_size=batch_size,
                           sampler=train_sampler,
-                          num_workers=cfg.nn.data.num_workers,
-                          prefetch_factor=cfg.nn.data.prefetch_factor,
+                          num_workers=cfg.train.data.num_workers,
+                          prefetch_factor=cfg.train.data.prefetch_factor,
                           persistent_workers=True,
                           # pin_memory=True
                           )
 
     # Test loader does not have to follow distributed sampling strategy
     val_dl = DataLoader(dataset=val_ds,
-                        batch_size=cfg.nn.data.batch_size,
+                        batch_size=cfg.train.data.batch_size,
                         sampler=val_sampler,
-                        num_workers=cfg.nn.data.num_workers,
-                        prefetch_factor=cfg.nn.data.prefetch_factor,
+                        num_workers=cfg.train.data.num_workers,
+                        prefetch_factor=cfg.train.data.prefetch_factor,
                         shuffle=False,
                         persistent_workers=True,
                         # pin_memory=True

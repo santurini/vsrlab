@@ -1,24 +1,4 @@
 # @package _global_
-core:
-  run_id: "realbasicvsr_default_irr"
-  run_name: "Real Basic Default - IRR"
-
-defaults:
-  - override /train/strategy: ddp
-
-finetune: null
-
-nn:
-  module:
-    model:
-      optical_flow: "irr"
-  data:
-    datasets:
-      train:
-        path: "/home/aghinassi/Desktop/MergedVSR"
-
 train:
-  trainer:
-    devices: 1
-    max_steps: 60000
-    gradient_clip_val: 1
+  model:
+    optical_flow: "irr"

@@ -1,0 +1,23 @@
+# @package _global_
+defaults:
+  - override /train: gan
+  - override /train/model: baby_vrt
+
+train:
+  data:
+    batch_size: 16
+    datasets:
+      train:
+        seq: 6
+
+  ddp: False
+  max_epochs: 1000000
+  gradient_clip_val: 1
+  num_grad_acc: 4
+
+  restore: '/home/aghinassi/Desktop/checkpoints/vrt_def_ddp/last.ckpt'
+  from_lightning: False
+
+
+
+

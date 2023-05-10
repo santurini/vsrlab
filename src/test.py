@@ -1,98 +1,87 @@
-import os
+import time
 import warnings
 
-warnings.filterwarnings("ignore")
-
-import logging
+import pandas as pd
+import omegaconf
+from concurrent.futures import ThreadPoolExecutor
 
 import torch
-from torchvision.transforms.functional import to_pil_image, to_tensor
-import hydra
-import omegaconf
-from omegaconf import DictConfig
+from torchvision.utils import save_image
 
 from core import PROJECT_ROOT
-from core.utils import get_model_state_dict, save_test_config, batched
-from core.augmentations import read_video
+from core.utils import *
 
-import pandas as pd
-from pathlib import Path
-from piqa import PSNR, SSIM, MS_SSIM, LPIPS
-
+warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
-psnr = PSNR().cuda()
-ms_ssim = MS_SSIM().cuda()
-ssim = SSIM().cuda()
-lpips = LPIPS().cuda()
-
 @torch.no_grad()
-def test(cfg: DictConfig) -> str:
-    output_path = save_test_config(cfg)
-    pylogger.info(f"Output path <{output_path}>")
+def run(config):
+    rank, local_rank, world_size = (0, 0, 1)
+    device = torch.device("cuda:{}".format(local_rank))
 
-    # Instantiate model
-    pylogger.info(f"Instantiating <{cfg.nn.module.model['_target_']}>")
-    model: nn.Module = hydra.utils.instantiate(cfg.nn.module.model, _recursive_=False)
+    cfg = OmegaConf.load(os.path.join(config.cfg_dir, "config.yaml"))
+    ckpt_path = os.path.join(config.cfg_dir, "last.ckpt")
 
-    pylogger.info(f"Loading pretrained weights: <{cfg.finetune}>")
-    state_dict = get_model_state_dict(cfg.finetune)
-    model.load_state_dict(state_dict, strict=True)
-    model = model.cuda()
-    model.eval()
+    # Encapsulate the model on the GPU assigned to the current process
+    print('build model ...')
+    model = build_model(cfg.train.model, device, local_rank, False)
 
-    df_final = pd.DataFrame()
-    for path in Path(cfg.path_lr).glob('*'):
+    # We only save the model who uses device "cuda:0"
+    # To resume, the device for the saved model would also be "cuda:0"
+    model = restore_model(model, ckpt_path, local_rank)
 
-        lr_frame_path = Path(output_path) / Path(path).stem
-        lr_frame_path.mkdir(parents=True)
+    print('build metrics and losses ...')
+    metric, video_pd = build_metric(config.metric).to(device), []
 
-        pylogger.info(f"Reading LR video: <{path}>")
-        lr_video, *_ = read_video(str(path))
-        hr_video, c, r, h, w = read_video(os.path.join(cfg.path_hr, path.name))
+    # Loop over the dataset multiple times
+    print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
+    pool = ThreadPoolExecutor(config.num_workers)
 
-        pylogger.info(f"<Processing video>")
+    for fps in [6, 8, 10, 12, 15]:
+        for crf in [30, 32, 34, 36, 38, 40]:
+            print('Configuration: fps -> {} - crf -> {} '.format(fps, crf))
+            video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
+            output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
+            video_paths = list(Path(video_folder).glob('*'))
+            video_metrics = {k: 0 for k in config.metric.metrics}
 
-        df = pd.DataFrame()
-        i = 0
-        for window_lr, window_hr in zip(batched(lr_video, cfg.window_size), batched(hr_video, cfg.window_size)):
+            for video_lr_path in video_paths:
+                model.eval();
+                dt = time.time()
 
-            window_lr = torch.stack([to_tensor(frame.to_rgb().to_image()) for frame in window_lr]).cuda()
+                video_name = os.path.basename(video_lr_path)
+                video_hr_path = os.path.join(config.hr_dir, f"fps={fps}_crf=5", "frames", video_name)
+                save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
+                Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-            out = model.test(window_lr.unsqueeze(0)).squeeze(0).clamp(0, 1)
-            del window_lr
+                video_hr, video_lr = get_video(video_hr_path, pool).to(device), get_video(video_lr_path, pool).to(device)
 
-            window_hr = torch.stack([to_tensor(frame.to_rgb().to_image()) for frame in window_hr]).cuda()
+                outputs = []
+                for i in range(0, video_lr.size(1), config.window_size):
+                    lr, hr = video_lr[:, i:i + config.window_size, ...].to(device), \
+                        video_hr[:, i:i + config.window_size, ...].to(device)
 
-            metrics = {
-                "PSNR": psnr(out, window_hr),
-                "MS-SSIM": ms_ssim(out, window_hr),
-                "SSIM": ssim(out, window_hr),
-                "LPIPS": lpips(out, window_hr),
-            }
+                    sr, _ = model(lr)
+                    outputs.append(sr)
 
-            for frame in out:
-                file_name = lr_frame_path / f"frame_{i:04d}.png"
-                to_pil_image(frame).save(file_name)
-                i += 1
+                outputs = torch.cat(outputs, dim=1)
+                for i, img in enumerate(outputs[0]):
+                    save_image(img, os.path.join(save_folder, "img{:05d}.png".format(i)))
 
-            del out
+                video_metrics = running_metrics(video_metrics, metric, outputs, video_hr)
 
-            df = df.append([metrics], ignore_index=True)
+                dt = time.time() - dt
+                print(f"Inference Time --> {dt:2f}")
 
-        pylogger.info(f"<Appending metrics>")
-        metrics = df.mean(axis=0).to_dict()
-        df_final = df_final.append([metrics], ignore_index=True)
+            video_pd.append({"fps": fps, "crf": crf} | {k: v / len(video_paths) for k, v in video_metrics.items()})
 
-    metrics_path = os.path.join(output_path, 'metrics.csv')
-    pylogger.info(f"<Saving metrics csv to <{metrics_path}>")
-    df_final.mean(axis=0).to_frame(name='Score').to_csv(metrics_path)
+    pd.DataFrame(video_pd).to_csv(os.path.join(output_folder, 'metrics.csv'))
 
-    return output_path
+    return output_folder
 
-@hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="test", version_base="1.3")
+@hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
 def main(config: omegaconf.DictConfig):
-    test(config)
+    run(config)
 
 if __name__ == "__main__":
     main()

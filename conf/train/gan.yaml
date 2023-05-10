@@ -1,9 +1,9 @@
-_target_: vsr.models.RealBasicVSR.pl_module.LitGan
-log_interval: 250
-
-set_lr: false
-
-d_set_lr: false
+defaults:
+  - data: gan
+  - logger: default
+  - model: baby_realbasic
+  - optimizer: gan_adam
+  - scheduler: gan_cosine
 
 metric:
   _target_: core.metrics.MetricCollection
@@ -19,14 +19,19 @@ discriminator:
   mid_ch: 64
 
 perceptual_loss:
-  _target_: core.losses.OpticalFlowConsistency
+  _target_: core.losses.PerceptualLoss
   weight: 1e-2
 
 adversarial_loss:
   _target_: core.losses.AdversarialLoss
   weight: 2e-5
 
-defaults:
-  - model: baby_realbasic
-  - optimizer: gan_adam
-  - scheduler: gan_cosine
+seed_index: null
+
+ddp: False
+max_epochs: 5000000
+gradient_clip_val: 0.5
+num_grad_acc: 1
+
+restore: null
+from_lightning: False

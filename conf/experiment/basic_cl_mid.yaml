@@ -1,24 +1,12 @@
 # @package _global_
-core:
-  run_id: 'realbasicvsr_curriculum_mid'
-  run_name: "Real Basic Curriculum - Mid Schedule"
-
 defaults:
-  - override /train/strategy: ddp
-  - override /nn/data: mid_schedule
-
-finetune: /home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasicvsr_curriculum_easy/checkpoints/last.ckpt
-
-nn:
-  module:
-    optimizer:
-      lr: 6.7e-5
-    scheduler:
-      eta_min: 3.4e-5
-    set_lr: False
+  - override /train/data: mid_schedule
 
 train:
-  trainer:
-    devices: 2
-    max_steps: 20000
-    gradient_clip_val: 1
+  optimizer:
+    lr: 6.7e-5
+
+  scheduler:
+    eta_min: 3.4e-5
+
+  restore: /home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasicvsr_curriculum_easy/checkpoints/last.ckpt
