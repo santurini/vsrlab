@@ -1,7 +1,7 @@
 # @package _global_
 core:
-  run_id: 'fwslrgbfis'
-  run_name: "VRT Default - GAN (2e-5)"
+  run_id: 'jlvzlavlf'
+  run_name: "VRT Default - GAN (OF)"
 
 finetune: '/home/aghinassi/VSR/checkpoints/vrt_def_ddp/last.ckpt'
 from_lightning: False
