@@ -22,7 +22,7 @@ def run(config):
 
     # Encapsulate the model on the GPU assigned to the current process
     print('build model ...')
-    model = build_model(cfg.train.model, device, local_rank, False, ckpt_path, cfg.train.from_lightning)
+    model = build_model(cfg.train.model, device, local_rank, False, ckpt_path)
 
     print('build metrics and losses ...')
     metric, video_pd = build_metric(config.metric).to(device), []
