@@ -1,5 +1,5 @@
 #!/bin/bash
-EXPORT PYTHONPATH=/home/aghinassi/miniconda3/envs/vsr/bin/python
+export PYTHONPATH=/home/aghinassi/miniconda3/envs/vsr/bin/python
 
 deepspeed --hostfile moe/hostfile \
           --master_addr rackete \
