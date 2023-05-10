@@ -139,8 +139,6 @@ for epoch in range(args.epochs):
         if i % args.log_interval == (args.log_interval - 1):
             print('[epoch %d, iterations %5d] loss: %.3f accuracy: %2f %%' % (
             epoch, i + 1, running_loss / args.log_interval, 100. * correct / total))
-            writer.add_scalar("Training Cross Entropy Loss", running_loss / args.log_interval, i + 1)
-            writer.add_scalar("Training Accuracy", 100. * correct / total, i + 1)
             running_loss = 0.0
 
 print('Training Done')
