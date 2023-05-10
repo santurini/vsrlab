@@ -1,8 +1,8 @@
 import time
 import warnings
 
-import wandb
 import omegaconf
+import wandb
 
 from core import PROJECT_ROOT
 from core.losses import CharbonnierLoss
@@ -100,7 +100,6 @@ def run(cfg: DictConfig):
                                                cfg.train.scheduler.discriminator
                                                )
 
-
     print('build metrics and losses ...')
     loss_fn = CharbonnierLoss()
     adversarial_loss = hydra.utils.instantiate(cfg.train.adversarial_loss, _recursive_=False)
@@ -110,14 +109,15 @@ def run(cfg: DictConfig):
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Training ...".format(rank, local_rank))
     for epoch in range(cfg.train.max_epochs):
-        model.train(); dt = time.time()
+        model.train();
+        dt = time.time()
         train_losses, train_metrics = create_gan_losses_dict(), {k: 0 for k in cfg.train.metric.metrics}
 
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
             sr, loss_g, perceptual_g, adversarial_g = generator_step(model, discriminator, loss_fn,
-                                                    perceptual_loss, adversarial_loss, lr, hr)
+                                                                     perceptual_loss, adversarial_loss, lr, hr)
 
             update_weights(model, loss_g, scaler, scheduler_g,
                            optimizer_g, num_grad_acc, gradient_clip_val, i)

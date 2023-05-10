@@ -1,11 +1,9 @@
 from typing import Any, List
 
 import wandb
-
 from kornia.geometry.transform import resize
-from torchvision.utils import make_grid
-
 from omegaconf import OmegaConf
+from torchvision.utils import make_grid
 
 class WandbLogger(object):
     def __init__(

@@ -1,9 +1,7 @@
-import os
 import logging
-from itertools import islice
+import os
 from pathlib import Path
 from typing import List, Optional, Union
-from torch.multiprocessing import Pool
 
 import hydra
 import numpy as np
@@ -14,7 +12,7 @@ from PIL import Image
 from einops import rearrange
 from kornia.geometry.transform import resize
 from omegaconf import DictConfig, ListConfig, OmegaConf
-from pytorch_lightning import seed_everything, Callback
+from pytorch_lightning import seed_everything
 from torch.nn import Sequential
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader
