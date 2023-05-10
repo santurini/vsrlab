@@ -1,6 +1,6 @@
 #!/bin/bash
 
-deepspeed --master_addr 192.168.1.42 \
+deepspeed --master_addr localhost \
           --master_port 1234 \
           --no_ssh_check \
           --launcher OpenMPI \
