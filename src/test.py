@@ -25,7 +25,7 @@ def run(config):
     model = build_model(cfg.train.model, device, local_rank, False, ckpt_path)
 
     print('build metrics and losses ...')
-    metric, video_pd = build_metric(config.metric).to(device), []
+    metric, video_pd = build_metric(config.metric), []
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
