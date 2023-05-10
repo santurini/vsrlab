@@ -57,6 +57,9 @@ class WandbLogger(object):
 
         self.run.log(out_dict | {"epoch": epoch})
 
+    def save(self, path):
+        self.run.save(path)
+
     @staticmethod
     def close():
         wandb.finish()

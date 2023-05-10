@@ -1,5 +1,5 @@
-import logging
 import os
+import logging
 from itertools import islice
 from pathlib import Path
 from typing import List, Optional, Union
@@ -73,7 +73,7 @@ def save_config(cfg):
 
     return save_path
 
-def save_checkpoint(cfg, model, ddp=True):
+def save_checkpoint(cfg, model, logger, ddp=True):
     save_path = os.path.join(
         cfg.train.logger.save_dir,
         cfg.train.logger.project,
@@ -85,8 +85,10 @@ def save_checkpoint(cfg, model, ddp=True):
     Path(save_path).parent.mkdir(exist_ok=True, parents=True)
     if ddp:
         torch.save(model.module.state_dict(), save_path)
+        logger.save(save_path)
     else:
         torch.save(model.state_dict(), save_path)
+        logger.save(save_path)
 
 def get_state_dict(path, local_rank, from_lightning=True):
     if from_lightning:

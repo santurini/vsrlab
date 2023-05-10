@@ -4,6 +4,5 @@ mid_channels: 64
 upscale: ${train.data.datasets.train.scale}
 is_mirror: False
 res_blocks: 5
-optical_flow: "spynet"
 pretrained_flow: True
 train_flow: False

@@ -32,7 +32,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
         logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
         logger.log_dict({k: v / len(val_dl) for k, v in val_metrics.items()}, epoch, "Val")
         logger.log_images("Val", epoch, lr, sr, hr, lq)
-        save_checkpoint(cfg, model)
+        save_checkpoint(cfg, model, logger, cfg.train.ddp)
 
 def run(cfg: DictConfig):
     seed_index_everything(cfg.train)
@@ -111,8 +111,16 @@ def run(cfg: DictConfig):
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
 def main(config: omegaconf.DictConfig):
-    run(config)
-    cleanup()
+    try:
+        run(config)
+    except Exception as e:
+        if config.train.ddp:
+            cleanup()
+        wandb.finish()
+        raise e
+
+    if config.train.ddp:
+        cleanup()
 
 if __name__ == "__main__":
     main()
