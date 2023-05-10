@@ -279,6 +279,6 @@ def img2tensor(path):
 
 def get_video(video_folder: str, pool):
     paths = list(sorted(Path(video_folder).glob('*')))
-    print(type(paths))
+    pool.map(img2tensor, paths)
     out = torch.stack(pool.map(img2tensor, paths))
     return out.unsqueeze(0)
