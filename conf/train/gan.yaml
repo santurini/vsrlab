@@ -30,7 +30,7 @@ seed_index: null
 
 ddp: False
 max_epochs: 5000000
-gradient_clip_val: 0.5
+gradient_clip_val: 1
 num_grad_acc: 1
 
 restore: null

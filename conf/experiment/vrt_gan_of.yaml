@@ -10,6 +10,10 @@ train:
       train:
         seq: 6
 
+  perceptual_loss:
+    _target_: core.losses.OpticalFlowConsistency
+    weight: 1e-2
+
   ddp: False
   max_epochs: 1000000
   num_grad_acc: 4
