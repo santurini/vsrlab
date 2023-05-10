@@ -25,7 +25,7 @@ def run(config):
     model = build_model(cfg.train.model, device, local_rank, False, ckpt_path)
 
     print('build metrics and losses ...')
-    metric, video_pd = build_metric(config.metric), []
+    metric, video_pd = build_metric(config.metric).to(device), []
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
@@ -57,7 +57,7 @@ def run(config):
                         video_hr[:, i:i + config.window_size, ...].to(device)
 
                     sr, _ = model(lr)
-                    outputs.append(sr.cpu())
+                    outputs.append(sr)
 
                 dt = time.time() - dt
                 print(f"Inference Time --> {dt:2f}")
@@ -66,7 +66,7 @@ def run(config):
                 for i, img in enumerate(outputs[0]):
                     save_image(img, os.path.join(save_folder, "img{:05d}.png".format(i)))
 
-                video_metrics = running_metrics(video_metrics, metric, outputs, video_hr.cpu())
+                video_metrics = running_metrics(video_metrics, metric, outputs, video_hr)
 
             video_pd.append({"fps": fps, "crf": crf} | {k: v / len(video_paths) for k, v in video_metrics.items()})
 
