@@ -5,8 +5,7 @@ NUM_NODES=2
 # Number of GPUs per node
 NUM_GPUS=1
 
-deepspeed --hostfile /home/aghinassi/Desktop/nn-lab/src/moe/hostfile \
-          --master_addr 192.168.1.42 \
+deepspeed --master_addr 192.168.1.42 \
           --master_port 1234 \
           --launcher OpenMPI \
             moe/cifar10_deepspeed.py \
