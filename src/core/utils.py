@@ -152,13 +152,13 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
         augmentation.append(hydra.utils.instantiate(aug, _recursive_=False))
     return Sequential(*augmentation)
 
-def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None, from_lightning=True):
+def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
     pylogger.info(f"Building Model")
     model = hydra.utils.instantiate(cfg, _recursive_=False)
     model = model.to(device)
 
     if restore_ckpt is not None:
-        model = restore_model(model, restore_ckpt, local_rank, from_lightning)
+        model = restore_model(model, restore_ckpt, local_rank)
 
     if ddp:
         pylogger.info(f"Setting up distributed model")
