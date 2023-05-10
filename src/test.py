@@ -26,10 +26,6 @@ def run(config):
     print('build model ...')
     model = build_model(cfg.train.model, device, local_rank, False, ckpt_path, cfg.train.from_lightning)
 
-    # We only save the model who uses device "cuda:0"
-    # To resume, the device for the saved model would also be "cuda:0"
-    model = restore_model(model, ckpt_path, local_rank)
-
     print('build metrics and losses ...')
     metric, video_pd = build_metric(config.metric).to(device), []
 
