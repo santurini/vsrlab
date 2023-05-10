@@ -97,7 +97,7 @@ def get_state_dict(path, local_rank):
     return torch.load(path, map_location=map_location)
 
 def get_model_state_dict(path, local_rank):
-    state_dict = get_state_dict(path, local_rank, False)
+    state_dict = get_state_dict(path, local_rank)
     return state_dict
 
 def restore_model(model, path, local_rank):
