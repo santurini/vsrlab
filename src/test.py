@@ -24,7 +24,7 @@ def run(config):
 
     # Encapsulate the model on the GPU assigned to the current process
     print('build model ...')
-    model = build_model(cfg.train.model, device, local_rank, False)
+    model = build_model(cfg.train.model, device, local_rank, False, ckpt_path, cfg.train.from_lightning)
 
     # We only save the model who uses device "cuda:0"
     # To resume, the device for the saved model would also be "cuda:0"
