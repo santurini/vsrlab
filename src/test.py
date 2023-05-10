@@ -63,7 +63,7 @@ def run(config):
                 for i, img in enumerate(outputs[0]):
                     save_image(img, os.path.join(save_folder, "img{:05d}.png".format(i)))
 
-                video_metrics = running_metrics(video_metrics, metric, outputs, video_hr)
+                video_metrics = running_metrics(video_metrics, metric, outputs, video_hr.cpu())
 
                 dt = time.time() - dt
                 print(f"Inference Time --> {dt:2f}")
