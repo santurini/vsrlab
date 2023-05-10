@@ -1,2 +1,2 @@
-127.0.0.1 slots=1
-192.168.0.166 slots=1
+machine1 slots=1
+machine2 slots=1

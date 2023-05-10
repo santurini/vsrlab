@@ -1,9 +1,9 @@
 #!/bin/bash
 
-deepspeed --master_addr 192.168.1.42 \
+deepspeed --num_nodes 2 \
+          --num_gpus 1 \
+          --master_addr machine1 \
           --master_port 1234 \
-          --launcher OpenMPI \
-          --launcher_args "--host 192.168.1.42:1,192.168.0.166:1" \
             moe/cifar10_deepspeed.py \
 	        --log-interval 100 \
 	        --deepspeed \
