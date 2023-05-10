@@ -6,6 +6,7 @@ NUM_NODES=2
 NUM_GPUS=1
 
 deepspeed --num_nodes=${NUM_NODES} \
+          --hostfile /home/aghinassi/Desktop/nn-lab/src/moe/hostfile \
           --master_addr 192.168.1.42 \
           --master_port 1234 \
           --num_gpus=${NUM_GPUS} \
