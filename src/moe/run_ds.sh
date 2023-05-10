@@ -2,7 +2,7 @@
 
 deepspeed --num_nodes 2 \
           --num_gpus 1 \
-          --hostfile moe/hostfile
+          --hostfile moe/hostfile \
           --master_addr machine1 \
           --master_port 1234 \
             moe/cifar10_deepspeed.py \
