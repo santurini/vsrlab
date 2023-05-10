@@ -92,22 +92,16 @@ def save_checkpoint(cfg, model, logger, ddp=True):
         torch.save(model.state_dict(), save_path)
         logger.save(save_path, base_path)
 
-def get_state_dict(path, local_rank, from_lightning=True):
-    if from_lightning:
-        return torch.load(path)['state_dict']
+def get_state_dict(path, local_rank):
     map_location = {"cuda:0": "cuda:{}".format(local_rank)}
     return torch.load(path, map_location=map_location)
 
-def get_model_state_dict(path, local_rank, from_lightning=True):
-    if from_lightning:
-        state_dict = get_state_dict(path, local_rank, True)
-        out = {k.partition('model.')[-1]: v for k, v in state_dict.items() if k.startswith('model.')}
-        return out
+def get_model_state_dict(path, local_rank):
     state_dict = get_state_dict(path, local_rank, False)
     return state_dict
 
-def restore_model(model, path, local_rank, from_lightning=True):
-    model.load_state_dict(get_model_state_dict(path, local_rank, from_lightning))
+def restore_model(model, path, local_rank):
+    model.load_state_dict(get_model_state_dict(path, local_rank))
     return model
 
 def build_scheduler(
