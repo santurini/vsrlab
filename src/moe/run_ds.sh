@@ -1,5 +1,6 @@
 #!/bin/bash
 export PYTHONPATH=/home/aghinassi/miniconda3/envs/vsr/bin/python
+cd /home/aghinassi/Desktop/nn-lab/src
 
 deepspeed --hostfile moe/hostfile \
           --master_addr rackete \
