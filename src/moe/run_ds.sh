@@ -1,6 +1,6 @@
 #!/bin/bash
 
-deepspeed --hostfile hostfile \
-            cifar10_deepspeed.py \
+deepspeed --hostfile moe/hostfile \
+            moe/cifar10_deepspeed.py \
 	        --deepspeed \
-	        --deepspeed_config ds_config.json
+	        --deepspeed_config moe/ds_config.json
