@@ -76,7 +76,7 @@ def run(cfg: DictConfig):
 
     # Encapsulate the model on the GPU assigned to the current process
     print('build model ...')
-    model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp, cfg.train.restore, cfg.train.from_lightning)
+    model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp, cfg.train.restore)
 
     print('build discriminator ...')
     discriminator = build_model(cfg.train.discriminator, device, local_rank, cfg.train.ddp)

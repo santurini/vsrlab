@@ -51,16 +51,11 @@ def run(cfg: DictConfig):
 
     # Encapsulate the model on the GPU assigned to the current process
     print('build model ...')
-    model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp)
+    model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp, cfg.train.restore)
 
     # Mixed precision
     print('build scaler ...')
     scaler = torch.cuda.amp.GradScaler()
-
-    # We only save the model who uses device "cuda:0"
-    # To resume, the device for the saved model would also be "cuda:0"
-    if cfg.train.restore is not None:
-        model = restore_model(model, cfg.train.restore, local_rank)
 
     # Prepare dataset and dataloader
     print('build loaders ...')
