@@ -11,4 +11,4 @@ deepspeed --master_addr 192.168.1.42 \
             moe/cifar10_deepspeed.py \
 	        --log-interval 100 \
 	        --deepspeed \
-	        --deepspeed_config ./ds_config.json
+	        --deepspeed_config moe/ds_config.json
