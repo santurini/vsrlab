@@ -1,6 +1,7 @@
 import time
 import warnings
 
+import wandb
 import omegaconf
 
 from core import PROJECT_ROOT
