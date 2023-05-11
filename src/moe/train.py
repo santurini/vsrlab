@@ -113,9 +113,6 @@ def main():
     print('build metrics and losses ...')
     loss_fn = nn.CrossEntropyLoss()
 
-    # Loop over the dataset multiple times
-    print("Global Rank {} - Local Rank {} - Start Training ...".format(rank, local_rank))
-
     running_loss = 0.0
     correct = 0
     total = 0
