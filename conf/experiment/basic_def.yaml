@@ -1,4 +1,3 @@
 # @package _global_
 train:
-  model:
-    optical_flow: "irr"
+  ddp: True
