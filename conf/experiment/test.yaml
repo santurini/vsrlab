@@ -1,7 +1,7 @@
 # @package _global_
 cfg_dir: /home/aghinassi/VSR/checkpoints/vrt_gan_of
-lr_dir: /mnt/hdd/dataset/pexels/compressed
-hr_dir: /mnt/hdd/dataset/pexels/groundtruth
+lr_dir: /dev/shm/compressed
+hr_dir: /dev/shm/groundtruth
 out_dir: /mnt/hdd/dataset/pexels
 
 window_size: 24
