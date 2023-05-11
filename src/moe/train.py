@@ -12,7 +12,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 warnings.filterwarnings('ignore')
-pylogger = logging.getLogger(__name__)
 
 def add_argument():
     parser = argparse.ArgumentParser(description='CIFAR')
