@@ -63,8 +63,11 @@ def run(config):
                 print(f"Inference Time --> {dt:2f}")
 
                 outputs = torch.cat(outputs, dim=1)
-                for i, img in enumerate(outputs[0]):
-                    save_image(img, os.path.join(save_folder, "img{:05d}.png".format(i)))
+
+                pool.map(
+                        lambda x: save_image(x[1], os.path.join(save_folder, "img{:05d}.png".format(x[0]))),
+                        enumerate(outputs[0]), 
+                )
 
                 video_metrics = running_metrics(video_metrics, metric, outputs, video_hr)
 
