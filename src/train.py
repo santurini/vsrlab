@@ -113,7 +113,6 @@ def run(cfg: DictConfig):
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
 def main(config: omegaconf.DictConfig):
     try:
-        cleanup()
         run(config)
     except Exception as e:
         if config.train.ddp:
