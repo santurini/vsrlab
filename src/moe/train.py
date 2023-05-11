@@ -116,64 +116,66 @@ def main():
     running_loss = 0.0
     correct = 0
     total = 0
-    for i, data in enumerate(trainloader):
-        # get the inputs; data is a list of [inputs, labels]
-        print('Loading data')
-        inputs, labels = data[0].to(device), data[1].to(device)
-        if fp16:
-            inputs = inputs.half()
 
-        # zero the parameter gradients
-        optimizer.zero_grad()
-
-        print('Processing')
-        # Forward pass
-        outputs = model_engine(inputs)
-        loss = loss_fn(outputs, labels)
-
-        # Backward pass
-        model_engine.backward(loss)
-        model_engine.step()
-
-        # print the loss and accuracy metrics very log_interval mini-batches
-        running_loss += loss.item()
-        _, predicted = outputs.max(1)
-        total += labels.size(0)
-        correct += predicted.eq(labels).sum().item()
-        if i % args.log_interval == (args.log_interval - 1):
-            print('[epoch %d, iterations %5d] loss: %.3f accuracy: %2f %%' % (
-                epoch, i + 1, running_loss / args.log_interval, 100. * correct / total))
-            running_loss = 0.0
-
-    print('Training Done')
-
-    class_correct = list(0. for i in range(10))
-    class_total = list(0. for i in range(10))
-    correct = 0
-    total = 0
-
-    with torch.no_grad():
-        for data in testloader:
-            images, labels = data
+    for epoch in range(args.epochs):
+        for i, data in enumerate(trainloader):
+            # get the inputs; data is a list of [inputs, labels]
+            print('Loading data')
+            inputs, labels = data[0].to(device), data[1].to(device)
             if fp16:
-                images = images.half()
-            outputs = model_engine(images.to(device))
-            _, predicted = torch.max(outputs, 1)
+                inputs = inputs.half()
+
+            # zero the parameter gradients
+            optimizer.zero_grad()
+
+            print('Processing')
+            # Forward pass
+            outputs = model_engine(inputs)
+            loss = loss_fn(outputs, labels)
+
+            # Backward pass
+            model_engine.backward(loss)
+            model_engine.step()
+
+            # print the loss and accuracy metrics very log_interval mini-batches
+            running_loss += loss.item()
+            _, predicted = outputs.max(1)
             total += labels.size(0)
-            correct += (predicted == labels.to(device)).sum().item()
-            c = (predicted == labels.to(device)).squeeze()
-            for i in range(4):
-                label = labels[i]
-                class_correct[label] += c[i].item()
-                class_total[label] += 1
+            correct += predicted.eq(labels).sum().item()
+            if i % args.log_interval == (args.log_interval - 1):
+                print('[epoch %d, iterations %5d] loss: %.3f accuracy: %2f %%' % (
+                    epoch, i + 1, running_loss / args.log_interval, 100. * correct / total))
+                running_loss = 0.0
 
-    print('Accuracy of the network on the 10000 test images: %2f %%' %
-          (100 * correct / total))
-    for i in range(10):
-        print('Accuracy of %5s : %2f %%' %
-              (classes[i], 100 * class_correct[i] / class_total[i]))
+        print('Training Done')
 
-    print('Evaluation Done')
+        class_correct = list(0. for i in range(10))
+        class_total = list(0. for i in range(10))
+        correct = 0
+        total = 0
+
+        with torch.no_grad():
+            for data in testloader:
+                images, labels = data
+                if fp16:
+                    images = images.half()
+                outputs = model_engine(images.to(device))
+                _, predicted = torch.max(outputs, 1)
+                total += labels.size(0)
+                correct += (predicted == labels.to(device)).sum().item()
+                c = (predicted == labels.to(device)).squeeze()
+                for i in range(4):
+                    label = labels[i]
+                    class_correct[label] += c[i].item()
+                    class_total[label] += 1
+
+        print('Accuracy of the network on the 10000 test images: %2f %%' %
+              (100 * correct / total))
+        for i in range(10):
+            print('Accuracy of %5s : %2f %%' %
+                  (classes[i], 100 * class_correct[i] / class_total[i]))
+
+        print('Evaluation Done')
 
 if __name__ == "__main__":
     main()
