@@ -58,20 +58,17 @@ def run(config):
                     sr, _ = model(lr)
                     outputs.append(sr)
 
-                dt = time.time() - dt
-                print(f"Inference Time --> {dt:2f}")
-
                 outputs = torch.cat(outputs, dim=1)
 
-                for i, img in enumerate(outputs[0]):
-                    save_image(img, os.path.join(save_folder, "img{:05d}.png".format(i)))
-
-                '''pool.map(
+                pool.map(
                         lambda x: save_image(x[1], os.path.join(save_folder, "img{:05d}.png".format(x[0]))),
                         enumerate(outputs[0]), 
-                )'''
+                )
 
                 video_metrics = running_metrics(video_metrics, metric, outputs, video_hr)
+
+                dt = time.time() - dt
+                print(f"Inference Time --> {dt:2f}")
 
             video_pd.append({"fps": fps, "crf": crf} | {k: v / len(video_paths) for k, v in video_metrics.items()})
 
