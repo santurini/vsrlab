@@ -24,6 +24,5 @@
   "gradient_clipping": 1.0,
   "fp16": {
       "enabled": true
-  },
-  "zero_optimization": true
+  }
 }
