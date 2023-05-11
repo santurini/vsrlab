@@ -112,12 +112,13 @@ def main():
 
     print('build metrics and losses ...')
     loss_fn = nn.CrossEntropyLoss()
-
+    print('Done')
     running_loss = 0.0
     correct = 0
     total = 0
     for i, data in enumerate(trainloader):
         # get the inputs; data is a list of [inputs, labels]
+        print('Loading data')
         inputs, labels = data[0].to(device), data[1].to(device)
         if fp16:
             inputs = inputs.half()
@@ -125,6 +126,7 @@ def main():
         # zero the parameter gradients
         optimizer.zero_grad()
 
+        print('Processing')
         # Forward pass
         outputs = model_engine(inputs)
         loss = loss_fn(outputs, labels)
