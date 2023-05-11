@@ -10,7 +10,7 @@ from einops import rearrange
 from einops.layers.torch import Rearrange
 from optical_flow.models.irr.irr import IRRPWCNet
 from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
-from vsr.models.VRT.modules.stage import Stage
+from vsr.models.VRT.modules.stage_moe import Stage
 from vsr.models.VRT.modules.tmsa import RTMSA
 
 pylogger = logging.getLogger(__name__)
