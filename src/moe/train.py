@@ -74,6 +74,8 @@ class Net(nn.Module):
         return x
 
 def main():
+    print('VAMOOOOOOOOOS')
+
     args = add_argument()
 
     transform = transforms.Compose([
@@ -96,11 +98,6 @@ def main():
                                              num_workers=2)
 
     classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
-
-    world_size = int(os.environ['WORLD_SIZE'])
-    rank = int(os.environ['RANK'])
-
-    deepspeed.init_distributed(world_size=world_size, rank=rank, distributed_port=1234)
 
     net = Net()
     parameters = filter(lambda p: p.requires_grad, net.parameters())
