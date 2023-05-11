@@ -98,12 +98,14 @@ def run(cfg: DictConfig):
             logger.log_dict({k: v / len(train_dl) for k, v in train_metrics.items()}, epoch, "Train")
             logger.log_images("Train", epoch, lr, sr, hr, lq)
 
-        print("Starting Evaluation ...")
+            print("Starting Evaluation ...")
+
         evaluate(rank, world_size, epoch, model, logger, device,
                  val_dl, loss_fn, metric, cfg)
 
-        dt = time.time() - dt
-        print(f"Epoch {epoch} - Elapsed time --> {dt:2f}")
+        if rank == 0:
+            dt = time.time() - dt
+            print(f"Epoch {epoch} - Elapsed time --> {dt:2f}")
 
     if rank == 0:
         logger.close()
