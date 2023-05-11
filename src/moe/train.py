@@ -91,6 +91,7 @@ def main():
                                            train=False,
                                            download=True,
                                            transform=transform)
+
     testloader = torch.utils.data.DataLoader(testset,
                                              batch_size=4,
                                              shuffle=False,
