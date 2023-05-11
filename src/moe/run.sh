@@ -1,3 +1,5 @@
+#!/bin/bash
+
 git pull
 deepspeed --hostfile=moe/hostfile \
           --launcher=OpenMPI \
