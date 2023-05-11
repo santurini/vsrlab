@@ -1,7 +1,5 @@
 #!/bin/bash
 
-git pull
-
 deepspeed --hostfile=moe/hostfile \
           --no_ssh_check \
           --master_addr=192.168.1.42 \
