@@ -20,7 +20,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
         lr, hr = data[0].to(device), data[1].to(device)
 
         with torch.cuda.amp.autocast():
-            sr, _ = model(lr)
+            sr, lq = model(lr)
             loss = compute_loss(loss_fn, sr, hr)
 
         if cfg.train.ddp:
@@ -50,21 +50,26 @@ def run(cfg: DictConfig):
     device = torch.device("cuda:{}".format(local_rank))
 
     # Encapsulate the model on the GPU assigned to the current process
-    print('build model ...')
+    if rank == 0:
+        print('build model ...')
     model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp, cfg.train.restore)
 
     # Mixed precision
-    print('build scaler ...')
+    if rank == 0:
+        print('build scaler ...')
     scaler = torch.cuda.amp.GradScaler()
 
     # Prepare dataset and dataloader
-    print('build loaders ...')
+    if rank == 0:
+        print('build loaders ...')
     train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch = build_loaders(cfg)
 
-    print('build optimizer and scheduler ...')
+    if rank == 0:
+        print('build optimizer and scheduler ...')
     optimizer, scheduler = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler)
 
-    print('build metrics and losses ...')
+    if rank == 0:
+        print('build metrics and losses ...')
     loss_fn, train_loss = CharbonnierLoss(), 0
     metric, = build_metric(cfg.train.metric).to(device),
 
