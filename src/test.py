@@ -40,7 +40,7 @@ def run(config):
             video_metrics = {k: 0 for k in config.metric.metrics}
 
             for video_lr_path in video_paths:
-                model.eval();
+                model.eval()
                 dt = time.time()
 
                 video_name = os.path.basename(video_lr_path)
@@ -53,8 +53,8 @@ def run(config):
 
                 outputs = []
                 for i in range(0, video_lr.size(1), config.window_size):
-                    lr, hr = video_lr[:, i:i + config.window_size, ...].to(device), \
-                        video_hr[:, i:i + config.window_size, ...].to(device)
+                    lr, hr = video_lr[:, i:i + config.window_size, ...].to(device, non_blocking=True), \
+                        video_hr[:, i:i + config.window_size, ...].to(device, non_blocking=True)
 
                     sr, _ = model(lr)
                     outputs.append(sr)
