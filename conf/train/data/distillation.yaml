@@ -8,6 +8,7 @@ datasets:
     path: "/home/aghinassi/Desktop/MergedVSR"
     split: "train"
     seq: 2
+    scale: 1
     size: 0.9
     hr_augmentation:
       - _target_: kornia.augmentation.RandomCrop
