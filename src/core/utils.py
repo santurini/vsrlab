@@ -5,23 +5,20 @@ from typing import List, Optional, Union
 
 import hydra
 import numpy as np
+import ptlflow
 import torch
 import torch.distributed as dist
-from torchvision.transforms.functional import to_tensor
-
 from PIL import Image
-import ptlflow
-from ptlflow.utils.io_adapter import IOAdapter
-
 from einops import rearrange
 from kornia.geometry.transform import resize
 from omegaconf import DictConfig, ListConfig, OmegaConf
+from ptlflow.utils.io_adapter import IOAdapter
 from pytorch_lightning import seed_everything
-
 from torch.nn import Sequential
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
+from torchvision.transforms.functional import to_tensor
 
 CPU_DEVICE = torch.device("cpu")
 pylogger = logging.getLogger(__name__)

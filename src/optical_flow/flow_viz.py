@@ -53,7 +53,6 @@ def make_color_wheel():
 
     return colorwheel
 
-
 def compute_color(u, v):
     """
     compute optical flow color map
@@ -96,7 +95,6 @@ def compute_color(u, v):
         img[:, :, i] = np.uint8(np.floor(255 * col * (1 - nanIdx)))
 
     return img
-
 
 # from https://github.com/gengshan-y/VCN
 def flow_to_image(flow):

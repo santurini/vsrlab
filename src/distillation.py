@@ -1,13 +1,10 @@
 import time
 import warnings
 
-import torch
+import omegaconf
 import torch.nn as nn
 import torch.nn.functional as F
-
-import omegaconf
 import wandb
-from einops import rearrange
 
 from core import PROJECT_ROOT
 from core.utils import *
@@ -70,7 +67,6 @@ class DistilledModel(nn.Module):
         flow[:, 1, :, :] *= float(h // scale) / float(h_floor // scale)
         return flow
 
-
 @torch.no_grad()
 def evaluate(rank, world_size, epoch, model, logger, device, val_dl, cfg):
     model.eval()
@@ -95,7 +91,7 @@ def run(cfg: DictConfig):
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
 
     # Initialize logger
-    if rank==0:
+    if rank == 0:
         print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
         logger = build_logger(cfg)
         model_config = save_config(cfg)
@@ -105,7 +101,7 @@ def run(cfg: DictConfig):
     device = torch.device("cuda:{}".format(local_rank))
 
     # Encapsulate the model on the GPU assigned to the current process
-    if rank==0: print('build model ...')
+    if rank == 0: print('build model ...')
     model = DistilledModel(cfg).to(device)
 
     if cfg.train.ddp:
@@ -116,14 +112,14 @@ def run(cfg: DictConfig):
         )
 
     # Mixed precision
-    if rank==0: print('build scaler ...')
+    if rank == 0: print('build scaler ...')
     scaler = torch.cuda.amp.GradScaler()
 
     # Prepare dataset and dataloader
-    if rank==0: print('build loaders ...')
+    if rank == 0: print('build loaders ...')
     train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch = build_loaders(cfg)
 
-    if rank==0: print('build optimizer and scheduler ...')
+    if rank == 0: print('build optimizer and scheduler ...')
     optimizer, scheduler = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler)
 
     # Loop over the dataset multiple times

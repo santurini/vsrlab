@@ -1,7 +1,6 @@
+import deepspeed
 import torch
 import torch.nn as nn
-import deepspeed
-
 from einops.layers.torch import Rearrange
 from vsr.models.VRT.modules.deform_conv import DCNv2PackFlowGuided
 from vsr.models.VRT.modules.spynet import flow_warp

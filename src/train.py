@@ -40,7 +40,7 @@ def run(cfg: DictConfig):
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
 
     # Initialize logger
-    if rank==0:
+    if rank == 0:
         print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
         logger = build_logger(cfg)
         model_config = save_config(cfg)
@@ -50,21 +50,21 @@ def run(cfg: DictConfig):
     device = torch.device("cuda:{}".format(local_rank))
 
     # Encapsulate the model on the GPU assigned to the current process
-    if rank==0: print('build model ...')
+    if rank == 0: print('build model ...')
     model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp, cfg.train.restore)
 
     # Mixed precision
-    if rank==0: print('build scaler ...')
+    if rank == 0: print('build scaler ...')
     scaler = torch.cuda.amp.GradScaler()
 
     # Prepare dataset and dataloader
-    if rank==0: print('build loaders ...')
+    if rank == 0: print('build loaders ...')
     train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch = build_loaders(cfg)
 
-    if rank==0: print('build optimizer and scheduler ...')
+    if rank == 0: print('build optimizer and scheduler ...')
     optimizer, scheduler = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler)
 
-    if rank==0: print('build metrics and losses ...')
+    if rank == 0: print('build metrics and losses ...')
     loss_fn, metric = CharbonnierLoss(), build_metric(cfg.train.metric).to(device)
 
     # Loop over the dataset multiple times

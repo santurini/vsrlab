@@ -48,7 +48,8 @@ def run(config):
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                video_hr, video_lr = get_video(video_hr_path, pool).to(device), get_video(video_lr_path, pool).to(device)
+                video_hr, video_lr = get_video(video_hr_path, pool).to(device), get_video(video_lr_path, pool).to(
+                    device)
 
                 outputs = []
                 for i in range(0, video_lr.size(1), config.window_size):
@@ -61,8 +62,8 @@ def run(config):
                 outputs = torch.cat(outputs, dim=1)
 
                 pool.map(
-                        lambda x: save_image(x[1], os.path.join(save_folder, "img{:05d}.png".format(x[0]))),
-                        enumerate(outputs[0]), 
+                    lambda x: save_image(x[1], os.path.join(save_folder, "img{:05d}.png".format(x[0]))),
+                    enumerate(outputs[0]),
                 )
 
                 video_metrics = running_metrics(video_metrics, metric, outputs, video_hr)

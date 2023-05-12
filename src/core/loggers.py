@@ -3,9 +3,8 @@ from typing import Any, List
 import wandb
 from kornia.geometry.transform import resize
 from omegaconf import OmegaConf
-from torchvision.utils import make_grid
-
 from optical_flow.flow_viz import flow_tensor_to_image
+from torchvision.utils import make_grid
 
 class WandbLogger(object):
     def __init__(
