@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 UNKNOWN_FLOW_THRESH = 1e7
 SMALLFLOW = 0.0
