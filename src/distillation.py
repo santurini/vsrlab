@@ -51,8 +51,8 @@ class DistilledModel(nn.Module):
 
     def flow_loss(self, flow_preds, flow_gt):
         loss = 0.0
+        _, _, h, w = flow_gt.size()
         for i, flow in enumerate(flow_preds):
-            _, _, h, w = flow.size()
             scale = 2 ** i
             print("scale:", scale)
             rescaled_flow = self.rescale_flow(flow_gt, h, w, scale)
