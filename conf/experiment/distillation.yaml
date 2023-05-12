@@ -6,7 +6,7 @@ defaults:
 train:
   ddp: False
   teacher:
-    name: "gmflow"
+    name: "flowformer"
     ckpt: "kitti"
     input_size: [ 120, 160 ]
 
