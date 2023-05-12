@@ -2,6 +2,7 @@
 defaults:
   - override /train/data: distillation
 train:
+  ddp: False
   model:
     _target_: vsr.models.VRT.modules.spynet.SpyNet
     pretrained: True
