@@ -26,9 +26,6 @@ class DistilledModel(nn.Module):
             torch.load(cfg.train.refiner_ckpt)
         )
 
-        for p in self.refiner.parameters():
-            p.requires_grad = False
-
     def forward(self, lr, hr):
         _, _, c, h, w = hr.size()
 
