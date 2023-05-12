@@ -52,8 +52,8 @@ class WandbLogger(object):
         self.run.log({f'Prediction {stage}': [wandb.Image(grid, caption=f'Stage {stage}, Epoch {epoch}')]})
 
     def log_flow(self, stage, epoch, inputs, cleaned, flow, gt_flow):
-        x1 = inputs[0, 0, :, :, :].detach().cpu()
-        x2 = inputs[0, 1, :, :, :].detach().cpu()
+        x1 = inputs[0].detach().cpu()
+        x2 = inputs[1].detach().cpu()
         cleaned = cleaned[0].detach().cpu()
         flow_viz = torch.from_numpy(flow_tensor_to_image(flow[0].detach().cpu()))
         gt_flow = torch.from_numpy(flow_tensor_to_image(gt_flow[0].detach().cpu()))

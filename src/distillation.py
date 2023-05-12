@@ -82,7 +82,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, cfg):
 
     if rank == 0:
         logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
-        logger.log_flow("Val", epoch, inputs, cleaned_inputs, flow, gt_flow)
+        logger.log_flow("Val", epoch, inputs[0], cleaned_inputs, flow, gt_flow)
         save_checkpoint(cfg, model, logger, cfg.train.ddp)
 
 def run(cfg: DictConfig):
@@ -141,7 +141,7 @@ def run(cfg: DictConfig):
 
         if rank == 0:
             logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
-            logger.log_flow("Val", epoch, inputs, cleaned_inputs, flow, gt_flow)
+            logger.log_flow("Val", epoch, inputs[0], cleaned_inputs, flow, gt_flow)
 
             print("Starting Evaluation ...")
 
