@@ -43,12 +43,13 @@ class DistilledModel(nn.Module):
         return loss, cleaned_inputs, flow, soft_labels
 
     def flow_inputs(self, hr):
-        hr = rearrange(hr, 'b t c h w -> (b t) h w c').numpy()
+        device = hr.device
+        hr = rearrange(hr, 'b t c h w -> (b t) h w c').cpu().numpy()
         inputs = self.io_adapter.prepare_inputs(hr)
         input_images = inputs["images"][0]
         supp, ref = input_images[:-1], input_images[1:]
         input_images = torch.stack((supp, ref), dim=1)
-        inputs["images"] = input_images
+        inputs["images"] = input_images.to(device)
         return inputs
 
     def flow_loss(self, flow_preds, flow_gt):
