@@ -15,49 +15,60 @@ from core.utils import *
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
-def flow_loss(flow_preds, flow_gt):
-    loss = 0.0
-    for i, flow in enumerate(flow_preds):
-        _, _, h, w = flow.size()
-        scale = 2 ** (5 - i)
-        rescaled_flow = rescale_flow(flow_gt, h, w, scale)
-        loss += torch.sum((flow - rescaled_flow) ** 2, dim=1).sqrt().mean()
-    return loss, flow
+class DistilledModel(nn.Module):
+    def __init__(self, cfg):
+        super().__init__()
+        self.refiner = build_model(cfg.train.refiner, device, local_rank, cfg.train.ddp)
+        self.student = build_model(cfg.train.model, device, local_rank, cfg.train.ddp)
+        self.teacher, self.io_adapter = build_flow(cfg.train.teacher, device, local_rank, cfg.train.ddp)
 
-def rescale_flow(flow, h, w, scale):
-    flow = F.interpolate(input=flow, size=(h // scale, w // scale), mode='bilinear',
+    def forward(self, lr, hr):
+        _, _, c, h, w = hr.size()
+
+        with torch.no_grad():
+            inputs = flow_inputs(self.io_adapter, hr)
+            soft_labels = self.teacher(inputs)["flows"].squeeze(1)
+
+        cleaned_inputs = self.refiner(lr)
+        pixel_loss = F.l1_loss(cleaned_inputs, hr.view(-1, c, h, w))
+
+        ref, supp = cleaned_inputs[1:], cleaned_inputs[:-1]
+        pred_flows = self.student(ref, supp)
+        optical_loss, flow = self.flow_loss(pred_flows, soft_labels)
+
+        loss = optical_loss + pixel_loss
+        return loss, cleaned_input, flow, soft_labels
+
+    def flow_inputs(self, hr):
+        hr = rearrange(hr, 'b t c h w -> (b t) h w c').numpy()
+        inputs = self.io_adapter.prepare_inputs(hr)
+        input_images = inputs["images"][0]
+        supp, ref = input_images[:-1], input_images[1:]
+        input_images = torch.stack((supp, ref), dim=1)
+        inputs["images"] = input_images
+        return inputs
+
+    def flow_loss(self, flow_preds, flow_gt):
+        loss = 0.0
+        for i, flow in enumerate(flow_preds):
+            _, _, h, w = flow.size()
+            scale = 2 ** (5 - i)
+            rescaled_flow = self.rescale_flow(flow_gt, h, w, scale)
+            loss += torch.sum((flow - rescaled_flow) ** 2, dim=1).sqrt().mean()
+        return loss, flow
+
+    @staticmethod
+    def rescale_flow(flow, h, w, scale):
+        flow = F.interpolate(input=flow, size=(h // scale, w // scale), mode='bilinear',
                              align_corners=False)
-    w_floor = math.floor(math.ceil(w / 32.0) * 32.0)
-    h_floor = math.floor(math.ceil(h / 32.0) * 32.0)
-    flow[:, 0, :, :] *= float(w // scale) / float(w_floor // scale)
-    flow[:, 1, :, :] *= float(h // scale) / float(h_floor // scale)
-    return flow
+        w_floor = math.floor(math.ceil(w / 32.0) * 32.0)
+        h_floor = math.floor(math.ceil(h / 32.0) * 32.0)
+        flow[:, 0, :, :] *= float(w // scale) / float(w_floor // scale)
+        flow[:, 1, :, :] *= float(h // scale) / float(h_floor // scale)
+        return flow
 
-def flow_inputs(io_adapter, hr):
-    hr = rearrange(hr, 'b t c h w -> (b t) h w c').numpy()
-    inputs = io_adapter.prepare_inputs(hr)
-    input_images = inputs["images"][0]
-    supp, ref = input_images[:-1], input_images[1:]
-    input_images = torch.stack((supp, ref), dim=1)
-    inputs["images"] = input_images
-    return inputs
 
-def distillation(teacher, student, refiner, io_adapter, lr, hr):
-    _, _, c, h, w = hr.size()
 
-    with torch.no_grad():
-        inputs = flow_inputs(io_adapter, hr)
-        soft_labels = teacher(inputs)["flows"].squeeze(1)
-
-    cleaned_inputs = refiner(lr)
-    pixel_loss = F.l1_loss(cleaned_inputs, hr.view(-1, c, h, w))
-
-    ref, supp = cleaned_inputs[1:], cleaned_inputs[:-1]
-    pred_flows = student(ref, supp)
-    optical_loss, flow = flow_loss(pred_flows, soft_labels)
-
-    loss = optical_loss + pixel_loss
-    return loss, cleaned_input, flow, soft_labels
 
 @torch.no_grad()
 def evaluate(rank, world_size, epoch, teacher, student, refiner,
@@ -96,9 +107,14 @@ def run(cfg: DictConfig):
 
     # Encapsulate the model on the GPU assigned to the current process
     if rank==0: print('build model ...')
-    teacher, io_adapter = build_flow(cfg.train.teacher, device, local_rank, cfg.train.ddp)
-    student = build_model(cfg.train.model, device, local_rank, cfg.train.ddp)
-    refiner = build_model(cfg.train.refiner, device, local_rank, cfg.train.ddp)
+    model = DistilledModel(cfg).to(device)
+
+    if cfg.train.ddp:
+        model = torch.nn.parallel.DistributedDataParallel(
+            model,
+            device_ids=[local_rank],
+            output_device=local_rank
+        )
 
     # Mixed precision
     if rank==0: print('build scaler ...')
