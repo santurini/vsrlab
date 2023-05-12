@@ -37,7 +37,7 @@ class DistilledModel(nn.Module):
         optical_loss, flow = self.flow_loss(pred_flows, soft_labels)
 
         loss = optical_loss + pixel_loss
-        return loss, inputs, cleaned_inputs, flow, soft_labels
+        return loss, inputs["images"], cleaned_inputs, flow, soft_labels
 
     @staticmethod
     def flow_inputs(hr):
