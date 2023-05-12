@@ -138,7 +138,7 @@ def run(cfg: DictConfig):
             with torch.cuda.amp.autocast():
                 loss, inputs, cleaned_inputs, flow, gt_flow = model(lr, hr)
 
-            update_weights(model, of_loss, scaler, scheduler,
+            update_weights(model, loss, scaler, scheduler,
                            optimizer, num_grad_acc, gradient_clip_val, i)
 
             train_loss += loss.detach().item()
