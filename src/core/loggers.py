@@ -1,5 +1,6 @@
 from typing import Any, List
 
+import torch
 import wandb
 from einops import rearrange
 from kornia.geometry.transform import resize
