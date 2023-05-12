@@ -35,8 +35,8 @@ class DistilledModel(nn.Module):
         with torch.no_grad():
             inputs = self.flow_inputs(hr)
             soft_labels = self.teacher(inputs)["flows"].squeeze(1)
-            cleaned_inputs = self.refiner(lr)
 
+        cleaned_inputs = self.refiner(lr)
         ref, supp = cleaned_inputs[1:], cleaned_inputs[:-1]
         pred_flows = self.student(ref, supp)
         loss, flow = self.flow_loss(pred_flows, soft_labels)
