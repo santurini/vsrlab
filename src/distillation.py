@@ -26,21 +26,21 @@ class DistilledModel(nn.Module):
             torch.load(cfg.train.refiner_ckpt)
         )
 
+        for p in self.refiner.parameters():
+            p.requires_grad = False
+
     def forward(self, lr, hr):
         _, _, c, h, w = hr.size()
 
         with torch.no_grad():
             inputs = self.flow_inputs(hr)
             soft_labels = self.teacher(inputs)["flows"].squeeze(1)
-
-        cleaned_inputs = self.refiner(lr)
-        pixel_loss = F.l1_loss(cleaned_inputs, hr.view(-1, c, h, w))
+            cleaned_inputs = self.refiner(lr)
 
         ref, supp = cleaned_inputs[1:], cleaned_inputs[:-1]
         pred_flows = self.student(ref, supp)
-        optical_loss, flow = self.flow_loss(pred_flows, soft_labels)
+        loss, flow = self.flow_loss(pred_flows, soft_labels)
 
-        loss = optical_loss + pixel_loss
         return loss, inputs["images"], cleaned_inputs, flow, soft_labels
 
     @staticmethod
