@@ -5,6 +5,8 @@ from kornia.geometry.transform import resize
 from omegaconf import OmegaConf
 from torchvision.utils import make_grid
 
+from optical_flow.flow_viz import flow_tensor_to_image
+
 class WandbLogger(object):
     def __init__(
             self,
@@ -47,6 +49,13 @@ class WandbLogger(object):
             grid = make_grid([lr, sr, hr], nrow=3, ncol=1)
 
         self.run.log({f'Prediction {stage}': [wandb.Image(grid, caption=f'Stage {stage}, Epoch {epoch}')]})
+
+    def log_flow(self, stage, epoch, inp, flow, gt_flow):
+        inp = inp[0].detach().cpu()
+        flow_viz = flow_tensor_to_image(flow[0].detach().cpu())
+        gt_flow = gt_flow[0].detach().cpu()
+        grid = make_grid([inp, flow_viz, gt_flow], nrow=3, ncol=1)
+        self.run.log({f'Flow {stage}': [wandb.Image(grid, caption=f'Epoch {epoch}')]})
 
     def log_dict(self, log_dict, epoch, stage="Train"):
         out_dict = {}

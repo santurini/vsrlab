@@ -8,7 +8,7 @@ from core import PROJECT_ROOT
 
 pylogger = logging.getLogger(__name__)
 
-def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corners=True, use_pad_mask=False):
+def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corners=True):
     """Warp an image or feature map with optical flow.
 
     Args:

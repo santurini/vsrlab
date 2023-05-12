@@ -14,12 +14,13 @@ class RealBasicVSR(nn.Module):
 
     def forward(self, lr):
         n, t, c, h, w = lr.size()
+        lr = lr.reshape(-1, c, h, w)
         for _ in range(3):  # at most 3 cleaning, determined empirically
-            lr = lr.reshape(-1, c, h, w)
             residues = self.cleaner(lr)
-            lr = (lr + residues).reshape(n, t, c, h, w)
+            lr += residues
             if torch.mean(torch.abs(residues)) < self.threshold:
                 break
+        lr = lr.reshape(n, t, c, h, w)
         sr = self.basicvsr(lr)
 
         return sr, lr
