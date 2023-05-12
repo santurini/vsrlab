@@ -141,3 +141,18 @@ class ConvSTBlock(nn.Module):
         x = rearrange(x, 'b c t h w -> b t c h w')
         x = self.block(x)
         return x
+
+class IterativeRefinement(nn.Module):
+    def __init__(self, mid_ch, blocks, steps):
+        super().__init__()
+        self.steps = steps
+        self.resblock = ResidualBlock(3, mid_ch, blocks)
+        self.conv = nn.Conv2d(mid_ch, 3, 3, 1, 1, bias=True)
+
+    def forward(self, x):
+        n, t, c, h, w = x.size()
+        x = x.view(-1, c, h, w)
+        for _ in range(self.steps):  # at most 3 cleaning, determined empirically
+            residues = self.conv(self.resblock(x))
+            x += residues
+        return x

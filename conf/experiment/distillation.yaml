@@ -11,7 +11,7 @@ train:
     input_size: [ 120, 160 ]
 
   refiner:
-    _target_: vsr.models.VRT.vrt.IterativeRefinement
+    _target_: core.modules.conv.IterativeRefinement
     mid_ch: 64
     blocks: 5
     steps: 3
