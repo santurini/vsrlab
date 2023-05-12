@@ -33,7 +33,7 @@ datasets:
     lr_augmentation:
       - _target_: core.augmentations.RandomVideoCompression
         codec: [ 'libx264', 'h264', 'mpeg4' ]
-        crf: [ 34, 45 ]
+        crf: [ 36, 45 ]
         fps: [ 30 ]
 
   val:
@@ -53,5 +53,5 @@ datasets:
     lr_augmentation:
       - _target_: core.augmentations.RandomVideoCompression
         codec: [ 'libx264', 'h264', 'mpeg4' ]
-        crf: [ 40 ]
+        crf: [ 42 ]
         fps: [ 30 ]
