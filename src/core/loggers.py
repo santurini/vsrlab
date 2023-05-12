@@ -54,8 +54,8 @@ class WandbLogger(object):
         lr = rearrange(lr, 'b t c h w -> (b t) c h w')[0].detach().cpu()
         hr = rearrange(hr, 'b t c h w -> (b t) c h w')[0].detach().cpu()
         cleaned = cleaned[0].detach().cpu()
-        flow_viz = flow_tensor_to_image(flow[0].detach().cpu())
-        gt_flow = flow_tensor_to_image(gt_flow[0].detach().cpu())
+        flow_viz = torch.from_numpy(flow_tensor_to_image(flow[0].detach().cpu()))
+        gt_flow = torch.from_numpy(flow_tensor_to_image(gt_flow[0].detach().cpu()))
         grid = make_grid([lr, cleaned, hr, flow_viz, gt_flow], nrow=5, ncol=1)
         self.run.log({f'Flow {stage}': [wandb.Image(grid, caption=f'Epoch {epoch}')]})
 
