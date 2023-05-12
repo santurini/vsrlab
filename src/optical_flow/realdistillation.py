@@ -3,59 +3,72 @@ import warnings
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 import omegaconf
 import wandb
 from einops import rearrange
 
-from core import PROJECT_ROOT
-from core.modules.conv import ResidualBlock
 from core.utils import *
 
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
-class IterativeRefinement(nn.Module):
-    def __init__(self, mid_ch, blocks, steps):
-        super().__init__()
-        self.steps = steps
-        self.resblock = ResidualBlock(3, mid_ch, blocks)
-        self.conv = nn.Conv2d(mid_ch, 3, 3, 1, 1, bias=True)
-
-    def forward(self, x):
-        n, t, c, h, w = x.size()
-        x = x.reshape(-1, c, h, w)
-        for _ in range(self.steps):  # at most 3 cleaning, determined empirically
-            residues = self.conv(self.resblock(x))
-            x += residues
-        return x
 
 def flow_loss(flow_preds, flow_gt):
     loss = 0.0
-    for flow in flow_preds:
+    for i, flow in enumerate(flow_preds):
         _, _, h, w = flow.size()
-        loss += torch.sum((flow - resize(flow_gt, size=(h,w))) ** 2, dim=1).sqrt().mean()
+        scale = 2 ** (5 - i)
+        rescaled_flow = rescale_flow(flow_gt, h, w, scale)
+        loss += torch.sum((flow - rescaled_flow) ** 2, dim=1).sqrt().mean()
     return loss, flow
 
-def distillation(teacher, student, refiner, lr, hr):
+def rescale_flow(flow, h, w, scale):
+    flow = F.interpolate(input=flow, size=(h // scale, w // scale), mode='bilinear',
+                             align_corners=False)
+    w_floor = math.floor(math.ceil(w / 32.0) * 32.0)
+    h_floor = math.floor(math.ceil(h / 32.0) * 32.0)
+    flow[:, 0, :, :] *= float(w // scale) / float(w_floor // scale)
+    flow[:, 1, :, :] *= float(h // scale) / float(h_floor // scale)
+    return flow
+
+def flow_inputs(io_adapter, hr):
+    hr = rearrange(hr, 'b t c h w -> (b t) h w c').numpy()
+    inputs = io_adapter.prepare_inputs(hr)
+    input_images = inputs["images"][0]
+    supp, ref = input_images[:-1], input_images[1:]
+    input_images = torch.stack((supp, ref), dim=1)
+    inputs["images"] = input_images
+    return inputs
+
+def distillation(teacher, student, refiner, io_adapter, lr, hr):
+    _, _, c, h, w = hr.size()
+
     with torch.no_grad():
-        ref, supp = rearrange(hr[:, :-1, ...], 'b t c h w -> (b t) c h w'),\
-            rearrange(hr[:, 1:, ...], 'b t c h w -> (b t) c h w')
-        cleaned_inputs = refiner(lr) # -> b*t c h w
-        soft_labels = teacher((supp, ref))
+        inputs = flow_inputs(io_adapter, hr)
+        soft_labels = teacher(inputs)["flows"].squeeze(1)
+
+    cleaned_inputs = refiner(lr)
+    pixel_loss = F.l1_loss(cleaned_inputs, hr.view(-1, c, h, w))
+
     ref, supp = cleaned_inputs[1:], cleaned_inputs[:-1]
     pred_flows = student(ref, supp)
-    loss, flow = flow_loss(pred_flows, soft_labels)
-    return loss, flow, soft_labels
+    optical_loss, flow = flow_loss(pred_flows, soft_labels)
+
+    loss = optical_loss + pixel_loss
+    return loss, cleaned_input, flow, soft_labels
 
 @torch.no_grad()
-def evaluate(rank, world_size, epoch, teacher, student, refiner, logger, device, val_dl, cfg):
+def evaluate(rank, world_size, epoch, teacher, student, refiner,
+             io_adapter, logger, device, val_dl, cfg):
     model.eval()
     val_loss = 0.0
     for i, data in enumerate(val_dl):
         lr, hr = data[0].to(device), data[1].to(device)
         with torch.cuda.amp.autocast():
-            loss, flow, gt_flow = distillation(teacher, student, refiner, lr, hr)
+            loss, cleaned_input, flow, gt_flow = distillation(teacher, student, refiner,
+                                                              io_adapter, lr, hr)
 
         if cfg.train.ddp:
             dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
@@ -64,7 +77,7 @@ def evaluate(rank, world_size, epoch, teacher, student, refiner, logger, device,
 
     if rank == 0:
         logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
-        logger.log_flow("Val", epoch, lr, flow, gt_flow)
+        logger.log_flow("Val", epoch, lr, cleaned_input, hr, flow, gt_flow)
         save_checkpoint(cfg, student, logger, cfg.train.ddp)
 
 def run(cfg: DictConfig):
@@ -83,7 +96,9 @@ def run(cfg: DictConfig):
 
     # Encapsulate the model on the GPU assigned to the current process
     if rank==0: print('build model ...')
-    model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp, cfg.train.restore)
+    teacher, io_adapter = build_flow(cfg.train.teacher, device, local_rank, cfg.train.ddp)
+    student = build_model(cfg.train.model, device, local_rank, cfg.train.ddp)
+    refiner = build_model(cfg.train.refiner, device, local_rank, cfg.train.ddp)
 
     # Mixed precision
     if rank==0: print('build scaler ...')
@@ -107,7 +122,7 @@ def run(cfg: DictConfig):
             lr, hr = data[0].to(device), data[1].to(device)
 
             with torch.cuda.amp.autocast():
-                loss, flow, gt_flow = distillation(teacher, student, refiner, lr, hr)
+                loss, flow, gt_flow = distillation(teacher, student, refiner, io_adapter, lr, hr)
 
             update_weights(student, loss, scaler, scheduler,
                            optimizer, num_grad_acc, gradient_clip_val, i)
@@ -121,7 +136,7 @@ def run(cfg: DictConfig):
             print("Starting Evaluation ...")
 
         evaluate(rank, world_size, epoch, teacher, student, refiner,
-                    logger, device, val_dl, cfg)
+                    io_adapter, logger, device, val_dl, cfg)
 
         if rank == 0:
             dt = time.time() - dt

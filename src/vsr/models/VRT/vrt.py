@@ -54,11 +54,11 @@ class IterativeRefinement(nn.Module):
 
     def forward(self, x):
         n, t, c, h, w = x.size()
+        x = x.view(-1, c, h, w)
         for _ in range(self.steps):  # at most 3 cleaning, determined empirically
-            x = x.view(-1, c, h, w)
             residues = self.conv(self.resblock(x))
-            x = (x + residues).view(n, t, c, h, w)
-        return x
+            x += residues
+        return x.view(n, t, c, h, w)
 
 class TinyVRT(nn.Module):
     def __init__(

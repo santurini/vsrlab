@@ -9,6 +9,8 @@ import torch
 import torch.distributed as dist
 import torchvision.transforms.functional as F
 from PIL import Image
+import ptlflow
+from ptlflow.utils.io_adapter import IOAdapter
 from einops import rearrange
 from kornia.geometry.transform import resize
 from omegaconf import DictConfig, ListConfig, OmegaConf
@@ -170,6 +172,20 @@ def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
         return ddp_model
 
     return model
+
+def build_flow(cfg, device, local_rank=None, ddp=False):
+    model = ptlflow.get_model(cfg.name, pretrained_ckpt=cfg.ckpt)
+    model = model.to(device)
+    io_adapter = IOAdapter(model, cfg.input_size)
+    if ddp:
+        pylogger.info(f"Setting up distributed model")
+        ddp_model = torch.nn.parallel.DistributedDataParallel(
+            model,
+            device_ids=[local_rank],
+            output_device=local_rank
+        )
+        return ddp_model, io_adapter
+    return model, io_adapter
 
 def build_metric(cfg):
     pylogger.info(f"Building Metrics")
