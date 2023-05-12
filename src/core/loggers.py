@@ -1,6 +1,7 @@
 from typing import Any, List
 
 import wandb
+from einops import rearrange
 from kornia.geometry.transform import resize
 from omegaconf import OmegaConf
 from optical_flow.flow_viz import flow_tensor_to_image
