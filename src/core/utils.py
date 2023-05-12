@@ -175,8 +175,7 @@ def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
 
 def build_flow(cfg):
     model = ptlflow.get_model(cfg.name, pretrained_ckpt=cfg.ckpt)
-    io_adapter = IOAdapter(model, cfg.input_size)
-    return model, io_adapter
+    return model
 
 def build_metric(cfg):
     pylogger.info(f"Building Metrics")

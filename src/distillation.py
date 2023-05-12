@@ -17,7 +17,7 @@ class DistilledModel(nn.Module):
         super().__init__()
         self.refiner = hydra.utils.instantiate(cfg.train.refiner, _recursive_=False)
         self.student = hydra.utils.instantiate(cfg.train.model, _recursive_=False)
-        self.teacher, self.io_adapter = build_flow(cfg.train.teacher)
+        self.teacher = build_flow(cfg.train.teacher)
 
         for p in self.teacher.parameters():
             p.requires_grad = False
@@ -39,14 +39,12 @@ class DistilledModel(nn.Module):
         loss = optical_loss + pixel_loss
         return loss, cleaned_inputs, flow, soft_labels
 
-    def flow_inputs(self, hr):
-        device = hr.device
-        hr = rearrange(hr, 'b t c h w -> (b t) h w c').cpu().numpy()
-        inputs = self.io_adapter.prepare_inputs(hr)
-        input_images = inputs["images"][0]
-        supp, ref = input_images[:-1], input_images[1:]
+    @staticmethod
+    def flow_inputs(hr):
+        hr = rearrange(hr, 'b t c h w -> (b t) h w c')
+        supp, ref = hr[:-1], hr[1:]
         input_images = torch.stack((supp, ref), dim=1)
-        inputs["images"] = input_images.to(device)
+        inputs["images"] = input_images
         return inputs
 
     def flow_loss(self, flow_preds, flow_gt):
@@ -132,7 +130,6 @@ def run(cfg: DictConfig):
 
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
-            logger.log_images("Bla", epoch, lr, hr, hr)
 
             with torch.cuda.amp.autocast():
                 loss, cleaned_inputs, flow, gt_flow = model(lr, hr)
