@@ -36,12 +36,13 @@ class DistilledModel(nn.Module):
             inputs = self.flow_inputs(hr)
             soft_labels = self.teacher(inputs)["flows"].squeeze(1)
 
-        cleaned_inputs = self.refiner(lr)
+        cleaned_inputs = self.refiner(lr, hr.view(-1, c, h, w))
+        pixel_loss = F.l1_loss(cleaned_inputs, hr)
         ref, supp = cleaned_inputs[1:], cleaned_inputs[:-1]
         pred_flows = self.student(ref, supp)
-        loss, flow = self.flow_loss(pred_flows, soft_labels)
+        of_loss, flow = self.flow_loss(pred_flows, soft_labels)
 
-        return loss, inputs["images"], cleaned_inputs, flow, soft_labels
+        return of_loss, pixel_loss, inputs["images"], cleaned_inputs, flow, soft_labels
 
     @staticmethod
     def flow_inputs(hr):
@@ -77,7 +78,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, cfg):
     for i, data in enumerate(val_dl):
         lr, hr = data[0].to(device), data[1].to(device)
         with torch.cuda.amp.autocast():
-            loss, inputs, cleaned_inputs, flow, gt_flow = model(lr, hr)
+            loss, _, inputs, cleaned_inputs, flow, gt_flow = model(lr, hr)
 
         if cfg.train.ddp:
             dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
@@ -123,28 +124,34 @@ def run(cfg: DictConfig):
     train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch = build_loaders(cfg)
 
     if rank == 0: print('build optimizer and scheduler ...')
-    optimizer, scheduler = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler)
+    optimizer, scheduler = build_optimizer(model.student, cfg.train.optimizer, cfg.train.scheduler)
+    optimizer_r, scheduler_r = build_optimizer(model.refiner, cfg.train.optimizer_r, cfg.train.scheduler_r)
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Training ...".format(rank, local_rank))
     for epoch in range(cfg.train.max_epochs):
         model.train();
         dt = time.time()
-        train_loss = 0.0
+        loss, epe = 0, 0
 
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
             with torch.cuda.amp.autocast():
-                loss, inputs, cleaned_inputs, flow, gt_flow = model(lr, hr)
+                of_loss, pixel_loss, inputs, cleaned_inputs, flow, gt_flow = model(lr, hr)
 
-            update_weights(model, loss, scaler, scheduler,
+            update_weights(model.student, of_loss, scaler, scheduler,
                            optimizer, num_grad_acc, gradient_clip_val, i)
 
-            train_loss += loss.detach().item()
+            update_weights(model.refiner, pixel_loss, scaler, scheduler_r,
+                           optimizer_r, num_grad_acc, gradient_clip_val, i)
+
+            epe += of_loss.detach().item()
+            loss += pixel_loss.detach().item()
 
         if rank == 0:
-            logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
+            logger.log_dict({"EPE": epe / len(train_dl)}, epoch, "Train")
+            logger.log_dict({"Pixel Loss": loss / len(train_dl)}, epoch, "Train")
             logger.log_flow("Train", epoch, inputs[0], cleaned_inputs, flow, gt_flow)
 
             print("Starting Evaluation ...")
