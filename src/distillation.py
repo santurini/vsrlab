@@ -132,6 +132,7 @@ def run(cfg: DictConfig):
 
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
+            logger.log_images("Bla", epoch, lr, hr, hr)
 
             with torch.cuda.amp.autocast():
                 loss, cleaned_inputs, flow, gt_flow = model(lr, hr)
@@ -143,8 +144,7 @@ def run(cfg: DictConfig):
 
         if rank == 0:
             logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
-            logger.log_images("Train", epoch, lr, hr, lr)
-            logger.log_flow("Train", epoch, flow, gt_flow)
+            logger.log_flow("Val", epoch, lr, cleaned_inputs, hr, flow, gt_flow)
 
 
             print("Starting Evaluation ...")
