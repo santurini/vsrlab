@@ -29,7 +29,7 @@ class DistilledModel(nn.Module):
         _, _, c, h, w = hr.size()
 
         with torch.no_grad():
-            inputs = self.flow_inputs(self.io_adapter, hr)
+            inputs = self.flow_inputs(hr)
             soft_labels = self.teacher(inputs)["flows"].squeeze(1)
 
         cleaned_inputs = self.refiner(lr)
