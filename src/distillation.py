@@ -143,7 +143,6 @@ def run(cfg: DictConfig):
             logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
             logger.log_flow("Val", epoch, lr, cleaned_inputs, hr, flow, gt_flow)
 
-
             print("Starting Evaluation ...")
 
         evaluate(rank, world_size, epoch, model, logger, device, val_dl, cfg)
