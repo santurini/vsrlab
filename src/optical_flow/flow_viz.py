@@ -130,5 +130,5 @@ def flow_tensor_to_image(flow):
     flow = flow.detach().cpu().numpy()
     flow = flow_to_image(flow)  # [H, W, 3]
     flow = np.transpose(flow, (2, 0, 1))  # [3, H, W]
-    flow = torch.from_numpy(flow).clamp(0, 1)
+    flow = torch.from_numpy(flow) / 255.0
     return flow
