@@ -40,7 +40,7 @@ class DistilledModel(nn.Module):
         optical_loss, flow = self.flow_loss(pred_flows, soft_labels)
 
         loss = optical_loss + pixel_loss
-        return loss, cleaned_input, flow, soft_labels
+        return loss, cleaned_inputs, flow, soft_labels
 
     def flow_inputs(self, hr):
         hr = rearrange(hr, 'b t c h w -> (b t) h w c').numpy()
@@ -71,18 +71,14 @@ class DistilledModel(nn.Module):
         return flow
 
 
-
-
 @torch.no_grad()
-def evaluate(rank, world_size, epoch, teacher, student, refiner,
-             io_adapter, logger, device, val_dl, cfg):
+def evaluate(rank, world_size, epoch, model, logger, device, val_dl, cfg):
     model.eval()
     val_loss = 0.0
     for i, data in enumerate(val_dl):
         lr, hr = data[0].to(device), data[1].to(device)
         with torch.cuda.amp.autocast():
-            loss, cleaned_input, flow, gt_flow = distillation(teacher, student, refiner,
-                                                              io_adapter, lr, hr)
+            loss, cleaned_inputs, flow, gt_flow = model(lr, hr)
 
         if cfg.train.ddp:
             dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
@@ -91,7 +87,7 @@ def evaluate(rank, world_size, epoch, teacher, student, refiner,
 
     if rank == 0:
         logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
-        logger.log_flow("Val", epoch, lr, cleaned_input, hr, flow, gt_flow)
+        logger.log_flow("Val", epoch, lr, cleaned_inputs, hr, flow, gt_flow)
         save_checkpoint(cfg, student, logger, cfg.train.ddp)
 
 def run(cfg: DictConfig):
@@ -141,21 +137,20 @@ def run(cfg: DictConfig):
             lr, hr = data[0].to(device), data[1].to(device)
 
             with torch.cuda.amp.autocast():
-                loss, flow, gt_flow = distillation(teacher, student, refiner, io_adapter, lr, hr)
+                loss, cleaned_inputs, flow, gt_flow = model(lr, hr)
 
-            update_weights(student, loss, scaler, scheduler,
+            update_weights(model, loss, scaler, scheduler,
                            optimizer, num_grad_acc, gradient_clip_val, i)
 
             train_loss += loss.detach().item()
 
         if rank == 0:
             logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
-            logger.log_flow("Val", epoch, lr, flow, gt_flow)
+            logger.log_flow("Train", epoch, lr, cleaned_inputs, hr, flow, gt_flow)
 
             print("Starting Evaluation ...")
 
-        evaluate(rank, world_size, epoch, teacher, student, refiner,
-                    io_adapter, logger, device, val_dl, cfg)
+        evaluate(rank, world_size, epoch, model, logger, device, val_dl, cfg)
 
         if rank == 0:
             dt = time.time() - dt
