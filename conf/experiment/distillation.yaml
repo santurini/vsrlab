@@ -16,6 +16,8 @@ train:
     blocks: 5
     steps: 3
 
+  refiner_ckpt: "/home/aghinassi/Desktop/checkpoints/cleaner.ckpt"
+
   optimizer:
     lr: 1e-4
     betas: [ 0.9, 0.99 ]

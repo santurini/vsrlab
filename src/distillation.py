@@ -22,6 +22,10 @@ class DistilledModel(nn.Module):
         for p in self.teacher.parameters():
             p.requires_grad = False
 
+        self.refiner = self.refiner.load_state_dict(
+            torch.load(cfg.train.refiner_ckpt)
+        )
+
     def forward(self, lr, hr):
         _, _, c, h, w = hr.size()
 
