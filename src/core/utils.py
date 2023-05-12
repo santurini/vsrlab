@@ -173,20 +173,9 @@ def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
 
     return model
 
-def build_flow(cfg, device, local_rank=None, ddp=False):
+def build_flow(cfg):
     model = ptlflow.get_model(cfg.name, pretrained_ckpt=cfg.ckpt)
-    model = model.to(device)
-    print(cfg.input_size)
-    print(type(cfg.input_size))
     io_adapter = IOAdapter(model, cfg.input_size)
-    if ddp:
-        pylogger.info(f"Setting up distributed model")
-        ddp_model = torch.nn.parallel.DistributedDataParallel(
-            model,
-            device_ids=[local_rank],
-            output_device=local_rank
-        )
-        return ddp_model, io_adapter
     return model, io_adapter
 
 def build_metric(cfg):

@@ -18,9 +18,12 @@ pylogger = logging.getLogger(__name__)
 class DistilledModel(nn.Module):
     def __init__(self, cfg):
         super().__init__()
-        self.refiner = build_model(cfg.train.refiner, device, local_rank, cfg.train.ddp)
-        self.student = build_model(cfg.train.model, device, local_rank, cfg.train.ddp)
-        self.teacher, self.io_adapter = build_flow(cfg.train.teacher, device, local_rank, cfg.train.ddp)
+        self.refiner = hydra.utils.instantiate(cfg.train.refiner, _recursive_=False)
+        self.student = hydra.utils.instantiate(cfg.train.model, _recursive_=False)
+        self.teacher, self.io_adapter = build_flow(cfg.train.teacher)
+
+        for p in self.teacher.parameters():
+            p.requires_grad = False
 
     def forward(self, lr, hr):
         _, _, c, h, w = hr.size()
