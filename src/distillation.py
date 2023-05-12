@@ -41,7 +41,7 @@ class DistilledModel(nn.Module):
 
     @staticmethod
     def flow_inputs(hr):
-        hr = rearrange(hr, 'b t c h w -> (b t) h w c')
+        hr = rearrange(hr, 'b t c h w -> (b t) c h w')
         supp, ref = hr[:-1], hr[1:]
         input_images = torch.stack((supp, ref), dim=1)
         inputs["images"] = input_images
