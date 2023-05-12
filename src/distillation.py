@@ -52,6 +52,7 @@ class DistilledModel(nn.Module):
     def flow_loss(self, flow_preds, flow_gt):
         loss = 0.0
         _, _, h, w = flow_gt.size()
+        print("groundtruth shape:", flow_gt.shape)
         for i, flow in enumerate(flow_preds):
             scale = 2 ** i
             print("scale:", scale)
