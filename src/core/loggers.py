@@ -51,12 +51,12 @@ class WandbLogger(object):
         self.run.log({f'Prediction {stage}': [wandb.Image(grid, caption=f'Stage {stage}, Epoch {epoch}')]})
 
     def log_flow(self, stage, epoch, lr, cleaned, hr, flow, gt_flow):
-        inp = rearrange(inp, 'b t c h w -> (b t) c h w')[0].detach.cpu()
+        lr = rearrange(lr, 'b t c h w -> (b t) c h w')[0].detach.cpu()
         hr = rearrange(hr, 'b t c h w -> (b t) c h w')[0].detach.cpu()
         cleaned = cleaned[0].detach().cpu()
         flow_viz = flow_tensor_to_image(flow[0].detach().cpu())
         gt_flow = flow_tensor_to_image(gt_flow[0].detach().cpu())
-        grid = make_grid([inp, cleaned, hr, flow_viz, gt_flow], nrow=5, ncol=1)
+        grid = make_grid([lr, cleaned, hr, flow_viz, gt_flow], nrow=5, ncol=1)
         self.run.log({f'Flow {stage}': [wandb.Image(grid, caption=f'Epoch {epoch}')]})
 
     def log_dict(self, log_dict, epoch, stage="Train"):
