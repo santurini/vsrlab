@@ -14,7 +14,6 @@ from core.utils import *
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
-
 def flow_loss(flow_preds, flow_gt):
     loss = 0.0
     for i, flow in enumerate(flow_preds):
