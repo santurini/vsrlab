@@ -123,8 +123,7 @@ def run(cfg: DictConfig):
     train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch = build_loaders(cfg)
 
     if rank == 0: print('build optimizer and scheduler ...')
-    optimizer, scheduler = build_optimizer(model.student, cfg.train.optimizer, cfg.train.scheduler)
-    optimizer_r, scheduler_r = build_optimizer(model.refiner, cfg.train.optimizer_r, cfg.train.scheduler_r)
+    optimizer, scheduler = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler)
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Training ...".format(rank, local_rank))
