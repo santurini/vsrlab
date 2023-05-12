@@ -56,7 +56,7 @@ class DistilledModel(nn.Module):
             scale = 2 ** i
             rescaled_flow = self.rescale_flow(flow_gt, h, w, scale)
             loss += torch.sum((flow - rescaled_flow) ** 2, dim=1).sqrt().mean()
-        return loss, flow
+        return loss, flow_preds[0]
 
     @staticmethod
     def rescale_flow(flow, h, w, scale):
