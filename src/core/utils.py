@@ -176,6 +176,8 @@ def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
 def build_flow(cfg, device, local_rank=None, ddp=False):
     model = ptlflow.get_model(cfg.name, pretrained_ckpt=cfg.ckpt)
     model = model.to(device)
+    print(cfg.input_size)
+    print(type(cfg.input_size))
     io_adapter = IOAdapter(model, cfg.input_size)
     if ddp:
         pylogger.info(f"Setting up distributed model")
