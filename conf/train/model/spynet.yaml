@@ -1,0 +1,3 @@
+_target_: vsr.models.VRT.modules.spynet.SpyNet
+pretrained: True
+return_levels: [2, 3, 4, 5]

@@ -1,13 +1,10 @@
 # @package _global_
 defaults:
   - override /train/data: distillation
+  - override /train/model: spynet
+
 train:
   ddp: False
-  model:
-    _target_: vsr.models.VRT.modules.spynet.SpyNet
-    pretrained: True
-    return_levels: [2, 3, 4, 5]
-
   teacher:
     name: "gmflow"
     ckpt: "kitti"
