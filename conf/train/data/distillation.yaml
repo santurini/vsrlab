@@ -30,38 +30,11 @@ datasets:
         same_on_batch: True
         keepdim: True
 
-      - _target_: kornia.augmentation.RandomSharpness
-        sharpness: 0.3
-        same_on_batch: True
-        keepdim: True
-        p: 1.0
-
     lr_augmentation:
-      - _target_: core.augmentations.RandomJPEGCompression
-        quality: [ 50, 95 ]
-
-      - _target_: kornia.augmentation.RandomGaussianNoise
-        mean: 0
-        std: 0.03
-        same_on_batch: False
-        keepdim: True
-        p: 0.5
-
-      - _target_: kornia.augmentation.RandomGaussianBlur
-        kernel_size: 5
-        sigma: [ 0.5, 1.5 ]
-        same_on_batch: False
-        keepdim: True
-        p: 0.5
-
-      - _target_: core.augmentations.RandomJPEGCompression
-        quality: [ 60, 95 ]
-
       - _target_: core.augmentations.RandomVideoCompression
-        codec: [ 'libx264', 'h264' ]
-        crf: [ 36, 38 ]
+        codec: [ 'libx264', 'h264', 'mpeg4' ]
+        crf: [ 34, 45 ]
         fps: [ 30 ]
-
 
   val:
     _target_: ${train.data.datasets.train._target_}
