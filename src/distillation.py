@@ -52,11 +52,9 @@ class DistilledModel(nn.Module):
     def flow_loss(self, flow_preds, flow_gt):
         loss = 0.0
         _, _, h, w = flow_gt.size()
-        print("groundtruth shape:", flow_gt.shape)
         for i, flow in enumerate(flow_preds):
             scale = 2 ** i
             rescaled_flow = self.rescale_flow(flow_gt, h, w, scale)
-            print('predicted flow shape:', flow.size())
             loss += torch.sum((flow - rescaled_flow) ** 2, dim=1).sqrt().mean()
         return loss, flow
 
@@ -68,7 +66,6 @@ class DistilledModel(nn.Module):
         h_floor = math.floor(math.ceil(h / 32.0) * 32.0)
         flow[:, 0, :, :] *= float(w // scale) / float(w_floor // scale)
         flow[:, 1, :, :] *= float(h // scale) / float(h_floor // scale)
-        print('rescaled flow shape:', flow.size())
         return flow
 
 @torch.no_grad()
