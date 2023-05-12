@@ -12,7 +12,7 @@ datasets:
     size: 0.9
     hr_augmentation:
       - _target_: kornia.augmentation.RandomCrop
-        size: [ 256, 256 ]
+        size: [ 512, 512 ]
         pad_if_needed: True
         same_on_batch: True
         keepdim: True
@@ -34,7 +34,7 @@ datasets:
         p: 1.0
 
       - _target_: kornia.augmentation.Resize
-        size: [ 120, 160 ]
+        size: [ 240, 320 ]
 
     lr_augmentation:
       - _target_: core.augmentations.RandomJPEGCompression
@@ -75,7 +75,7 @@ datasets:
         size: 256
 
       - _target_: kornia.augmentation.Resize
-        size: [ 120, 160 ]
+        size: [ 240, 320 ]
 
     lr_augmentation:
       - _target_: core.augmentations.RandomVideoCompression
