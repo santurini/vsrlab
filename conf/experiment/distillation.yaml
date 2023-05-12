@@ -11,7 +11,7 @@ train:
   teacher:
     name: "gmflow"
     ckpt: "kitti"
-    input_size: (120, 160)
+    input_size: [ 120, 160 ]
 
   refiner:
     _target_: vsr.models.VRT.vrt.IterativeRefinement
