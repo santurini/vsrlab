@@ -44,7 +44,7 @@ class DistilledModel(nn.Module):
         hr = rearrange(hr, 'b t c h w -> (b t) c h w')
         supp, ref = hr[:-1], hr[1:]
         input_images = torch.stack((supp, ref), dim=1)
-        inputs["images"] = input_images
+        inputs = {"images": input_images}
         return inputs
 
     def flow_loss(self, flow_preds, flow_gt):
