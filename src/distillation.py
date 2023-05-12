@@ -9,6 +9,7 @@ import omegaconf
 import wandb
 from einops import rearrange
 
+from core import PROJECT_ROOT
 from core.utils import *
 
 warnings.filterwarnings('ignore')
