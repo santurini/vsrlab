@@ -37,7 +37,7 @@ class DistilledModel(nn.Module):
         optical_loss, flow = self.flow_loss(pred_flows, soft_labels)
 
         loss = optical_loss + pixel_loss
-        return loss, cleaned_inputs, flow, soft_labels
+        return loss, inputs, cleaned_inputs, flow, soft_labels
 
     @staticmethod
     def flow_inputs(hr):
@@ -73,7 +73,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, cfg):
     for i, data in enumerate(val_dl):
         lr, hr = data[0].to(device), data[1].to(device)
         with torch.cuda.amp.autocast():
-            loss, cleaned_inputs, flow, gt_flow = model(lr, hr)
+            loss, inputs, cleaned_inputs, flow, gt_flow = model(lr, hr)
 
         if cfg.train.ddp:
             dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
@@ -82,7 +82,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, cfg):
 
     if rank == 0:
         logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
-        logger.log_flow("Val", epoch, lr, cleaned_inputs, hr, flow, gt_flow)
+        logger.log_flow("Val", epoch, inputs, cleaned_inputs, flow, gt_flow)
         save_checkpoint(cfg, model, logger, cfg.train.ddp)
 
 def run(cfg: DictConfig):
@@ -132,7 +132,7 @@ def run(cfg: DictConfig):
             lr, hr = data[0].to(device), data[1].to(device)
 
             with torch.cuda.amp.autocast():
-                loss, cleaned_inputs, flow, gt_flow = model(lr, hr)
+                loss, inputs, cleaned_inputs, flow, gt_flow = model(lr, hr)
 
             update_weights(model, loss, scaler, scheduler,
                            optimizer, num_grad_acc, gradient_clip_val, i)
@@ -141,7 +141,7 @@ def run(cfg: DictConfig):
 
         if rank == 0:
             logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
-            logger.log_flow("Val", epoch, lr, cleaned_inputs, hr, flow, gt_flow)
+            logger.log_flow("Val", epoch, inputs, cleaned_inputs, flow, gt_flow)
 
             print("Starting Evaluation ...")
 
