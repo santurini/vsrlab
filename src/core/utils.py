@@ -7,14 +7,17 @@ import hydra
 import numpy as np
 import torch
 import torch.distributed as dist
-import torchvision.transforms.functional as F
+from torchvision.transforms.functional import to_tensor
+
 from PIL import Image
 import ptlflow
 from ptlflow.utils.io_adapter import IOAdapter
+
 from einops import rearrange
 from kornia.geometry.transform import resize
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from pytorch_lightning import seed_everything
+
 from torch.nn import Sequential
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader
@@ -278,7 +281,7 @@ def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad
         optimizer.zero_grad()
 
 def img2tensor(path):
-    return F.to_tensor(Image.open(path))
+    return to_tensor(Image.open(path))
 
 def get_video(video_folder: str, pool):
     paths = list(sorted(Path(video_folder).glob('*')))

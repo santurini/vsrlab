@@ -10,19 +10,9 @@ import wandb
 from einops import rearrange
 
 from core import PROJECT_ROOT
-from core.utils import (
-    get_resources,
-    build_model,
-    build_loaders,
-    build_flow,
-    build_logger,
-    build_optimizer,
-    seed_index_everything,
-    save_config
-)
+from core.utils import *
 
 warnings.filterwarnings('ignore')
-pylogger = logging.getLogger(__name__)
 
 class DistilledModel(nn.Module):
     def __init__(self, cfg):
