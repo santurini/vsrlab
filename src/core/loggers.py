@@ -52,15 +52,9 @@ class WandbLogger(object):
         self.run.log({f'Prediction {stage}': [wandb.Image(grid, caption=f'Stage {stage}, Epoch {epoch}')]})
 
     def log_flow(self, stage, epoch, lr, cleaned, hr, flow, gt_flow):
-        lr = lr[0, 0, ...].detach().cpu()
-        hr = hr[0, 0, ...].detach().cpu()
-        cleaned = cleaned[0].detach().cpu()
-        print(lr.shape)
-        print(hr.shape)
-        print(cleaned.shape)
         flow_viz = torch.from_numpy(flow_tensor_to_image(flow[0].detach().cpu()))
         gt_flow = torch.from_numpy(flow_tensor_to_image(gt_flow[0].detach().cpu()))
-        grid = make_grid([lr, cleaned, hr, flow_viz, gt_flow], nrow=5, ncol=1)
+        grid = make_grid([flow_viz, gt_flow], nrow=5, ncol=1)
         self.run.log({f'Flow {stage}': [wandb.Image(grid, caption=f'Epoch {epoch}')]})
 
     def log_dict(self, log_dict, epoch, stage="Train"):

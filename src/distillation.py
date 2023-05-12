@@ -144,6 +144,7 @@ def run(cfg: DictConfig):
         if rank == 0:
             logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
             logger.log_flow("Train", epoch, lr, cleaned_inputs, hr, flow, gt_flow)
+            logger.log_images("Train", epoch, lr, hr, lr)
 
             print("Starting Evaluation ...")
 
