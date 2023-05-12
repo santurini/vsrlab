@@ -13,8 +13,8 @@ train:
   refiner:
     _target_: core.modules.conv.IterativeRefinement
     mid_ch: 64
-    blocks: 5
-    steps: 3
+    blocks: 3
+    steps: 5
 
   refiner_ckpt: "/home/aghinassi/Desktop/checkpoints/cleaner.ckpt"
 
