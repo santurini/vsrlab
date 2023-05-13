@@ -97,7 +97,7 @@ if torch.distributed.get_rank() != 0:
     # might be downloading cifar data, let rank 0 download first
     torch.distributed.barrier()
 
-trainset = torchvision.datasets.CIFAR10(root='/Users/arturo/Desktop/nn-lab/moe/data',
+trainset = torchvision.datasets.CIFAR10(root='/home/aghinassi/Desktop/nn-lab/moe/data',
                                         train=True,
                                         download=True,
                                         transform=transform)
@@ -111,7 +111,7 @@ trainloader = torch.utils.data.DataLoader(trainset,
                                           shuffle=True,
                                           num_workers=2)
 
-testset = torchvision.datasets.CIFAR10(root='/Users/arturo/Desktop/nn-lab/moe/data',
+testset = torchvision.datasets.CIFAR10(root='/home/aghinassi/Desktop/nn-lab/moe/data',
                                        train=False,
                                        download=True,
                                        transform=transform)
