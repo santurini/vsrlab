@@ -77,8 +77,8 @@ def evaluate(
 def train_one_epoch(
         cfg,
         dl: DataLoader,
-        optimizer: torch.optim.optimizer,
-        scheduler: torch.optim.lr_scheduler,
+        optimizer: nn.Module,
+        scheduler: nn.Module,
         criterion_fn: torch.nn.Module,
         Gk: torch.nn.Module,
         teacher: torch.nn.Module,
