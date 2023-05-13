@@ -124,6 +124,27 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship'
 
 args = add_argument()
 
+class Mlp_GEGLU(nn.Module):
+    """ Multilayer perceptron with gated linear unit (GEGLU)"""
+
+    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
+        super().__init__()
+        out_features = out_features or in_features
+        hidden_features = hidden_features or in_features
+
+        self.fc11 = nn.Linear(in_features, hidden_features)
+        self.fc12 = nn.Linear(in_features, hidden_features)
+        self.act = act_layer()
+        self.fc2 = nn.Linear(hidden_features, out_features)
+        self.drop = nn.Dropout(drop)
+
+    def forward(self, x):
+        x = self.act(self.fc11(x)) * self.fc12(x)
+        x = self.drop(x)
+        x = self.fc2(x)
+
+        return x
+
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
@@ -133,7 +154,7 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(16 * 5 * 5, 120)
         self.fc2 = nn.Linear(120, 84)
         if args.moe:  # changed here
-            fc3 = nn.Linear(84, 84)
+            fc3 = Mlp_GEGLU(84, 120, 10)
             self.experts = deepspeed.moe.layer.MoE(hidden_size=84, expert=fc3, num_experts=args.num_experts_per_layer,
                                                    ep_size=args.ep_world_size, use_residual=args.mlp_type == 'residual',
                                                    k=args.top_k, min_capacity=args.min_capacity,
