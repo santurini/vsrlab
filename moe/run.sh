@@ -1,7 +1,7 @@
 #!/bin/bash
 
 EP_SIZE=2 # Size of expert parallel world (should be less than total world size)
-EXPERTS=2 # Number of total experts per layer
+EXPERTS=4 # Number of total experts per layer
 K=1
 
 # ep 2 exp 2 top-k 1 --> 1.8 giga, 54%
