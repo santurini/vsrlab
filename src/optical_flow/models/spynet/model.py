@@ -6,8 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import spynet
-
+import optical_flow.models.spynet
 
 class SpyNetUnit(nn.Module):
 
@@ -89,7 +88,7 @@ class SpyNet(nn.Module):
             units = self.units[:limit_k]
         Vk_1 = None
 
-        for k, G in enumerate(self.units):
+        for k, G in enumerate(units):
             im_size = spynet.config.GConf(k).image_size
             x1 = F.interpolate(frames[0], im_size, mode='bilinear',
                                align_corners=True)

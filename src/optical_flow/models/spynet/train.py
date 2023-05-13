@@ -6,9 +6,8 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, Subset
 
-import spynet
-import spynet.transforms as OFT
-
+import optical_flow.models.spynet
+import optical_flow.models.spynet.transforms as OFT
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
