@@ -1,25 +1,14 @@
-import os
-from pathlib import Path
-from typing import Tuple, Union, Sequence
+from typing import Sequence
 
 import hydra
-import wandb
 import omegaconf
-
+import ptlflow
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import DataLoader, Dataset
+import wandb
 from kornia.augmentation import Denormalize
-
-from optical_flow.models import spynet
-from optical_flow.models.spynet.utils import (
-    get_frames,
-    get_flow,
-    build_spynets,
-    update_weights,
-    save_k_checkpoint
-)
+from torch.utils.data import DataLoader
 
 from core import PROJECT_ROOT
 from core.utils import (
@@ -29,6 +18,14 @@ from core.utils import (
     save_checkpoint,
     save_config,
     cleanup
+)
+from optical_flow.models import spynet
+from optical_flow.models.spynet.utils import (
+    get_frames,
+    get_flow,
+    build_spynets,
+    update_weights,
+    save_k_checkpoint
 )
 
 device = torch.device("cuda:{}".format(0))
