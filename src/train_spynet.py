@@ -79,7 +79,7 @@ def evaluate(
 
     logger.log_dict({f"Loss {k}": val_loss / len(val_dl)}, epoch, "Val")
     logger.log_flow(f"Val {k}", epoch, hr, denormalizer(x[0]), predictions, y)
-    save_k_checkpoint(cfg, k, current_level, logger, cfg.train.ddp)
+    save_k_checkpoint(cfg, k, Gk, logger, cfg.train.ddp)
 
 def train_one_epoch(
         cfg,
@@ -133,7 +133,7 @@ def train_one_epoch(
     logger.log_flow(f"Train {k}", epoch, hr, denormalizer(x[0]), predictions, y)
 
     evaluate(
-        cfg, val_dl, criterion_fn, current_level, teacher,
+        cfg, val_dl, criterion_fn, Gk, teacher,
         cleaner, trained_pyramid, epoch, k, size, logger
     )
 
