@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from core import PROJECT_ROOT
 import optical_flow.models.spynet
 
 class BasicModule(nn.Module):
