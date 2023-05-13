@@ -142,7 +142,7 @@ class SpyNet(nn.Module):
             dst_file.parent.mkdir(exist_ok=True)
         
         if not dst_file.exists():
-            'Im here'
+            print('Im here')
             res = requests.get(names_url[name])
             with open(str(dst_file), 'wb') as f:
                 f.write(res.content)
