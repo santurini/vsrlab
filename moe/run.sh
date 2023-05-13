@@ -1,6 +1,6 @@
 #!/bin/bash
 
-EP_SIZE=4 # Size of expert parallel world (should be less than total world size)
+EP_SIZE=2 # Size of expert parallel world (should be less than total world size)
 EXPERTS=4 # Number of total experts per layer
 K=2
 
