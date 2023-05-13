@@ -57,23 +57,25 @@ def evaluate(
 
     for i, data in enumerate(val_dl):
         lr, hr = data[0].to(device), data[1].to(device)
-        x = get_frames(lr, cleaner, size)
-        y, hr = get_flow(hr, teacher, size)
 
-        if prev_pyramid is not None:
-            with torch.no_grad():
-                Vk_1 = prev_pyramid(x)
-                Vk_1 = F.interpolate(
-                    Vk_1, scale_factor=2, mode='bilinear', align_corners=True)
-        else:
-            Vk_1 = None
+        with torch.cuda.amp.autocast():
+            x = get_frames(lr, cleaner, size)
+            y, hr = get_flow(hr, teacher, size)
 
-        predictions = Gk(x, Vk_1, upsample_optical_flow=False)
+            if prev_pyramid is not None:
+                with torch.no_grad():
+                    Vk_1 = prev_pyramid(x)
+                    Vk_1 = F.interpolate(
+                        Vk_1, scale_factor=2, mode='bilinear', align_corners=True)
+            else:
+                Vk_1 = None
 
-        if Vk_1 is not None:
-            y = y - Vk_1
+            predictions = Gk(x, Vk_1, upsample_optical_flow=False)
 
-        loss = criterion_fn(y, predictions)
+            if Vk_1 is not None:
+                y = y - Vk_1
+
+            loss = criterion_fn(y, predictions)
 
         val_loss += loss.detach().item()
 
@@ -87,6 +89,7 @@ def train_one_epoch(
         val_dl: DataLoader,
         optimizer: nn.Module,
         scheduler: nn.Module,
+        scaler: torch.cuda.amp.GradScaler,
         criterion_fn: torch.nn.Module,
         Gk: torch.nn.Module,
         teacher: torch.nn.Module,
@@ -107,26 +110,26 @@ def train_one_epoch(
     for i, data in enumerate(train_dl):
         lr, hr = data[0].to(device), data[1].to(device)
 
-        with torch.no_grad():
+        with torch.cuda.amp.autocast():
             x = get_frames(lr, cleaner, size)
             y, hr = get_flow(hr, teacher, size)
 
-        if prev_pyramid is not None:
-            with torch.no_grad():
-                Vk_1 = prev_pyramid(x)
-                Vk_1 = F.interpolate(
-                    Vk_1, scale_factor=2, mode='bilinear', align_corners=True)
-        else:
-            Vk_1 = None
+            if prev_pyramid is not None:
+                with torch.no_grad():
+                    Vk_1 = prev_pyramid(x)
+                    Vk_1 = F.interpolate(
+                        Vk_1, scale_factor=2, mode='bilinear', align_corners=True)
+            else:
+                Vk_1 = None
 
-        predictions = Gk(x, Vk_1, upsample_optical_flow=False)
+            predictions = Gk(x, Vk_1, upsample_optical_flow=False)
 
-        if Vk_1 is not None:
-            y = y - Vk_1
+            if Vk_1 is not None:
+                y = y - Vk_1
 
-        loss = criterion_fn(y, predictions)
-        update_weights(loss, scheduler, optimizer)
+            loss = criterion_fn(y, predictions)
 
+        update_weights(loss, scheduler, optimizer, scaler)
         train_loss += loss.detach().item()
 
     logger.log_dict({f"Loss {k}": train_loss / len(train_dl)}, epoch, f"Train")
@@ -134,7 +137,7 @@ def train_one_epoch(
 
     evaluate(
         cfg, val_dl, criterion_fn, Gk, teacher,
-        cleaner, trained_pyramid, epoch, k, size, logger
+        cleaner, prev_pyramid, epoch, k, size, logger
     )
 
     dt = time.time() - dt
@@ -144,6 +147,7 @@ def train_one_epoch(
 def train_one_level(cfg,
                     k: int,
                     previous: Sequence[spynet.BasicModule],
+                    scaler,
                     logger
                     ) -> spynet.BasicModule:
     print(f'Training level {k}...')
@@ -165,6 +169,7 @@ def train_one_level(cfg,
             val_dl,
             optimizer,
             scheduler,
+            scaler,
             loss_fn,
             current_level,
             teacher,
@@ -174,7 +179,7 @@ def train_one_level(cfg,
             k,
             size,
             logger
-            )
+        )
     
     return current_level
 
@@ -182,10 +187,11 @@ def train_one_level(cfg,
 def train(cfg):
     logger = build_logger(cfg)
     model_config = save_config(cfg)
+    scaler = torch.cuda.amp.GradScaler()
 
     previous = []
     for k in range(cfg.train.k):
-        previous.append(train_one_level(cfg, k, previous, logger))
+        previous.append(train_one_level(cfg, k, previous, scaler, logger))
 
     final = spynet.SpyNet(previous)
     save_checkpoint(cfg, final, logger, cfg.train.ddp)

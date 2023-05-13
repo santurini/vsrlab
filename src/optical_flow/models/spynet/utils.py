@@ -13,12 +13,14 @@ from torchvision.transforms.functional import resize
 normalizer = Normalize(mean=[.485, .406, .456],
                        std=[.229, .225, .224])
 
+@torch.no_grad()
 def get_frames(lr, cleaner, size):
     cleaned_inputs = resize(cleaner(lr), size=size)
     ref, supp = normalizer(cleaned_inputs[1:]), \
         normalizer(cleaned_inputs[:-1])
     return (ref, supp)
 
+@torch.no_grad()
 def get_flow(hr, teacher, size):
     hr = rearrange(hr, 'b t c h w -> (b t) c h w')
     supp, ref = hr[:-1], hr[1:]
@@ -45,11 +47,12 @@ def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], device):
 
     return current_train, Gk
 
-def update_weights(loss, scheduler, optimizer):
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+def update_weights(loss, scheduler, optimizer, scaler):
+    scaler.scale(loss).backward()
+    scaler.step(optimizer)
+    scaler.update()
     scheduler.step()
+    optimizer.zero_grad()
 
 def save_k_checkpoint(cfg, k, model, logger, ddp=True):
     base_path = os.path.join(
