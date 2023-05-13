@@ -56,7 +56,11 @@ def evaluate(
     for i, data in enumerate(dl):
         lr, hr = data[0].to(device), data[1].to(device)
         x = get_frames(lr, cleaner, size)
+        print("x0", x[0].shape)
+
         y, hr = get_flow(hr, teacher, size)
+        print("hr", hr.shape)
+        print("y", y.shape)
 
         if prev_pyramid is not None:
             with torch.no_grad():
@@ -67,6 +71,7 @@ def evaluate(
             Vk_1 = None
 
         predictions = Gk(x, Vk_1, upsample_optical_flow=False)
+        print("predictions", predictions.shape)
 
         if Vk_1 is not None:
             y = y - Vk_1

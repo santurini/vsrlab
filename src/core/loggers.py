@@ -1,8 +1,6 @@
 from typing import Any, List
 
-import torch
 import wandb
-from einops import rearrange
 from kornia.geometry.transform import resize
 from omegaconf import OmegaConf
 from optical_flow.flow_viz import flow_tensor_to_image
@@ -54,6 +52,7 @@ class WandbLogger(object):
     def log_flow(self, stage, epoch, inputs, cleaned, flow, gt_flow):
         x1 = inputs[0].detach().cpu()
         x2 = inputs[1].detach().cpu()
+        print("denorm", cleaned.shape)
         cleaned = cleaned[0].clamp(0,1).detach().cpu()
         flow_viz = flow_tensor_to_image(flow[0].detach().cpu())
         gt_flow = flow_tensor_to_image(gt_flow[0].detach().cpu())
