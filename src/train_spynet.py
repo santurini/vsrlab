@@ -49,7 +49,7 @@ def evaluate(
         size: tuple = None,
         logger: nn.Module = None
 ):
-    model.eval()
+    Gk.eval()
     val_loss = 0.0
 
     if prev_pyramid is not None:
