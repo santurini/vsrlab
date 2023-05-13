@@ -1,10 +1,12 @@
 #!/bin/bash
 
-# Size of expert parallel world (should be less than total world size)
-EP_SIZE=2
+EP_SIZE=2 # Size of expert parallel world (should be less than total world size)
+EXPERTS=2 # Number of total experts per layer
+K=1
 
-# Number of total experts per layer
-EXPERTS=2
+# ep 2 exp 2 top-k 1 --> 1.8 giga, 54%
+# ep 2 exp 2 top-k 2 --> 1.8 giga, 54%
+# ep 2 exp 4 top-k 1 -->
 
 deepspeed --hostfile=hostfile \
           --master_addr=192.168.1.42 \
@@ -15,6 +17,6 @@ deepspeed --hostfile=hostfile \
           --moe \
           --ep-world-size ${EP_SIZE} \
 	        --num-experts-per-layer ${EXPERTS} \
-          --top-k 2 \
+          --top-k ${K} \
 	        --noisy-gate-policy 'RSample' \
 	        --moe-param-group
