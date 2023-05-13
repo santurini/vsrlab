@@ -2,9 +2,9 @@ import deepspeed
 import torch
 import torch.nn as nn
 from einops.layers.torch import Rearrange
+from vsr.models.MoEVRT.modules.tmsa import TMSAG
 from vsr.models.VRT.modules.deform_conv import DCNv2PackFlowGuided
 from vsr.models.VRT.modules.spynet import flow_warp
-from vsr.models.VRT.modules.tmsa import TMSAG
 from vsr.models.VRT.modules.window_attention import Mlp_GEGLU
 
 class Stage(nn.Module):
@@ -35,9 +35,9 @@ class Stage(nn.Module):
                  input_resolution,
                  depth,
                  num_heads,
-                 window_size,
                  num_experts,
                  num_gpus,
+                 window_size,
                  mul_attn_ratio=0.75,
                  mlp_ratio=2.,
                  qkv_bias=True,
@@ -71,6 +71,8 @@ class Stage(nn.Module):
                                      input_resolution=input_resolution,
                                      depth=int(depth * mul_attn_ratio),
                                      num_heads=num_heads,
+                                     num_experts=num_experts,
+                                     num_gpus=num_gpus,
                                      window_size=(2, window_size[1], window_size[2]),
                                      mut_attn=True,
                                      mlp_ratio=mlp_ratio,
@@ -86,6 +88,8 @@ class Stage(nn.Module):
                                      input_resolution=input_resolution,
                                      depth=depth - int(depth * mul_attn_ratio),
                                      num_heads=num_heads,
+                                     num_experts=num_experts,
+                                     num_gpus=num_gpus,
                                      window_size=window_size,
                                      mut_attn=False,
                                      mlp_ratio=mlp_ratio,
@@ -100,7 +104,7 @@ class Stage(nn.Module):
         self.pa_deform = DCNv2PackFlowGuided(dim, dim, 3, padding=1, deformable_groups=deformable_groups,
                                              max_residue_magnitude=max_residue_magnitude, pa_frames=pa_frames)
 
-        self.pa_fuse = Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2), dim)
+        self.pa_fuse = Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2))
         self.pa_fuse = deepspeed.moe.layer.MoE(
             hidden_size=dim * (1 + 2),
             expert=self.pa_fuse,

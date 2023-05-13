@@ -30,6 +30,8 @@ class TMSA(nn.Module):
                  dim,
                  input_resolution,
                  num_heads,
+                 num_experts,
+                 num_gpus,
                  window_size=(6, 8, 8),
                  shift_size=(0, 0, 0),
                  mut_attn=True,
@@ -56,7 +58,14 @@ class TMSA(nn.Module):
                                     qkv_bias=qkv_bias, qk_scale=qk_scale, mut_attn=mut_attn)
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
         self.norm2 = norm_layer(dim)
-        self.mlp = Mlp_GEGLU(in_features=dim, hidden_features=int(dim * mlp_ratio), act_layer=act_layer)
+        mlp = Mlp_GEGLU(in_features=dim, hidden_features=int(dim * mlp_ratio), act_layer=act_layer)
+        self.mlp = deepspeed.moe.layer.MoE(
+            hidden_size=dim,
+            expert=mlp,
+            num_experts=num_experts,
+            ep_size=num_gpus,
+            k=2
+        )
 
     def forward_part1(self, x, mask_matrix):
         B, D, H, W, C = x.shape
@@ -146,6 +155,8 @@ class TMSAG(nn.Module):
                  input_resolution,
                  depth,
                  num_heads,
+                 num_experts,
+                 num_gpus,
                  window_size=[6, 8, 8],
                  shift_size=None,
                  mut_attn=True,
@@ -166,6 +177,8 @@ class TMSAG(nn.Module):
                 dim=dim,
                 input_resolution=input_resolution,
                 num_heads=num_heads,
+                num_experts=num_experts,
+                num_gpus=num_gpus,
                 window_size=window_size,
                 shift_size=[0, 0, 0] if i % 2 == 0 else self.shift_size,
                 mut_attn=mut_attn,
@@ -221,6 +234,8 @@ class RTMSA(nn.Module):
                  input_resolution,
                  depth,
                  num_heads,
+                 num_experts,
+                 num_gpus,
                  window_size,
                  mlp_ratio=2.,
                  qkv_bias=True,
@@ -236,6 +251,8 @@ class RTMSA(nn.Module):
                                     input_resolution=input_resolution,
                                     depth=depth,
                                     num_heads=num_heads,
+                                    num_experts=num_experts,
+                                    num_gpus=num_gpus,
                                     window_size=window_size,
                                     mut_attn=False,
                                     mlp_ratio=mlp_ratio,

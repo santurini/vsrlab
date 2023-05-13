@@ -9,7 +9,7 @@ import torchvision
 import torchvision.transforms as transforms
 from deepspeed.moe.utils import split_params_into_different_moe_groups_for_optimizer
 
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level="warning")
 
 def add_argument():
     parser = argparse.ArgumentParser(description='CIFAR')
