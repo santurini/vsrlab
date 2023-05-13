@@ -30,8 +30,7 @@ from optical_flow.models.spynet.utils import (
 )
 
 device = torch.device("cuda:{}".format(0))
-denormalizer = Denormalize(mean=[.485, .406, .456],
-                      std= [.229, .225, .224])
+denormalizer = Denormalize(mean=[.485, .406, .456], std=[.229, .225, .224])
 
 @torch.no_grad()
 def evaluate(
@@ -141,15 +140,14 @@ def train_one_level(cfg,
                     previous: Sequence[spynet.BasicModule],
                     logger
                     ) -> spynet.BasicModule:
-
     print(f'Training level {k}...')
 
     train_dl, val_dl, _, _, epoch = build_loaders(cfg)
 
     current_level, trained_pyramid = build_spynets(cfg, k, previous, device)
     optimizer, scheduler = build_optimizer(current_level, cfg.train.optimizer, cfg.train.scheduler)
-    teacher = ptlflow.get_model(cfg.train.teacher.name, pretrained_ckpt=cfg.train.teacher.ckpt)
-    cleaner = hydra.utils.instantiate(cfg.train.cleaner, _recursive_=False)
+    teacher = ptlflow.get_model(cfg.train.teacher.name, pretrained_ckpt=cfg.train.teacher.ckpt).to(device)
+    cleaner = hydra.utils.instantiate(cfg.train.cleaner, _recursive_=False).to(device)
     cleaner.load_state_dict(
         torch.load(cfg.train.cleaner_ckpt)
     )
