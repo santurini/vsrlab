@@ -1,4 +1,5 @@
 import time
+import warnings
 from typing import Sequence
 
 import hydra
@@ -30,6 +31,7 @@ from optical_flow.models.spynet.utils import (
     save_k_checkpoint
 )
 
+warnings.filterwarnings('ignore')
 device = torch.device("cuda:{}".format(0))
 denormalizer = Denormalize(mean=[.485, .406, .456], std=[.229, .225, .224], keepdim=True)
 
