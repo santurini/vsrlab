@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from kornia.augmentation import Denormalize
 
-import optical_flow.models.spynet
+from optical_flow.models import spynet
 from optical_flow.models.spynet.utils import (
     get_frames,
     get_flow,
