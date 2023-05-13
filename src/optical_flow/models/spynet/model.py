@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 import optical_flow.models.spynet
 
-class SpyNetUnit(nn.Module):
+class BasicModule(nn.Module):
 
     def __init__(self, input_channels: int = 8):
         super(SpyNetUnit, self).__init__()
@@ -56,7 +56,7 @@ class SpyNetUnit(nn.Module):
 
 class SpyNet(nn.Module):
 
-    def __init__(self, units: Sequence[SpyNetUnit] = None, k: int = None):
+    def __init__(self, units: Sequence[BasicModule] = None, k: int = None):
         super(SpyNet, self).__init__()
         
         if units is not None and k is not None:
@@ -69,7 +69,7 @@ class SpyNet(nn.Module):
         if units is not None:
             self.units = nn.ModuleList(units)
         else:
-            units = [SpyNetUnit() for _ in range(k)]
+            units = [BasicModule() for _ in range(k)]
             self.units = nn.ModuleList(units)
 
     def forward(self, 
@@ -106,47 +106,19 @@ class SpyNet(nn.Module):
         return Vk_1
 
     @classmethod
-    def from_pretrained(cls: Type['SpyNet'], 
-                        name: str, 
-                        map_location: torch.device = torch.device('cpu'),
-                        dst_file: str = None) -> 'SpyNet':
-        
+    def from_pretrained(cls: Type['SpyNet'],
+                        map_location: torch.device = torch.device('cpu')
+                        ) -> 'SpyNet':
+
         def get_model(path: str) -> 'SpyNet':
-            checkpoint = torch.load(path, 
-                                    map_location=map_location)
+            checkpoint = torch.load(path, map_location=lambda storage, loc: storage)['params']
             k = len(checkpoint) // 10
 
             instance = cls(k=k)
             instance.load_state_dict(checkpoint, strict=False)
             instance.to(map_location)
+
             return instance
 
-        bucket = 'ml-generic-purpose-pt-models'
-        base_url = f'https://storage.googleapis.com/{bucket}/spynet'
-
-        names_url = {
-            'sentinel': f'{base_url}/final-sentinel.pt',
-            'kitti': f'{base_url}/kitti.pt',
-            'flying-chair': f'{base_url}/final-chairs.pt',
-        }
-
-        if name not in names_url and Path(name).exists():
-            return get_model(str(name))
-        elif name not in names_url:
-            available_names = ','.join(f'"{o}"' for o in names_url)
-            raise ValueError(f'The name {name} is not available. '
-                             f'The available models are: {available_names}')
-
-        if dst_file is None:
-            print('Im here')
-            dst_file = Path.home() / '.spynet' / (name + '.pt')
-            dst_file.parent.mkdir(exist_ok=True)
-            print(dst_file)
-        
-        if not dst_file.exists():
-            print('Requesting url')
-            res = requests.get(names_url[name])
-            with open(str(dst_file), 'wb') as f:
-                f.write(res.content)
-        
-        return get_model(str(dst_file))
+        path = f'{PROJECT_ROOT}/src/vsr/models/VRT/weights/spynet_sintel_final-3d2a1287.pth'
+        return get_model(path)

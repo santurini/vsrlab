@@ -115,13 +115,13 @@ def build_dl(train_ds: Subset,
 
 def build_spynets(k: int, name: str, 
                   previous: Sequence[torch.nn.Module]) \
-                      -> Tuple[spynet.SpyNetUnit, spynet.SpyNet]:
+                      -> Tuple[spynet.BasicModule, spynet.SpyNet]:
 
     if name != 'none':
         pretrained = spynet.SpyNet.from_pretrained(name, map_location=device)
         current_train = pretrained.units[k]
     else:
-        current_train = spynet.SpyNetUnit()
+        current_train = spynet.BasicModule()
         
     current_train.to(device)
     current_train.train()
@@ -137,8 +137,8 @@ def build_spynets(k: int, name: str,
 
 
 def train_one_level(k: int, 
-                    previous: Sequence[spynet.SpyNetUnit],
-                    **kwargs) -> spynet.SpyNetUnit:
+                    previous: Sequence[spynet.BasicModule],
+                    **kwargs) -> spynet.BasicModule:
 
     print(f'Training level {k}...')
 

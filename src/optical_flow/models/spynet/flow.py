@@ -6,7 +6,6 @@ UNKNOWN_FLOW_THRESH = 1e7
 SMALLFLOW = 0.0
 LARGEFLOW = 1e8
 
-
 def flow_to_image(flow: Union[np.ndarray, torch.Tensor]) -> np.ndarray:
     """
     Convert flow into middlebury color code image
