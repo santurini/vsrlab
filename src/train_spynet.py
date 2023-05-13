@@ -7,6 +7,7 @@ import wandb
 import omegaconf
 
 import torch
+import torch.nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from kornia.augmentation import Denormalize
