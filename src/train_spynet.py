@@ -22,7 +22,7 @@ from optical_flow.models.spynet.utils import (
 )
 
 from core import PROJECT_ROOT
-from core.utils import build_optimizer, build_logger, save_checkpoint, cleanup
+from core.utils import build_optimizer, build_logger, save_checkpoint, save_config, cleanup
 
 device = torch.device("cuda:{}".format(0))
 denormalizer = Denormalize(mean=[.485, .406, .456],
