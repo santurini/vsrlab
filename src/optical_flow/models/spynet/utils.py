@@ -8,6 +8,8 @@ from einops import rearrange
 from kornia.augmentation import Normalize
 from torchvision.transforms.functional import resize
 
+from optical_flow.models import spynet
+
 normalizer = Normalize(mean=[.485, .406, .456],
                       std= [.229, .225, .224])
 @torch.no_grad()
