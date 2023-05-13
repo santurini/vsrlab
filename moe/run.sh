@@ -15,6 +15,6 @@ deepspeed --hostfile=hostfile \
           --moe \
           --ep-world-size ${EP_SIZE} \
 	        --num-experts-per-layer ${EXPERTS} \
-          --top-k 1 \
+          --top-k 2 \
 	        --noisy-gate-policy 'RSample' \
 	        --moe-param-group
