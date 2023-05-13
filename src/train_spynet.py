@@ -3,7 +3,6 @@ from typing import Sequence
 
 import hydra
 import omegaconf
-import ptlflow
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -25,6 +24,8 @@ from optical_flow.models.spynet.utils import (
     get_frames,
     get_flow,
     build_spynets,
+    build_teacher,
+    build_cleaner,
     update_weights,
     save_k_checkpoint
 )
@@ -148,11 +149,8 @@ def train_one_level(cfg,
 
     current_level, trained_pyramid = build_spynets(cfg, k, previous, device)
     optimizer, scheduler = build_optimizer(current_level, cfg.train.optimizer, cfg.train.scheduler)
-    teacher = ptlflow.get_model(cfg.train.teacher.name, pretrained_ckpt=cfg.train.teacher.ckpt).to(device)
-    cleaner = hydra.utils.instantiate(cfg.train.cleaner, _recursive_=False).to(device)
-    cleaner.load_state_dict(
-        torch.load(cfg.train.cleaner_ckpt)
-    )
+    teacher = build_teacher(cfg.train.teacher, device)
+    cleaner = build_cleaner(cfg, device)
 
     loss_fn = spynet.nn.EPELoss()
     size = spynet.config.GConf(k).image_size

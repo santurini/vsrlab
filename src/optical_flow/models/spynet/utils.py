@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 from typing import Sequence
 
+import hydra
+import ptlflow
 import torch
 from einops import rearrange
 from kornia.augmentation import Normalize
@@ -9,7 +11,7 @@ from optical_flow.models import spynet
 from torchvision.transforms.functional import resize
 
 normalizer = Normalize(mean=[.485, .406, .456],
-                      std= [.229, .225, .224])
+                       std=[.229, .225, .224])
 
 def get_frames(lr, cleaner, size):
     cleaned_inputs = resize(cleaner(lr), size=size)
@@ -70,3 +72,15 @@ def save_k_checkpoint(cfg, k, model, logger, ddp=True):
         torch.save(model.state_dict(), save_path)
         logger.save(save_path, base_path)
 
+def build_teacher(cfg, device):
+    model = ptlflow.get_model(cfg.name, pretrained_ckpt=cfg.ckpt)
+    for p in model.parameters():
+        p.requires_grad = False
+    return model.to(device)
+
+def build_cleaner(cfg, device):
+    cleaner = hydra.utils.instantiate(cfg.train.cleaner, _recursive_=False)
+    cleaner.load_state_dict(torch.load(cfg.train.cleaner_ckpt))
+    for p in cleaner.parameters():
+        p.requires_grad = False
+    return cleaner.to(device)
