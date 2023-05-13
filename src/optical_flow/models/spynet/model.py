@@ -111,6 +111,10 @@ class SpyNet(nn.Module):
 
         def get_model(ckpt_path: str, levels) -> 'SpyNet':
             checkpoint = torch.load(ckpt_path, map_location=lambda storage, loc: storage)['params']
+            checkpoint = {
+                k.replace('basic_module', 'units', 1).replace('basic_module', 'module'): v
+                          for k, v in checkpoint.items()
+            }
 
             instance = cls(k=levels)
             instance.load_state_dict(checkpoint, strict=True)
