@@ -1,14 +1,12 @@
 import os
 from pathlib import Path
-from typing import Tuple, Union, Sequence
+from typing import Sequence
 
 import torch
-import torch.nn as nn
 from einops import rearrange
 from kornia.augmentation import Normalize
-from torchvision.transforms.functional import resize
-
 from optical_flow.models import spynet
+from torchvision.transforms.functional import resize
 
 normalizer = Normalize(mean=[.485, .406, .456],
                       std= [.229, .225, .224])
@@ -20,7 +18,7 @@ def get_frames(lr, cleaner, size):
     return (ref, supp)
 
 @torch.no_grad()
-def get_flow(teacher, hr, size):
+def get_flow(hr, teacher, size):
     hr = rearrange(hr, 'b t c h w -> (b t) c h w')
     supp, ref = hr[:-1], hr[1:]
     input_images = torch.stack((supp, ref), dim=1)
