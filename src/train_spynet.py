@@ -23,7 +23,7 @@ from optical_flow.models.spynet.utils import (
 from core import PROJECT_ROOT
 from core.utils import build_optimizer, save_checkpoint, cleanup
 
-device = torch.device("cuda:{}".format(os.environ["LOCAL_RANK"]))
+device = torch.device("cuda:{}".format(0))
 denormalizer = Denormalize(mean=[.485, .406, .456],
                       std= [.229, .225, .224])
 
