@@ -74,7 +74,7 @@ def evaluate(
 
         val_loss += loss.detach().item()
 
-    logger.log_dict({f"Loss {k}": val_loss / len(val_dl)}, epoch, "Val")
+    logger.log_dict({f"Loss {k}": val_loss / len(dl)}, epoch, "Val")
     logger.log_flow(f"Val {k}", epoch, hr, denormalizer(x[0]), predictions, y)
     save_k_checkpoint(cfg, k, current_level, logger, cfg.train.ddp)
 
@@ -125,7 +125,7 @@ def train_one_epoch(
 
         train_loss += loss.detach().item()
 
-    logger.log_dict({f"Loss {k}": train_loss / len(train_dl)}, epoch, f"Train")
+    logger.log_dict({f"Loss {k}": train_loss / len(dl)}, epoch, f"Train")
     logger.log_flow(f"Train {k}", epoch, hr, denormalizer(x[0]), predictions, y)
 
     evaluate(
