@@ -128,6 +128,8 @@ def train_one_epoch(
         train_loss += loss.detach().item()
 
     logger.log_dict({f"Loss {k}": train_loss / len(train_dl)}, epoch, f"Train")
+    print("x0", x[0].shape)
+    print("denormalized", denormalizer(x[0]).shape)
     logger.log_flow(f"Train {k}", epoch, hr, denormalizer(x[0]), predictions, y)
 
     evaluate(
