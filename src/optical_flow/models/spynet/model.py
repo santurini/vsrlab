@@ -1,13 +1,10 @@
-import requests
-from pathlib import Path
 from typing import Sequence, Tuple, Type
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from core import PROJECT_ROOT
-import optical_flow.models.spynet
+from optical_flow.models import spynet
 
 class BasicModule(nn.Module):
 

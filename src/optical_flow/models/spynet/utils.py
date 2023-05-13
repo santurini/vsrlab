@@ -20,11 +20,11 @@ def get_frames(lr, cleaner, size):
 @torch.no_grad()
 def get_flow(hr, teacher, size):
     hr = rearrange(hr, 'b t c h w -> (b t) c h w')
+    hr = resize(hr, size=size, antialias=True)
     supp, ref = hr[:-1], hr[1:]
     input_images = torch.stack((supp, ref), dim=1)
     inputs = {"images": input_images}
     soft_labels = teacher(inputs)["flows"].squeeze(1)
-    soft_labels = resize(soft_labels, size=size)
     return soft_labels, inputs["images"]
 
 def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], device):
