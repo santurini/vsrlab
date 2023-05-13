@@ -11,7 +11,7 @@ import optical_flow.models.spynet
 class BasicModule(nn.Module):
 
     def __init__(self, input_channels: int = 8):
-        super(SpyNetUnit, self).__init__()
+        super(BasicModule, self).__init__()
 
         self.module = nn.Sequential(
             nn.Conv2d(input_channels, 32, kernel_size=7, padding=3, stride=1),
@@ -106,9 +106,7 @@ class SpyNet(nn.Module):
         return Vk_1
 
     @classmethod
-    def from_pretrained(cls: Type['SpyNet'],
-                        map_location: torch.device = torch.device('cpu')
-                        ) -> 'SpyNet':
+    def from_pretrained(cls: Type['SpyNet']) -> 'SpyNet':
 
         def get_model(path: str) -> 'SpyNet':
             checkpoint = torch.load(path, map_location=lambda storage, loc: storage)['params']
