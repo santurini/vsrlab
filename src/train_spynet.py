@@ -183,7 +183,7 @@ def train(cfg):
     model_config = save_config(cfg)
 
     previous = []
-    for k in range(cfg.k):
+    for k in range(cfg.train.k):
         previous.append(train_one_level(cfg, k, previous, logger))
 
     final = spynet.SpyNet(previous)
