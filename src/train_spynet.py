@@ -155,7 +155,7 @@ def train_one_level(cfg,
     loss_fn = spynet.nn.EPELoss()
     size = spynet.config.GConf(k).image_size
 
-    for epoch in range(cfg.train.max_epochs[k]):
+    for epoch in range(cfg.train.max_epochs):
         train_one_epoch(
             cfg,
             train_dl,
