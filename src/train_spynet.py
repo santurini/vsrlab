@@ -36,7 +36,7 @@ denormalizer = Denormalize(mean=[.485, .406, .456], std=[.229, .225, .224], keep
 @torch.no_grad()
 def evaluate(
         cfg,
-        dl: DataLoader,
+        val_dl: DataLoader,
         criterion_fn: torch.nn.Module,
         Gk: torch.nn.Module,
         teacher: torch.nn.Module,
@@ -53,7 +53,7 @@ def evaluate(
     if prev_pyramid is not None:
         prev_pyramid.eval()
 
-    for i, data in enumerate(dl):
+    for i, data in enumerate(val_dl):
         lr, hr = data[0].to(device), data[1].to(device)
         x = get_frames(lr, cleaner, size)
         y, hr = get_flow(hr, teacher, size)
@@ -75,13 +75,14 @@ def evaluate(
 
         val_loss += loss.detach().item()
 
-    logger.log_dict({f"Loss {k}": val_loss / len(dl)}, epoch, "Val")
+    logger.log_dict({f"Loss {k}": val_loss / len(val_dl)}, epoch, "Val")
     logger.log_flow(f"Val {k}", epoch, hr, denormalizer(x[0]), predictions, y)
     save_k_checkpoint(cfg, k, current_level, logger, cfg.train.ddp)
 
 def train_one_epoch(
         cfg,
-        dl: DataLoader,
+        train_dl: DataLoader,
+        val_dl: DataLoader,
         optimizer: nn.Module,
         scheduler: nn.Module,
         criterion_fn: torch.nn.Module,
@@ -101,7 +102,7 @@ def train_one_epoch(
     if prev_pyramid is not None:
         prev_pyramid.eval()
 
-    for i, data in enumerate(dl):
+    for i, data in enumerate(train_dl):
         lr, hr = data[0].to(device), data[1].to(device)
 
         with torch.no_grad():
@@ -126,11 +127,11 @@ def train_one_epoch(
 
         train_loss += loss.detach().item()
 
-    logger.log_dict({f"Loss {k}": train_loss / len(dl)}, epoch, f"Train")
+    logger.log_dict({f"Loss {k}": train_loss / len(train_dl)}, epoch, f"Train")
     logger.log_flow(f"Train {k}", epoch, hr, denormalizer(x[0]), predictions, y)
 
     evaluate(
-        cfg, train_dl, loss_fn, current_level, teacher,
+        cfg, val_dl, loss_fn, current_level, teacher,
         cleaner, trained_pyramid, epoch, k, size, logger
     )
 
@@ -159,6 +160,7 @@ def train_one_level(cfg,
         train_one_epoch(
             cfg,
             train_dl,
+            val_dl,
             optimizer,
             scheduler,
             loss_fn,
