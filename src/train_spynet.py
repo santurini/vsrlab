@@ -31,7 +31,7 @@ from optical_flow.models.spynet.utils import (
 )
 
 device = torch.device("cuda:{}".format(0))
-denormalizer = Denormalize(mean=[.485, .406, .456], std=[.229, .225, .224])
+denormalizer = Denormalize(mean=[.485, .406, .456], std=[.229, .225, .224], keepdim=True)
 
 @torch.no_grad()
 def evaluate(
@@ -107,9 +107,6 @@ def train_one_epoch(
         with torch.no_grad():
             x = get_frames(lr, cleaner, size)
             y, hr = get_flow(hr, teacher, size)
-            print("x0", x[0].shape)
-            print("hr", hr.shape)
-            print("y", y.shape)
 
         if prev_pyramid is not None:
             with torch.no_grad():
@@ -120,7 +117,6 @@ def train_one_epoch(
             Vk_1 = None
 
         predictions = Gk(x, Vk_1, upsample_optical_flow=False)
-        print("predictions", predictions.shape)
 
         if Vk_1 is not None:
             y = y - Vk_1
