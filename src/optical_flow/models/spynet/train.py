@@ -1,35 +1,40 @@
-import click
 from pathlib import Path
 from typing import Tuple, Union, Sequence
 
 import torch
 import torch.nn.functional as F
-from torch.utils.data import DataLoader, Dataset, Subset
+from torch.utils.data import DataLoader, Dataset
+from kornia.augmentation import Denormalize
 
 import optical_flow.models.spynet
-import optical_flow.models.spynet.transforms as OFT
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-AVAILABLE_PRETRAINED = ['sentinel', 'kitti', 'flying-chair', 'none']
-
-
+device = torch.device("cuda:{}".format(local_rank))
+denormalizer = Denormalize(mean=[.485, .406, .456],
+                      std= [.229, .225, .224])
 def train_one_epoch(dl: DataLoader,
-                    optimizer: torch.optim.AdamW,
+                    optimizer: torch.optim.optimizer,
+                    scheduler: torch.optim.lr_scheduler,
                     criterion_fn: torch.nn.Module,
-                    Gk: torch.nn.Module, 
-                    prev_pyramid: torch.nn.Module = None, 
-                    print_freq: int = 100,
-                    header: str = ''):
+                    Gk: torch.nn.Module,
+                    teacher: torch.nn.Module,
+                    cleaner: torch.nn.Module,
+                    prev_pyramid: torch.nn.Module = None,
+                    epoch: int = 0,
+                    k: int = -1,
+                    size: tuple = None,
+                    logger: nn.Module = None
+                    ):
     Gk.train()
+    dt = time.time()
     running_loss = 0.
 
     if prev_pyramid is not None:
         prev_pyramid.eval()
 
-    for i, (x, y) in enumerate(dl):
-        x = x[0].to(device), x[1].to(device)
-        y = y.to(device)
+    for i, data in enumerate(dl):
+        lr, hr = data[0].to(device), data[1].to(device)
+        x = get_frames(lr, cleaner, size)
+        y, hr = get_flow(hr, teacher, size)
 
         if prev_pyramid is not None:
             with torch.no_grad():
@@ -45,161 +50,73 @@ def train_one_epoch(dl: DataLoader,
             y = y - Vk_1
 
         loss = criterion_fn(y, predictions)
+        update_weights(loss, scheduler, optimizer)
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+        running_loss += loss.detach().item()
 
-        running_loss += loss.item()
+    logger.log_dict({f"Loss {k}": train_loss / len(train_dl)}, epoch, f"Train")
+    logger.log_flow(f"Train {k}", epoch, hr, denormalizer(x[0]), predictions, y)
 
-        if (i + 1) % print_freq == 0:
-            loss_mean = running_loss / i
-            print(f'{header} [{i}/{len(dl)}] loss {loss_mean:.4f}')
-
-    loss_mean = running_loss / len(dl)
-    print(f'{header} loss {loss_mean:.4f}')
+    dt = time.time() - dt
+    print(f"Epoch {epoch} Level {k} - Elapsed time --> {dt:2f}")
 
 
-def load_data(root: str, k: int) -> Tuple[Subset, Subset]:
-    train_tfms = OFT.Compose([
-        OFT.Resize(*spynet.config.GConf(k).image_size),
-        OFT.RandomRotate(17),
-        OFT.ToTensor(),
-        OFT.Normalize(mean=[.485, .406, .456], 
-                      std= [.229, .225, .224])
-    ]) 
-
-    valid_tfms = OFT.Compose([
-        OFT.Resize(*spynet.config.GConf(k).image_size),
-        OFT.ToTensor(),
-        OFT.Normalize(mean=[.485, .406, .456], 
-                      std= [.229, .225, .224])
-    ])
-    
-    train_ds = spynet.dataset.FlyingChairDataset(root,  transform=train_tfms)
-    valid_ds = spynet.dataset.FlyingChairDataset(root, transform=valid_tfms)
-    train_len = int(len(train_ds) * .9)
-    rand_idx = torch.randperm(len(train_ds)).tolist()
-
-    train_ds = Subset(train_ds, rand_idx[:train_len])
-    valid_ds = Subset(valid_ds, rand_idx[train_len:])
-
-    return train_ds, valid_ds
-
-
-def collate_fn(batch):
-    frames, flow = zip(*batch)
-    frame1, frame2 = zip(*frames)
-    return (torch.stack(frame1), torch.stack(frame2)), torch.stack(flow)
-
-
-def build_dl(train_ds: Subset, 
-             valid_ds: Subset,
-             batch_size: int,
-             num_workers: int) -> Tuple[DataLoader, DataLoader]:
-
-    train_dl = DataLoader(train_ds,
-                          batch_size=batch_size,
-                          num_workers=num_workers,
-                          shuffle=True,
-                          collate_fn=collate_fn)
-
-    valid_dl = DataLoader(valid_ds,
-                          batch_size=batch_size,
-                          num_workers=num_workers,
-                          shuffle=False,
-                          collate_fn=collate_fn)
-
-    return train_dl, valid_dl
-
-
-def build_spynets(k: int, name: str, 
-                  previous: Sequence[torch.nn.Module]) \
-                      -> Tuple[spynet.BasicModule, spynet.SpyNet]:
-
-    if name != 'none':
-        pretrained = spynet.SpyNet.from_pretrained(name, map_location=device)
-        current_train = pretrained.units[k]
-    else:
-        current_train = spynet.BasicModule()
-        
-    current_train.to(device)
-    current_train.train()
-    
-    if k == 0:
-        Gk = None
-    else:
-        Gk = spynet.SpyNet(previous)
-        Gk.to(device)
-        Gk.eval()
-
-    return current_train, Gk
-
-
-def train_one_level(k: int, 
+def train_one_level(cfg,
+                    k: int,
                     previous: Sequence[spynet.BasicModule],
-                    **kwargs) -> spynet.BasicModule:
+                    ) -> spynet.BasicModule:
 
     print(f'Training level {k}...')
 
-    train_ds, valid_ds = load_data(kwargs['root'], k)
-    train_dl, valid_dl = build_dl(train_ds, valid_ds, 
-                                  kwargs['batch_size'],
-                                  kwargs['dl_num_workers'])
+    train_dl, val_dl, _, _, epoch = build_loaders(cfg)
 
-    current_level, trained_pyramid = build_spynets(
-        k, kwargs['finetune_name'], previous)
-    optimizer = torch.optim.AdamW(current_level.parameters(),
-                                  lr=1e-5,
-                                  weight_decay=4e-5)
+    current_level, trained_pyramid = build_spynets(k, previous)
+    optimizer, scheduler = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler)
+    teacher = ptlflow.get_model(cfg.name, pretrained_ckpt=cfg.ckpt)
+    cleaner = hydra.utils.instantiate(cfg.train.cleaner, _recursive_=False)
     loss_fn = spynet.nn.EPELoss()
+    size = spynet.config.GConf(k).image_size
 
-    for epoch in range(kwargs['epochs']):
-        train_one_epoch(train_dl, 
+    for epoch in range(cfg.train.max_epochs[k]):
+        train_one_epoch(train_dl,
                         optimizer,
+                        scheduler,
                         loss_fn,
                         current_level,
+                        teacher,
+                        cleaner,
                         trained_pyramid,
-                        print_freq=999999,
-                        header=f'Epoch [{epoch}] [Level {k}]')
+                        epoch,
+                        k,
+                        size,
+                        logger
+                        )
 
-    torch.save(current_level.state_dict(), 
-               str(Path(kwargs['checkpoint_dir']) / f'{k}.pt'))
+    save_k_checkpoint(cfg, k, current_level, logger, cfg.train.ddp)
     
     return current_level
 
 
-def train(**kwargs):
-    torch.manual_seed(0)
+def train(cfg):
     previous = []
-    for k in range(kwargs.pop('levels')):
-        previous.append(train_one_level(k, previous, **kwargs))
+    for k in range(cfg.k):
+        previous.append(train_one_level(cfg, k, previous))
 
     final = spynet.SpyNet(previous)
-    torch.save(final.state_dict(), 
-               str(Path(kwargs['checkpoint_dir']) / f'final.pt'))
+    save_checkpoint(cfg, final, logger, cfg.train.ddp)
 
+@hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
+def main(config: omegaconf.DictConfig):
+    try:
+        train(config)
+    except Exception as e:
+        if config.train.ddp:
+            cleanup()
+        wandb.finish()
+        raise e
 
-@click.command()
-
-@click.option('--root', 
-              type=click.Path(file_okay=False, exists=True))
-
-@click.option('--checkpoint-dir', 
-              type=click.Path(file_okay=False), default='models/spynet.pt')
-@click.option('--finetune-name', 
-              type=click.Choice(AVAILABLE_PRETRAINED), 
-              default='none')
-
-@click.option('--epochs', type=int, default=8)
-@click.option('--batch-size', type=int, default=16)
-@click.option('--dl-num-workers', type=int, default=4)
-
-@click.option('--levels', type=int, default=5)
-
-def main(**kwargs):
-    train(**kwargs)
-
+    if config.train.ddp:
+        cleanup()
 
 if __name__ == "__main__":
     main()

@@ -107,9 +107,23 @@ def flow_to_image(flow):
     u = flow[:, :, 0]
     v = flow[:, :, 1]
 
+    maxu = -999.
+    maxv = -999.
+    minu = 999.
+    minv = 999.
+
     idxUnknow = (abs(u) > UNKNOWN_FLOW_THRESH) | (abs(v) > UNKNOWN_FLOW_THRESH)
     u[idxUnknow] = 0
     v[idxUnknow] = 0
+
+    maxu = max(maxu, np.max(u))
+    minu = min(minu, np.min(u))
+
+    maxv = max(maxv, np.max(v))
+    minv = min(minv, np.min(v))
+
+    u = (u - minu) / (maxu - minu)
+    v = (u - minv) / (maxv - minv)
 
     rad = np.sqrt(u ** 2 + v ** 2)
     maxrad = max(-1, np.max(rad))

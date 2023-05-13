@@ -41,7 +41,7 @@ class RandomJPEGCompression(nn.Module):
 class RandomVideoCompression(nn.Module):
     def __init__(self, codec, crf, fps):
         super().__init__()
-        self.codec = choice(codec) if len(codec) > 1 else codec
+        self.codec = choice(codec) if len(codec) > 1 else codec[0]
         self.crf = str(randint(crf[0], crf[1])) if len(crf) == 2 else str(crf[0])
         self.fps = str(randint(fps[0], fps[1])) if len(fps) == 2 else str(fps[0])
 

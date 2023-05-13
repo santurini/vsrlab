@@ -12,7 +12,7 @@ datasets:
     size: 0.9
     hr_augmentation:
       - _target_: kornia.augmentation.RandomCrop
-        size: [ 256, 256 ]
+        size: [ 384, 512 ]
         pad_if_needed: True
         same_on_batch: True
         keepdim: True
@@ -27,10 +27,16 @@ datasets:
         same_on_batch: True
         keepdim: True
 
+      - _target_: kornia.augmentation.RandomRotation
+        degrees: 17
+        p: 0.5
+        same_on_batch: True
+        keepdim: True
+
     lr_augmentation:
       - _target_: core.augmentations.RandomVideoCompression
-        codec: [ 'libx264', 'h264', 'mpeg4' ]
-        crf: [ 38, 45 ]
+        codec: [ 'libx264' ]
+        crf: [ 40 ]
         fps: [ 30 ]
 
   val:
@@ -42,10 +48,10 @@ datasets:
     size: 0.1
     hr_augmentation:
       - _target_: torchvision.transforms.CenterCrop
-        size: [ 256, 256 ]
+        size: [ 384, 512 ]
 
     lr_augmentation:
       - _target_: core.augmentations.RandomVideoCompression
-        codec: [ 'libx264', 'h264', 'mpeg4' ]
-        crf: [ 42 ]
+        codec: [ 'libx264' ]
+        crf: [ 40 ]
         fps: [ 30 ]
