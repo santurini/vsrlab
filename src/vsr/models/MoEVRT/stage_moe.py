@@ -98,7 +98,8 @@ class Stage(nn.Module):
         self.pa_deform = DCNv2PackFlowGuided(dim, dim, 3, padding=1, deformable_groups=deformable_groups,
                                              max_residue_magnitude=max_residue_magnitude, pa_frames=pa_frames)
         self.pa_fuse = Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2), dim)
-        self.pa_fuse = deepspeed.moe.layer.MoE(hidden_size=dim * (1 + 2), expert=self.pa_fuse, num_experts=2, ep_size=2)
+        self.pa_fuse = deepspeed.moe.layer.MoE(hidden_size=dim * (1 + 2), expert=self.pa_fuse, num_experts=4, ep_size=2,
+                                               k=2)
         self.linear3 = nn.Linear(dim * (1 + 2), dim)
 
     def forward(self, x, flows_backward, flows_forward):
