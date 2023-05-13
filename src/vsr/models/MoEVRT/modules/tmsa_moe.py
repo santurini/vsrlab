@@ -32,6 +32,7 @@ class TMSA(nn.Module):
                  num_heads,
                  num_experts,
                  num_gpus,
+                 top_k,
                  window_size=(6, 8, 8),
                  shift_size=(0, 0, 0),
                  mut_attn=True,
@@ -64,7 +65,8 @@ class TMSA(nn.Module):
             expert=mlp,
             num_experts=num_experts,
             ep_size=num_gpus,
-            k=2
+            drop_tokens=False,
+            k=top_k
         )
 
     def forward_part1(self, x, mask_matrix):
@@ -157,6 +159,7 @@ class TMSAG(nn.Module):
                  num_heads,
                  num_experts,
                  num_gpus,
+                 top_k,
                  window_size=[6, 8, 8],
                  shift_size=None,
                  mut_attn=True,
@@ -179,6 +182,7 @@ class TMSAG(nn.Module):
                 num_heads=num_heads,
                 num_experts=num_experts,
                 num_gpus=num_gpus,
+                top_k=top_k,
                 window_size=window_size,
                 shift_size=[0, 0, 0] if i % 2 == 0 else self.shift_size,
                 mut_attn=mut_attn,
@@ -236,6 +240,7 @@ class RTMSA(nn.Module):
                  num_heads,
                  num_experts,
                  num_gpus,
+                 top_k,
                  window_size,
                  mlp_ratio=2.,
                  qkv_bias=True,
@@ -253,6 +258,7 @@ class RTMSA(nn.Module):
                                     num_heads=num_heads,
                                     num_experts=num_experts,
                                     num_gpus=num_gpus,
+                                    top_k=top_k,
                                     window_size=window_size,
                                     mut_attn=False,
                                     mlp_ratio=mlp_ratio,

@@ -9,8 +9,8 @@ from core.modules.conv import ResidualBlock
 from einops import rearrange
 from einops.layers.torch import Rearrange
 from vsr.models.MoEVRT.modules.stage_moe import Stage
+from vsr.models.MoEVRT.modules.tmsa import RTMSA
 from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
-from vsr.models.VRT.modules.tmsa import RTMSA
 
 pylogger = logging.getLogger(__name__)
 
@@ -120,10 +120,10 @@ class TinyVRT(nn.Module):
                         input_resolution=(img_size[0], img_size[1] // scales[i], img_size[2] // scales[i]),
                         depth=depths[i],
                         num_heads=num_heads[i],
-                        mul_attn_ratio=mul_attn_ratio,
-                        window_size=window_size,
                         num_experts=num_experts,
                         num_gpus=num_gpus,
+                        mul_attn_ratio=mul_attn_ratio,
+                        window_size=window_size,
                         mlp_ratio=mlp_ratio,
                         qkv_bias=qkv_bias,
                         qk_scale=qk_scale,
@@ -152,6 +152,8 @@ class TinyVRT(nn.Module):
                       input_resolution=img_size,
                       depth=depths[i],
                       num_heads=num_heads[i],
+                      num_experts=num_experts,
+                      num_gpus=num_gpus,
                       window_size=[1, window_size[1], window_size[2]] if i in self.indep_reconsts else window_size,
                       mlp_ratio=mlp_ratio,
                       qkv_bias=qkv_bias, qk_scale=qk_scale,
@@ -278,6 +280,9 @@ def main() -> None:
         indep_reconsts=[-2, -1],
         embed_dims=[64, 64, 64, 64, 64, 80, 80],
         num_heads=[6, 6, 6, 6, 6, 6, 6],
+        num_experts=4,
+        num_gpus=2,
+        top_k=2,
         mul_attn_ratio=0.75,
         mlp_ratio=2.,
         qkv_bias=True,
