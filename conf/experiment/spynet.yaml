@@ -1,0 +1,26 @@
+# @package _global_
+defaults:
+  - override /train/data: distillation
+
+train:
+  ddp: False
+
+  teacher:
+    name: "flowformer"
+    ckpt: "kitti"
+    input_size: [ 382, 512 ]
+
+  cleaner:
+    _target_: core.modules.conv.IterativeRefinement
+    mid_ch: 64
+    blocks: 3
+    steps: 5
+
+  refiner_ckpt: "/home/aghinassi/Desktop/checkpoints/cleaner.ckpt"
+
+  optimizer:
+    lr: 1e-4
+    betas: [ 0.9, 0.999 ]
+
+  scheduler:
+    eta_min: 1e-5

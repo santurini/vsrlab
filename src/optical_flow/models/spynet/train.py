@@ -141,6 +141,10 @@ def train_one_level(cfg,
     optimizer, scheduler = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler)
     teacher = ptlflow.get_model(cfg.name, pretrained_ckpt=cfg.ckpt)
     cleaner = hydra.utils.instantiate(cfg.train.cleaner, _recursive_=False)
+    cleaner.load_state_dict(
+        torch.load(cfg.train.cleaner_ckpt)
+    )
+
     loss_fn = spynet.nn.EPELoss()
     size = spynet.config.GConf(k).image_size
 
