@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from core.modules.conv import ResidualBlock
 from core.modules.upsampling import PixelShufflePack
-from optical_flow.models.spynet import Spynet, flow_warp
+from vsr.models.RealBasicVSR.modules.spynet import Spynet, flow_warp
 
 pylogger = logging.getLogger(__name__)
 
