@@ -26,11 +26,11 @@ def warp(image: torch.Tensor,
 
 
 class EPELoss(torch.nn.Module):
-
     def __init__(self):
         super(EPELoss, self).__init__()
-    
-    def forward(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+
+    @staticmethod
+    def forward(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         dist = (target - pred).pow(2).sum().sqrt()
         return dist.mean()
-    
+   
