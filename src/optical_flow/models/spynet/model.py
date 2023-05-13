@@ -138,11 +138,12 @@ class SpyNet(nn.Module):
                              f'The available models are: {available_names}')
 
         if dst_file is None:
+            print('Im here')
             dst_file = Path.home() / '.spynet' / (name + '.pt')
             dst_file.parent.mkdir(exist_ok=True)
+            print(dst_file)
         
         if not dst_file.exists():
-            print('Im here')
             res = requests.get(names_url[name])
             with open(str(dst_file), 'wb') as f:
                 f.write(res.content)
