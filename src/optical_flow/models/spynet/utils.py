@@ -10,14 +10,13 @@ from torchvision.transforms.functional import resize
 
 normalizer = Normalize(mean=[.485, .406, .456],
                       std= [.229, .225, .224])
-@torch.no_grad()
+
 def get_frames(lr, cleaner, size):
     cleaned_inputs = resize(cleaner(lr), size=size)
     ref, supp = normalizer(cleaned_inputs[1:]), \
         normalizer(cleaned_inputs[:-1])
     return (ref, supp)
 
-@torch.no_grad()
 def get_flow(hr, teacher, size):
     hr = rearrange(hr, 'b t c h w -> (b t) c h w')
     supp, ref = hr[:-1], hr[1:]

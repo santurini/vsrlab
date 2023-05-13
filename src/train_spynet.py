@@ -102,8 +102,10 @@ def train_one_epoch(
 
     for i, data in enumerate(dl):
         lr, hr = data[0].to(device), data[1].to(device)
-        x = get_frames(lr, cleaner, size)
-        y, hr = get_flow(hr, teacher, size)
+
+        with torch.no_grad():
+            x = get_frames(lr, cleaner, size)
+            y, hr = get_flow(hr, teacher, size)
 
         if prev_pyramid is not None:
             with torch.no_grad():
