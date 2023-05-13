@@ -8,7 +8,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import wandb
-from kornia.augmentation import Denormalize
 from torch.utils.data import DataLoader
 
 from core import PROJECT_ROOT
@@ -33,7 +32,6 @@ from optical_flow.models.spynet.utils import (
 
 warnings.filterwarnings('ignore')
 device = torch.device("cuda:{}".format(0))
-denormalizer = Denormalize(mean=[.485, .406, .456], std=[.229, .225, .224], keepdim=True)
 
 @torch.no_grad()
 def evaluate(
@@ -80,7 +78,7 @@ def evaluate(
         val_loss += loss.detach().item()
 
     logger.log_dict({f"Loss {k}": val_loss / len(val_dl)}, epoch, "Val")
-    logger.log_flow(f"Val {k}", epoch, hr, denormalizer(x[0]), predictions, y)
+    logger.log_flow(f"Val {k}", epoch, hr, x[0], predictions, y)
     save_k_checkpoint(cfg, k, Gk, logger, cfg.train.ddp)
 
 def train_one_epoch(
@@ -133,7 +131,7 @@ def train_one_epoch(
         train_loss += loss.detach().item()
 
     logger.log_dict({f"Loss {k}": train_loss / len(train_dl)}, epoch, f"Train")
-    logger.log_flow(f"Train {k}", epoch, hr, denormalizer(x[0]), predictions, y)
+    logger.log_flow(f"Train {k}", epoch, hr, x[0], predictions, y)
 
     evaluate(
         cfg, val_dl, criterion_fn, Gk, teacher,
