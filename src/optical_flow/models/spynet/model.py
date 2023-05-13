@@ -117,7 +117,7 @@ class SpyNet(nn.Module):
             }
 
             instance = cls(k=levels)
-            instance.load_state_dict(checkpoint, strict=True)
+            instance.load_state_dict(checkpoint, strict=False)
 
             return instance
 
