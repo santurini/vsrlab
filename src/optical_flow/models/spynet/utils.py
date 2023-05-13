@@ -26,8 +26,8 @@ def get_flow(teacher, hr, size):
     soft_labels = resize(soft_labels, size=size)
     return soft_labels, inputs["images"]
 
-def build_spynets(k: int, previous: Sequence[torch.nn.Module]):
-    pretrained = spynet.SpyNet.from_pretrained()
+def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module]):
+    pretrained = spynet.SpyNet.from_pretrained(cfg.k)
     current_train = pretrained.units[k]
 
     current_train.to(device)

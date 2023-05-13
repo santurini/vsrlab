@@ -19,6 +19,7 @@ from optical_flow.models.spynet.utils import (
     save_k_checkpoint
 )
 
+from core import PROJECT_ROOT
 from core.utils import build_optimizer, save_checkpoint, cleanup
 
 device = torch.device("cuda:{}".format(local_rank))
@@ -131,15 +132,16 @@ def train_one_epoch(
 def train_one_level(cfg,
                     k: int,
                     previous: Sequence[spynet.BasicModule],
+                    logger
                     ) -> spynet.BasicModule:
 
     print(f'Training level {k}...')
 
     train_dl, val_dl, _, _, epoch = build_loaders(cfg)
 
-    current_level, trained_pyramid = build_spynets(k, previous)
+    current_level, trained_pyramid = build_spynets(cfg, k, previous)
     optimizer, scheduler = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler)
-    teacher = ptlflow.get_model(cfg.name, pretrained_ckpt=cfg.ckpt)
+    teacher = ptlflow.get_model(cfg.train.teacher.name, pretrained_ckpt=cfg.train.teacher.ckpt)
     cleaner = hydra.utils.instantiate(cfg.train.cleaner, _recursive_=False)
     cleaner.load_state_dict(
         torch.load(cfg.train.cleaner_ckpt)
@@ -169,12 +171,19 @@ def train_one_level(cfg,
 
 
 def train(cfg):
+    logger = build_logger(cfg)
+    model_config = save_config(cfg)
+
     previous = []
     for k in range(cfg.k):
-        previous.append(train_one_level(cfg, k, previous))
+        previous.append(train_one_level(cfg, k, previous, logger))
 
     final = spynet.SpyNet(previous)
     save_checkpoint(cfg, final, logger, cfg.train.ddp)
+
+    logger.close()
+
+    return model_config
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
 def main(config: omegaconf.DictConfig):

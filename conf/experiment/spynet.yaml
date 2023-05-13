@@ -16,7 +16,7 @@ train:
     blocks: 3
     steps: 5
 
-  refiner_ckpt: "/home/aghinassi/Desktop/checkpoints/cleaner.ckpt"
+  cleaner_ckpt: "/home/aghinassi/Desktop/checkpoints/cleaner.ckpt"
 
   optimizer:
     lr: 1e-4
@@ -24,3 +24,6 @@ train:
 
   scheduler:
     eta_min: 1e-5
+
+  max_epochs: [ 500, 500, 500, 500, 500 ]
+  k: 5
