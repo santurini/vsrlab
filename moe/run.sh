@@ -2,11 +2,12 @@
 
 EP_SIZE=2 # Size of expert parallel world (should be less than total world size)
 EXPERTS=4 # Number of total experts per layer
-K=1
+K=2
 
 # ep 2 exp 2 top-k 1 --> 1.8 giga, 54%
 # ep 2 exp 2 top-k 2 --> 1.8 giga, 54%
-# ep 2 exp 4 top-k 1 -->
+# ep 2 exp 4 top-k 1 --> 1.8 giga, 57%
+# ep 2 exp 4 top-k 1 --> 1.8 giga, 54%
 
 deepspeed --hostfile=hostfile \
           --master_addr=192.168.1.42 \
