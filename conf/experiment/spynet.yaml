@@ -6,7 +6,7 @@ train:
   ddp: False
 
   teacher:
-    name: "flowformer"
+    name: "gmflow"
     ckpt: "kitti"
     input_size: [ 382, 512 ]
 
