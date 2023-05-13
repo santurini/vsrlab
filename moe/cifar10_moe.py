@@ -152,7 +152,7 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(16 * 5 * 5, 120)
         self.fc2 = nn.Linear(120, 84)
         if args.moe:  # changed here
-            fc3 = Mlp_GEGLU(84, 10)
+            fc3 = Mlp_GEGLU(84, 84)
             self.experts = deepspeed.moe.layer.MoE(hidden_size=84, expert=fc3, num_experts=args.num_experts_per_layer,
                                                    ep_size=args.ep_world_size, use_residual=args.mlp_type == 'residual',
                                                    k=args.top_k, min_capacity=args.min_capacity,
