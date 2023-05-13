@@ -1,6 +1,6 @@
 {
   "train_batch_size": 16,
-  "steps_per_print": 2000,
+  "steps_per_print": 20000,
   "optimizer": {
     "type": "Adam",
     "params": {
@@ -42,5 +42,11 @@
     "overlap_comm": true,
     "contiguous_gradients": true,
     "cpu_offload": false
+  },
+  "comms_logger": {
+    "enabled": false,
+    "verbose": false,
+    "prof_all": true,
+    "debug": false
   }
 }
