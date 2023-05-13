@@ -144,6 +144,7 @@ class SpyNet(nn.Module):
             print(dst_file)
         
         if not dst_file.exists():
+            print('Requesting url')
             res = requests.get(names_url[name])
             with open(str(dst_file), 'wb') as f:
                 f.write(res.content)
