@@ -120,7 +120,7 @@ def save_checkpoint_ds(cfg, model, logger):
 
     Path(save_dir).mkdir(exist_ok=True, parents=True)
     model.save_checkpoint(save_dir, "last", save_latest=True)
-    logger.save(f"{save_dir}/*last*", base_path)
+    logger.save(f"{save_dir}/last*", base_path)
 
 def get_state_dict(path, local_rank):
     map_location = {"cuda:0": "cuda:{}".format(local_rank)}
