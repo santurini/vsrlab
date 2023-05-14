@@ -105,7 +105,7 @@ class Stage(nn.Module):
             hidden_size=dim * (1 + 2),
             expert=Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2)),
             num_experts=num_experts,
-            ep_size=num_gpus,
+            ep_size=1,
             k=top_k,
             enable_expert_tensor_parallelism=True
         )
