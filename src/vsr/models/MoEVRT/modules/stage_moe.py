@@ -107,7 +107,7 @@ class Stage(nn.Module):
             num_experts=num_experts,
             ep_size=num_gpus,
             k=top_k,
-            enable_tensor_parallelism=True
+            enable_expert_tensor_parallelism=True
         )
         self.linear3 = nn.Linear(dim * (1 + 2), dim)
 
