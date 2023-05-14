@@ -1,0 +1,9 @@
+# @package _global_
+defaults:
+  - override /train: deepspeed
+
+train:
+  data:
+    datasets:
+      train:
+        seq: 6

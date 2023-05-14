@@ -6,12 +6,14 @@ import deepspeed
 import omegaconf
 import torch.distributed as dist
 import wandb
+
 from core import PROJECT_ROOT
 from core.losses import CharbonnierLoss
 from core.utils import (
     get_resources_ds,
     build_logger,
     save_config,
+    save_checkpoint_ds,
     build_model,
     get_params,
     build_loaders_ds,
@@ -34,15 +36,15 @@ def add_argument():
     return parser.parse_args()
 
 @torch.no_grad()
-def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, metric, cfg):
+def evaluate(rank, world_size, epoch, model_engine, logger, val_dl, loss_fn, metric, cfg):
     model.eval()
     val_loss, val_metrics = 0, {k: 0 for k in cfg.train.metric.metrics}
 
     for i, data in enumerate(val_dl):
-        lr, hr = data[0].to(device), data[1].to(device)
+        lr, hr = data[0].to(model_engine.local_rank), data[1].to(model_engine.local_rank)
 
         with torch.cuda.amp.autocast():
-            sr, lq = model(lr)
+            sr, lq = model_engine(lr)
             loss = compute_loss(loss_fn, sr, hr)
 
         if cfg.train.ddp:
@@ -51,11 +53,13 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
         val_loss += loss.detach().item() / world_size
         val_metrics = running_metrics(val_metrics, metric, sr, hr)
 
+    save_checkpoint_ds(cfg, model_engine, logger)
+
     if rank == 0:
         logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
         logger.log_dict({k: v / len(val_dl) for k, v in val_metrics.items()}, epoch, "Val")
         logger.log_images("Val", epoch, lr, sr, hr, lq)
-        save_checkpoint(cfg, model, logger, cfg.train.ddp)
+
 
 def run(cfg: DictConfig, args):
     seed_index_everything(cfg.train)
@@ -116,8 +120,8 @@ def run(cfg: DictConfig, args):
 
             print("Starting Evaluation ...")
 
-        evaluate(rank, world_size, epoch, model, logger, device,
-                 val_dl, loss_fn, metric, cfg)
+        evaluate(rank, world_size, epoch, model_engine,
+                 logger, val_dl, loss_fn, metric, cfg)
 
         if rank == 0:
             dt = time.time() - dt
@@ -134,13 +138,10 @@ def main(config: omegaconf.DictConfig):
         args = add_argument()
         run(config, args)
     except Exception as e:
-        if config.train.ddp:
-            cleanup()
+        cleanup()
         wandb.finish()
         raise e
-
-    if config.train.ddp:
-        cleanup()
+    cleanup()
 
 if __name__ == "__main__":
     main()

@@ -106,6 +106,22 @@ def save_checkpoint(cfg, model, logger, ddp=True):
         torch.save(model.state_dict(), save_path)
         logger.save(save_path, base_path)
 
+def save_checkpoint_ds(cfg, model, logger):
+    base_path = os.path.join(
+        cfg.train.logger.save_dir,
+        cfg.train.logger.project,
+        cfg.train.logger.id
+    )
+
+    save_dir = os.path.join(
+        base_path,
+        "checkpoint"
+    )
+
+    Path(save_dir).mkdir(exist_ok=True, parents=True)
+    model.save_checkpoint(save_dir, "last", save_latest=True)
+    logger.save(f"{save_dir}/*last*", base_path)
+
 def get_state_dict(path, local_rank):
     map_location = {"cuda:0": "cuda:{}".format(local_rank)}
     return torch.load(path, map_location=map_location)

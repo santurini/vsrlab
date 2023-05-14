@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /train/model: baby_vrt_moe
+  - override /train/model: baby_vrt
 
 train:
   optimizer:

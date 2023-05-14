@@ -1,9 +1,7 @@
 defaults:
   - data: default
   - logger: default
-  - model: baby_realbasic
-  - optimizer: adam
-  - scheduler: cosine
+  - model: baby_vrt_moe
 
 metric:
   _target_: core.metrics.MetricCollection
@@ -15,9 +13,5 @@ metric:
 
 seed_index: null
 
-ddp: True
 max_epochs: 5000000
-gradient_clip_val: 1
-num_grad_acc: 1
-
 restore: null
