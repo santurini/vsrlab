@@ -24,7 +24,7 @@
       "warmup_num_steps": 1000
     }
   },
-  "amp": {
+  "bf16": {
     "enabled": true
   }
 }
