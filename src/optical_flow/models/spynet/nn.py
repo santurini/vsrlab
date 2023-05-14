@@ -31,6 +31,5 @@ class EPELoss(torch.nn.Module):
 
     @staticmethod
     def forward(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        dist = (target - pred).pow(2).sum().sqrt()
-        return dist.mean()
-   
+        epe = ((pred - target) ** 2).sum(dim=1).sqrt()
+        return epe.mean()
