@@ -136,8 +136,13 @@ def run(args):
             total += labels.size(0)
             correct += predicted.eq(labels).sum().item()
             if i % 200 == (200 - 1):
+                accuracy = 100. * correct / total
                 print('[epoch %d, iterations %5d] loss: %.3f accuracy: %2f %%' % (
-                    epoch, i + 1, running_loss / 200, 100. * correct / total))
+                    epoch, i + 1, running_loss / 200, accuracy))
+                dist.reduce(accuracy, dst=0, op=dist.ReduceOp.SUM)
+                if model_engine.global_rank == 0:
+                    print("WORLD_SIZE:", model_engine.world_size)
+                    print('AVERAGED ACCURACY:', accuracy.item() / model_engine.world_size)
                 running_loss = 0.0
 
         evaluate(model_engine, net, testloader)
