@@ -1,5 +1,4 @@
 import argparse
-import logging
 
 import deepspeed
 import torch
@@ -8,8 +7,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
-
-logging.basicConfig(level="warning")
 
 class Mlp_GEGLU(nn.Module):
     """ Multilayer perceptron with gated linear unit (GEGLU)"""
