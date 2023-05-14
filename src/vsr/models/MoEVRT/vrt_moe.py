@@ -160,7 +160,7 @@ class TinyVRT(nn.Module):
                                )
 
         self.stage6 = deepspeed.moe.layer.MoE(
-            hidden_size=embed_dims[len(scales)],
+            hidden_size=embed_dims[-1],
             expert=stage6,
             num_experts=num_experts,
             ep_size=num_gpus,
@@ -211,6 +211,9 @@ class TinyVRT(nn.Module):
         x = self.stage4(x3, flows_backward[1::3], flows_forward[1::3])  # stride 2
         x = self.stage5(x + x2, flows_backward[0::3], flows_forward[0::3])  # =
         x = self.stage6(x + x1)
+
+        for layer in self.stage6:
+            x = layer(x)
 
         x = rearrange(x, 'n c d h w -> n d h w c')
         x = self.norm(x)
