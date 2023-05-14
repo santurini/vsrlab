@@ -341,8 +341,20 @@ def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad
         optimizer.zero_grad()
 
 def get_params(model):
-    parameters = filter(lambda p: p.requires_grad, model.parameters())
-    return parameters
+    params = filter(lambda p: p.requires_grad, model.parameters())
+    return params
+
+def create_moe_param_groups(model):
+    from deepspeed.moe.utils import split_params_into_different_moe_groups_for_optimizer
+    params = {
+        'params': [p for p in model.parameters()],
+        'name': 'parameters'
+    }
+    return split_params_into_different_moe_groups_for_optimizer(params)
+
+parameters = filter(lambda p: p.requires_grad, net.parameters())
+if args.moe_param_group:
+    parameters = create_moe_param_groups(net)
 
 def img2tensor(path):
     return to_tensor(Image.open(path))

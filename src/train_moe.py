@@ -18,7 +18,7 @@ from core.utils import (
     save_config,
     save_checkpoint_ds,
     build_model,
-    get_params,
+    create_moe_param_groups,
     build_loaders_ds,
     compute_loss,
     running_metrics,
@@ -87,7 +87,7 @@ def run(cfg: omegaconf.DictConfig, args):
 
     if rank == 0: print('build engine ...')
     model_engine, optimizer, _, scheduler = deepspeed.initialize(
-        args=args, model=model, model_parameters=get_params(model))
+        args=args, model=model, model_parameters=create_moe_param_groups(model))
 
     # Prepare dataset and dataloader
     if rank == 0: print('build loaders ...')
