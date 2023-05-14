@@ -190,7 +190,7 @@ class TMSAG(nn.Module):
         Dp = int(np.ceil(D / window_size[0])) * window_size[0]
         Hp = int(np.ceil(H / window_size[1])) * window_size[1]
         Wp = int(np.ceil(W / window_size[2])) * window_size[2]
-        attn_mask = compute_mask(Dp, Hp, Wp, window_size, shift_size, x.device)
+        attn_mask = compute_mask(Dp, Hp, Wp, window_size, shift_size, x.device).type_as(x)
 
         for blk in self.blocks:
             x = blk(x, attn_mask)
