@@ -106,8 +106,7 @@ class Stage(nn.Module):
             expert=Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2)),
             num_experts=num_experts,
             ep_size=num_gpus,
-            k=top_k,
-            enable_expert_tensor_parallelism=True
+            k=top_k
         )
         self.linear3 = nn.Linear(dim * (1 + 2), dim)
 

@@ -47,11 +47,11 @@ def evaluate(rank, world_size, epoch, model_engine, logger, val_dl, loss_fn, met
     val_loss, val_metrics = 0, {k: 0 for k in cfg.train.metric.metrics}
 
     for i, data in enumerate(val_dl):
-        lr, hr = data[0].to(model_engine.local_rank), data[1].to(model_engine.local_rank)
+        lr, hr = data[0].bfloat16().to(model_engine.local_rank), \
+            data[1].bfloat16().to(model_engine.local_rank)
 
-        with torch.cuda.amp.autocast():
-            sr, lq = model_engine(lr)
-            loss = compute_loss(loss_fn, sr, hr)
+        sr, lq = model_engine(lr)
+        loss = compute_loss(loss_fn, sr, hr)
 
         dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
 
@@ -105,11 +105,10 @@ def run(cfg: omegaconf.DictConfig, args):
         train_loss, train_metrics = 0.0, {k: 0 for k in cfg.train.metric.metrics}
 
         for i, data in enumerate(train_dl):
-            lr, hr = data[0].to(device), data[1].to(device)
+            lr, hr = data[0].bfloat16().to(device), data[1].bfloat16().to(device)
 
-            with torch.cuda.amp.autocast():
-                sr, lq = model_engine(lr)
-                loss = compute_loss(loss_fn, sr, hr, lq)
+            sr, lq = model_engine(lr)
+            loss = compute_loss(loss_fn, sr, hr, lq)
 
             model_engine.backward(loss)
             model_engine.step()
