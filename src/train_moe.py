@@ -61,7 +61,7 @@ def evaluate(rank, world_size, epoch, model_engine, logger, val_dl, loss_fn, met
         logger.log_images("Val", epoch, lr, sr, hr, lq)
 
 
-def run(cfg: DictConfig, args):
+def run(cfg: omegaconf.DictConfig, args):
     seed_index_everything(cfg.train)
     rank, local_rank, world_size = get_resources_ds()
 
