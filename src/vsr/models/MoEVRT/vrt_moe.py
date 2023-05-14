@@ -9,7 +9,7 @@ from core.modules.conv import ResidualBlock
 from einops import rearrange
 from einops.layers.torch import Rearrange
 from vsr.models.MoEVRT.modules.stage_moe import Stage
-from vsr.models.MoEVRT.modules.tmsa import RTMSA
+from vsr.models.MoEVRT.modules.tmsa_moe import RTMSA
 from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
 
 pylogger = logging.getLogger(__name__)
