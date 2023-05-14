@@ -9,7 +9,6 @@ import torch
 import torch.distributed as dist
 import wandb
 
-from core import PROJECT_ROOT
 from core.losses import CharbonnierLoss
 from core.utils import (
     get_resources_ds,
@@ -140,7 +139,7 @@ def run(cfg: omegaconf.DictConfig, args):
 def main():
     try:
         args = add_argument()
-        hydra.initialize(str(PROJECT_ROOT / "conf"))
+        hydra.initialize("../conf")
         config = hydra.compose(
             config_name='default',
             overrides=[f"+experiment={args.experiment}"],
