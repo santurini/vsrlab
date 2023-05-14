@@ -91,7 +91,7 @@ def run(cfg: omegaconf.DictConfig, args):
 
     # Prepare dataset and dataloader
     if rank == 0: print('build loaders ...')
-    train_dl, val_dl, _, _, epoch = build_loaders_ds(
+    train_dl, val_dl, epoch = build_loaders_ds(
         cfg, model_engine.train_micro_batch_size_per_gpu()
     )
 
