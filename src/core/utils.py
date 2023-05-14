@@ -291,7 +291,7 @@ def build_loaders_ds(cfg, batch_size):
                         # pin_memory=True
                         )
 
-    return train_dl, val_dl, epoch
+    return train_dl, val_dl, 0
 
 def compute_loss(loss_fn, sr, hr, lq=None):
     loss = loss_fn(sr, hr)
