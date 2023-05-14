@@ -140,11 +140,10 @@ def run(cfg: omegaconf.DictConfig, args):
 def main():
     try:
         args = add_argument()
-        hydra.initialize("../conf")
+        hydra.initialize("../conf", version_base="1.3")
         config = hydra.compose(
             config_name='default',
             overrides=[f"+experiment={args.experiment}"],
-            version_base="1.3"
         )
         run(config, args)
 
