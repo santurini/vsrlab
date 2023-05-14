@@ -56,14 +56,14 @@ def evaluate(rank, world_size, epoch, model_engine, logger, val_dl, loss_fn, met
         dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
 
         val_loss += loss.detach().item() / world_size
-        val_metrics = running_metrics(val_metrics, metric, sr, hr)
+        val_metrics = running_metrics(val_metrics, metric, sr.float(), hr.float())
 
     save_checkpoint_ds(cfg, model_engine, logger, rank)
 
     if rank == 0:
         logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
         logger.log_dict({k: v / len(val_dl) for k, v in val_metrics.items()}, epoch, "Val")
-        logger.log_images("Val", epoch, lr, sr, hr, lq)
+        logger.log_images("Val", epoch, lr.float(), sr.float(), hr.float(), lq.float())
 
 
 def run(cfg: omegaconf.DictConfig, args):
@@ -119,7 +119,7 @@ def run(cfg: omegaconf.DictConfig, args):
         if rank == 0:
             logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
             logger.log_dict({k: v / len(train_dl) for k, v in train_metrics.items()}, epoch, "Train")
-            logger.log_images("Train", epoch, lr, sr, hr, lq)
+            logger.log_images("Train", epoch, lr.float(), sr.float(), hr.float(), lq.float())
 
             print("Starting Evaluation ...")
 
