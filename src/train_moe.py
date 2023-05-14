@@ -43,7 +43,7 @@ def add_argument():
 
 @torch.no_grad()
 def evaluate(rank, world_size, epoch, model_engine, logger, val_dl, loss_fn, metric, cfg):
-    model.eval()
+    model_engine.eval()
     val_loss, val_metrics = 0, {k: 0 for k in cfg.train.metric.metrics}
 
     for i, data in enumerate(val_dl):
