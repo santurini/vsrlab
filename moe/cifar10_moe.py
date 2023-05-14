@@ -65,6 +65,7 @@ def add_argument():
     return parser.parse_args()
 
 def run(args):
+    deepspeed.init_distributed()
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
