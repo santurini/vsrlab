@@ -175,9 +175,9 @@ def main():
         args = add_argument()
         run(args)
     except Exception as e:
-        cleanup()
+        dist.destroy_process_group()
         raise e
-    cleanup()
+    dist.destroy_process_group()
 
 if __name__ == "__main__":
     main()
