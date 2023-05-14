@@ -1,6 +1,6 @@
 #!/bin/bash
 PROJECT_ROOT="$HOME/Desktop/nn-lab/src"
-
+echo "$PROJECT_ROOT/vsr/MoEVRT/hostfile"
 deepspeed --hostfile="$PROJECT_ROOT/vsr/MoEVRT/hostfile" \
           --master_addr=192.168.1.42 \
           --master_port=1234 \
