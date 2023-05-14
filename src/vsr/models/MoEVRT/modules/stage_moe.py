@@ -113,7 +113,6 @@ class Stage(nn.Module):
             expert=pa_fuse,
             num_experts=num_experts,
             ep_size=num_gpus,
-            drop_tokens=False,
             k=top_k
         )
         self.linear3 = nn.Linear(dim * (1 + 2), dim)
