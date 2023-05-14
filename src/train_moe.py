@@ -134,9 +134,8 @@ def run(cfg: omegaconf.DictConfig, args):
     return model_config
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
-def main(config: omegaconf.DictConfig):
+def main(config: omegaconf.DictConfig, args):
     try:
-        args = add_argument()
         run(config, args)
     except Exception as e:
         cleanup()
@@ -145,4 +144,5 @@ def main(config: omegaconf.DictConfig):
     cleanup()
 
 if __name__ == "__main__":
-    main()
+    args = add_argument()
+    main(args)
