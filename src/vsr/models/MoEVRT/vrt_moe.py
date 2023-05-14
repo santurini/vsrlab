@@ -116,29 +116,23 @@ class TinyVRT(nn.Module):
         # stage 1-5
         for i in range(len(scales)):
             setattr(self, f'stage{i + 1}',
-                    deepspeed.moe.layer.MoE(
-                        hidden_size=embed_dims[i - 1],
-                        expert=Stage(
-                            in_dim=embed_dims[i - 1],
-                            dim=embed_dims[i],
-                            input_resolution=(img_size[0], img_size[1] // scales[i], img_size[2] // scales[i]),
-                            depth=depths[i],
-                            num_heads=num_heads[i],
-                            mul_attn_ratio=mul_attn_ratio,
-                            window_size=window_size,
-                            mlp_ratio=mlp_ratio,
-                            qkv_bias=qkv_bias,
-                            qk_scale=qk_scale,
-                            drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
-                            norm_layer=norm_layer,
-                            pa_frames=pa_frames,
-                            deformable_groups=deformable_groups,
-                            reshape=reshapes[i],
-                            max_residue_magnitude=10 / scales[i]
-                        ),
-                        num_experts=num_experts,
-                        ep_size=num_gpus,
-                        k=top_k
+                    Stage(
+                        in_dim=embed_dims[i - 1],
+                        dim=embed_dims[i],
+                        input_resolution=(img_size[0], img_size[1] // scales[i], img_size[2] // scales[i]),
+                        depth=depths[i],
+                        num_heads=num_heads[i],
+                        mul_attn_ratio=mul_attn_ratio,
+                        window_size=window_size,
+                        mlp_ratio=mlp_ratio,
+                        qkv_bias=qkv_bias,
+                        qk_scale=qk_scale,
+                        drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
+                        norm_layer=norm_layer,
+                        pa_frames=pa_frames,
+                        deformable_groups=deformable_groups,
+                        reshape=reshapes[i],
+                        max_residue_magnitude=10 / scales[i]
                     )
                     )
 
@@ -151,18 +145,26 @@ class TinyVRT(nn.Module):
                                         Rearrange('n d h w c -> n c d h w')
                                     ] +
                                     [
-                                        RTMSA(dim=embed_dims[i],
-                                              input_resolution=img_size,
-                                              depth=depths[i],
-                                         num_heads=num_heads[i],
-                                         window_size=[1, window_size[1],
-                                                      window_size[2]] if i in self.indep_reconsts else window_size,
-                                         mlp_ratio=mlp_ratio,
-                                         qkv_bias=qkv_bias, qk_scale=qk_scale,
-                                         drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
-                                         norm_layer=norm_layer
-                                         ) for i in range(len(scales), len(depths))
-                               ]
+                                        deepspeed.moe.layer.MoE(
+                                            hidden_size=embed_dims[i],
+                                            expert=RTMSA(dim=embed_dims[i],
+                                                         input_resolution=img_size,
+                                                         depth=depths[i],
+                                                         num_heads=num_heads[i],
+                                                         window_size=[1, window_size[1],
+                                                                      window_size[
+                                                                          2]] if i in self.indep_reconsts else window_size,
+                                                         mlp_ratio=mlp_ratio,
+                                                         qkv_bias=qkv_bias, qk_scale=qk_scale,
+                                                         drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
+                                                         norm_layer=norm_layer
+                                                         ),
+                                            num_experts=num_experts,
+                                            ep_size=num_gpus,
+                                            k=top_k
+                                        )
+                                        for i in range(len(scales), len(depths))
+                                    ]
                                     )
 
         '''self.stage6 = deepspeed.moe.layer.MoE(
@@ -211,11 +213,11 @@ class TinyVRT(nn.Module):
     def forward_features(self, x, flows_backward, flows_forward):
         '''Main network for feature extraction.'''
 
-        x1 = self.stage1((x, flows_backward[0::3], flows_forward[0::3]))  # =
-        x2 = self.stage2((x1, flows_backward[1::3], flows_forward[1::3]))  # stride 2
-        x3 = self.stage3((x2, flows_backward[2::3], flows_forward[2::3]))  # stride 4
-        x = self.stage4((x3, flows_backward[1::3], flows_forward[1::3]))  # stride 2
-        x = self.stage5((x + x2, flows_backward[0::3], flows_forward[0::3]))  # =
+        x1 = self.stage1(x, flows_backward[0::3], flows_forward[0::3])  # =
+        x2 = self.stage2(x1, flows_backward[1::3], flows_forward[1::3])  # stride 2
+        x3 = self.stage3(x2, flows_backward[2::3], flows_forward[2::3])  # stride 4
+        x = self.stage4(x3, flows_backward[1::3], flows_forward[1::3])  # stride 2
+        x = self.stage5(x + x2, flows_backward[0::3], flows_forward[0::3])  # =
         x = x + x1
 
         x = self.stage6(x)
