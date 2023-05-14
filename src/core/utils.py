@@ -268,8 +268,8 @@ def build_loaders_ds(cfg, batch_size):
     val_ds = hydra.utils.instantiate(cfg.train.data.datasets.val, _recursive_=False)
 
     # Restricts data loading to a subset of the dataset exclusive to the current process
-    train_sampler = DistributedSampler(dataset=train_ds) if cfg.train.ddp else None
-    val_sampler = DistributedSampler(dataset=val_ds) if cfg.train.ddp else None
+    train_sampler = DistributedSampler(dataset=train_ds)
+    val_sampler = DistributedSampler(dataset=val_ds)
 
     train_dl = DataLoader(dataset=train_ds,
                           batch_size=batch_size,
