@@ -58,7 +58,7 @@ def evaluate(rank, world_size, epoch, model_engine, logger, val_dl, loss_fn, met
         val_loss += loss.detach().item() / world_size
         val_metrics = running_metrics(val_metrics, metric, sr, hr)
 
-    save_checkpoint_ds(cfg, model_engine, logger)
+    save_checkpoint_ds(cfg, model_engine, logger, rank)
 
     if rank == 0:
         logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
