@@ -1,4 +1,3 @@
-import deepspeed
 import torch
 import torch.nn as nn
 from einops.layers.torch import Rearrange
@@ -101,14 +100,15 @@ class Stage(nn.Module):
         self.pa_deform = DCNv2PackFlowGuided(dim, dim, 3, padding=1, deformable_groups=deformable_groups,
                                              max_residue_magnitude=max_residue_magnitude, pa_frames=pa_frames)
 
-        self.pa_fuse = deepspeed.moe.layer.MoE(
+        self.pa_fuse = Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2), dim)
+        '''self.pa_fuse = deepspeed.moe.layer.MoE(
             hidden_size=dim * (1 + 2),
             expert=Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2)),
             num_experts=num_experts,
             ep_size=num_gpus,
             k=top_k
         )
-        self.linear3 = nn.Linear(dim * (1 + 2), dim)
+        self.linear3 = nn.Linear(dim * (1 + 2), dim)'''
 
     def forward(self, x, flows_backward, flows_forward):
         x = self.reshape(x)
@@ -117,8 +117,9 @@ class Stage(nn.Module):
 
         x = x.transpose(1, 2)
         x_backward, x_forward = self.get_aligned_features(x, flows_backward, flows_forward)
-        x, _, _ = self.pa_fuse(torch.cat([x, x_backward, x_forward], 2).permute(0, 1, 3, 4, 2))
-        x = self.linear3(x).permute(0, 4, 1, 2, 3)
+        x = self.pa_fuse(torch.cat([x, x_backward, x_forward], 2).permute(0, 1, 3, 4, 2)).permute(0, 4, 1, 2, 3)
+        # x, _, _ = self.pa_fuse(torch.cat([x, x_backward, x_forward], 2).permute(0, 1, 3, 4, 2))
+        # x = self.linear3(x).permute(0, 4, 1, 2, 3)
 
         return x
 
