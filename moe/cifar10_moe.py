@@ -123,7 +123,7 @@ def run(args):
             inputs, labels = data[0].to(model_engine.local_rank), data[1].to(model_engine.local_rank)
 
             # Forward pass
-            outputs = model_engine(inputs.half())
+            outputs = model_engine(inputs.bfloat16())
             loss = criterion(outputs, labels)
 
             # Backward pass
@@ -153,7 +153,7 @@ def evaluate(model_engine, testloader):
     total = 0
     for data in testloader:
         images, labels = data
-        outputs = net(images.to(model_engine.local_rank).half())
+        outputs = net(images.to(model_engine.local_rank).bfloat16())
         _, predicted = torch.max(outputs, 1)
         total += labels.size(0)
         correct += (predicted == labels.to(model_engine.local_rank)).sum().item()
