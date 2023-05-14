@@ -12,9 +12,8 @@ import wandb
 from core.losses import CharbonnierLoss
 from core.utils import (
     get_resources_ds,
-    seed_index_everything
-
-cleanup,
+    seed_index_everything,
+    cleanup,
     build_logger,
     save_config,
     save_checkpoint_ds,
