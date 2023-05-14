@@ -352,10 +352,6 @@ def create_moe_param_groups(model):
     }
     return split_params_into_different_moe_groups_for_optimizer(params)
 
-parameters = filter(lambda p: p.requires_grad, net.parameters())
-if args.moe_param_group:
-    parameters = create_moe_param_groups(net)
-
 def img2tensor(path):
     return to_tensor(Image.open(path))
 
