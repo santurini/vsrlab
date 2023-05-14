@@ -3,6 +3,7 @@ import time
 import warnings
 
 import deepspeed
+import hydra
 import omegaconf
 import torch
 import torch.distributed as dist
