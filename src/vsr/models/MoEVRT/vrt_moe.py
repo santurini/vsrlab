@@ -160,7 +160,7 @@ class TinyVRT(nn.Module):
                                )
 
         self.stage6 = deepspeed.moe.layer.MoE(
-            hidden_size=embed_dims[-1],
+            hidden_size=64,
             expert=stage6,
             num_experts=num_experts,
             ep_size=num_gpus,
