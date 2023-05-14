@@ -31,8 +31,8 @@
     "stage": 2,
     "allgather_partitions": true,
     "reduce_scatter": true,
-    "allgather_bucket_size": 5000,
-    "reduce_bucket_size": 5000,
+    "allgather_bucket_size": 500,
+    "reduce_bucket_size": 500,
     "overlap_comm": true,
     "contiguous_gradients": true,
     "cpu_offload": false
