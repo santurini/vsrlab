@@ -53,8 +53,7 @@ def evaluate(rank, world_size, epoch, model_engine, logger, val_dl, loss_fn, met
             sr, lq = model_engine(lr)
             loss = compute_loss(loss_fn, sr, hr)
 
-        if cfg.train.ddp:
-            dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
+        dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
 
         val_loss += loss.detach().item() / world_size
         val_metrics = running_metrics(val_metrics, metric, sr, hr)
