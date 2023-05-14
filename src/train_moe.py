@@ -4,6 +4,7 @@ import warnings
 
 import deepspeed
 import omegaconf
+import torch
 import torch.distributed as dist
 import wandb
 
