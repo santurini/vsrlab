@@ -35,7 +35,6 @@
     "reduce_bucket_size": 50000000,
     "overlap_comm": true,
     "contiguous_gradients": true,
-    "cpu_offload": true,
-    "offload_optimizer": "cpu"
+    "cpu_offload": false
   }
 }
