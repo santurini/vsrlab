@@ -97,8 +97,8 @@ class TinyVRT(nn.Module):
 
         self.iterative_refinement = IterativeRefinement(
             refine_ch,
-            refine_steps,
             refine_blocks,
+            refine_steps
         )
 
         # conv_first
