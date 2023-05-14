@@ -47,8 +47,8 @@ def evaluate(rank, world_size, epoch, model_engine, logger, val_dl, loss_fn, met
     val_loss, val_metrics = 0, {k: 0 for k in cfg.train.metric.metrics}
 
     for i, data in enumerate(val_dl):
-        lr, hr = data[0].bfloat16().to(model_engine.local_rank), \
-            data[1].bfloat16().to(model_engine.local_rank)
+        lr, hr = data[0].half().to(model_engine.local_rank), \
+            data[1].half().to(model_engine.local_rank)
 
         sr, lq = model_engine(lr)
         loss = compute_loss(loss_fn, sr, hr)
@@ -105,7 +105,7 @@ def run(cfg: omegaconf.DictConfig, args):
         train_loss, train_metrics = 0.0, {k: 0 for k in cfg.train.metric.metrics}
 
         for i, data in enumerate(train_dl):
-            lr, hr = data[0].bfloat16().to(device), data[1].bfloat16().to(device)
+            lr, hr = data[0].half().to(device), data[1].half().to(device)
 
             sr, lq = model_engine(lr)
             loss = compute_loss(loss_fn, sr, hr, lq)
