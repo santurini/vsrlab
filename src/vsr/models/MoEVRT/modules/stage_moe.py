@@ -117,6 +117,7 @@ class Stage(nn.Module):
 
         x = x.transpose(1, 2)
         x_backward, x_forward = self.get_aligned_features(x, flows_backward, flows_forward)
+        print(x.shape)
         x, _, _ = self.pa_fuse(torch.cat([x, x_backward, x_forward], 2).permute(0, 1, 3, 4, 2))
         print(x.shape)
         print(x.permute(0, 4, 1, 2, 3).shape)
