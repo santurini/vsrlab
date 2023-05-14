@@ -211,11 +211,11 @@ class TinyVRT(nn.Module):
     def forward_features(self, x, flows_backward, flows_forward):
         '''Main network for feature extraction.'''
 
-        x1 = self.stage1(x, flows_backward[0::3], flows_forward[0::3])  # =
-        x2 = self.stage2(x1, flows_backward[1::3], flows_forward[1::3])  # stride 2
-        x3 = self.stage3(x2, flows_backward[2::3], flows_forward[2::3])  # stride 4
-        x = self.stage4(x3, flows_backward[1::3], flows_forward[1::3])  # stride 2
-        x = self.stage5(x + x2, flows_backward[0::3], flows_forward[0::3])  # =
+        x1 = self.stage1((x, flows_backward[0::3], flows_forward[0::3]))  # =
+        x2 = self.stage2((x1, flows_backward[1::3], flows_forward[1::3]))  # stride 2
+        x3 = self.stage3((x2, flows_backward[2::3], flows_forward[2::3]))  # stride 4
+        x = self.stage4((x3, flows_backward[1::3], flows_forward[1::3]))  # stride 2
+        x = self.stage5((x + x2, flows_backward[0::3], flows_forward[0::3]))  # =
         x = x + x1
 
         x = self.stage6(x)
