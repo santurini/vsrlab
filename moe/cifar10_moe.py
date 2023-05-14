@@ -114,9 +114,6 @@ def run(args):
 
     criterion = nn.CrossEntropyLoss()
 
-    print("BATCH_SIZE:", model_engine.train_batch_size())
-    print("BATCH_SIZE:", model_engine.train_batch_size)
-
     for epoch in range(5):
         running_loss = 0.0
         correct = 0

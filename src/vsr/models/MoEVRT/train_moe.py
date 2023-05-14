@@ -14,7 +14,7 @@ from core.utils import (
     save_config,
     build_model,
     get_params,
-    build_loaders,
+    build_loaders_ds,
     compute_loss,
     running_metrics,
     build_metric
@@ -75,13 +75,16 @@ def run(cfg: DictConfig, args):
     if rank == 0: print('build model ...')
     model = build_model(cfg.train.model, device, local_rank, False, cfg.train.restore)
 
-    # Prepare dataset and dataloader
-    if rank == 0: print('build loaders ...')
-    train_dl, val_dl, _, _, epoch = build_loaders(cfg)
-
     if rank == 0: print('build engine ...')
     model_engine, optimizer, _, scheduler = deepspeed.initialize(
         args=args, model=model, model_parameters=get_params(model))
+
+    # Prepare dataset and dataloader
+    if rank == 0: print('build loaders ...')
+    train_dl, val_dl, _, _, epoch = build_loaders_ds(cfg,
+                                                     model_engine.train_batch_size(),
+                                                     model_engine.gradient_accumulation_steps()
+                                                     )
 
     if rank == 0: print('build metrics and losses ...')
     loss_fn, metric = CharbonnierLoss(), build_metric(cfg.train.metric).to(device)

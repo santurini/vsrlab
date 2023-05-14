@@ -246,6 +246,39 @@ def build_loaders(cfg):
 
     return train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch
 
+def build_loaders_ds(cfg, eff_batch_size, num_grad_acc):
+    pylogger.info(f"Building Loaders")
+    train_ds = hydra.utils.instantiate(cfg.train.data.datasets.train, _recursive_=False)
+    val_ds = hydra.utils.instantiate(cfg.train.data.datasets.val, _recursive_=False)
+
+    # Restricts data loading to a subset of the dataset exclusive to the current process
+    train_sampler = DistributedSampler(dataset=train_ds) if cfg.train.ddp else None
+    val_sampler = DistributedSampler(dataset=val_ds) if cfg.train.ddp else None
+
+    batch_size = eff_batch_size // num_grad_acc
+
+    train_dl = DataLoader(dataset=train_ds,
+                          batch_size=batch_size,
+                          sampler=train_sampler,
+                          num_workers=cfg.train.data.num_workers,
+                          prefetch_factor=cfg.train.data.prefetch_factor,
+                          persistent_workers=True,
+                          # pin_memory=True
+                          )
+
+    # Test loader does not have to follow distributed sampling strategy
+    val_dl = DataLoader(dataset=val_ds,
+                        batch_size=eff_batch_size,
+                        sampler=val_sampler,
+                        num_workers=cfg.train.data.num_workers,
+                        prefetch_factor=cfg.train.data.prefetch_factor,
+                        shuffle=False,
+                        persistent_workers=True,
+                        # pin_memory=True
+                        )
+
+    return train_dl, val_dl, epoch
+
 def compute_loss(loss_fn, sr, hr, lq=None):
     loss = loss_fn(sr, hr)
     if lq is not None:
