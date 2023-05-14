@@ -2,7 +2,6 @@ import logging
 import math
 from distutils.version import LooseVersion
 
-import deepspeed
 import torch
 import torch.nn as nn
 from core.losses import CharbonnierLoss
@@ -137,17 +136,17 @@ class TinyVRT(nn.Module):
                     )
 
         # last stage
-        stage6 = nn.Sequential(*
-                               [
-                                   Rearrange('n c d h w ->  n d h w c'),
-                                   nn.LayerNorm(embed_dims[len(scales) - 1]),
-                                   nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
-                                   Rearrange('n d h w c -> n c d h w')
-                               ] +
-                               [
-                                   RTMSA(dim=embed_dims[i],
-                                         input_resolution=img_size,
-                                         depth=depths[i],
+        self.stage6 = nn.Sequential(*
+                                    [
+                                        Rearrange('n c d h w ->  n d h w c'),
+                                        nn.LayerNorm(embed_dims[len(scales) - 1]),
+                                        nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
+                                        Rearrange('n d h w c -> n c d h w')
+                                    ] +
+                                    [
+                                        RTMSA(dim=embed_dims[i],
+                                              input_resolution=img_size,
+                                              depth=depths[i],
                                          num_heads=num_heads[i],
                                          window_size=[1, window_size[1],
                                                       window_size[2]] if i in self.indep_reconsts else window_size,
@@ -157,15 +156,15 @@ class TinyVRT(nn.Module):
                                          norm_layer=norm_layer
                                          ) for i in range(len(scales), len(depths))
                                ]
-                               )
+                                    )
 
-        self.stage6 = deepspeed.moe.layer.MoE(
+        '''self.stage6 = deepspeed.moe.layer.MoE(
             hidden_size=embed_dims[-1],
             expert=stage6,
             num_experts=num_experts,
             ep_size=num_gpus,
             k=top_k
-        )
+        )'''
 
         self.norm = norm_layer(embed_dims[-1])
         self.conv_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
