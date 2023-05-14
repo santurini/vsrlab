@@ -169,3 +169,15 @@ def evaluate(model_engine, testloader):
               (classes[i], 100 * class_correct[i] / class_total[i]))
 
     print('Evaluation Done')
+
+def main():
+    try:
+        args = add_argument()
+        run(args)
+    except Exception as e:
+        cleanup()
+        raise e
+    cleanup()
+
+if __name__ == "__main__":
+    main()
