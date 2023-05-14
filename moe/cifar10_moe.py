@@ -122,9 +122,10 @@ def run(args):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data[0].to(model_engine.local_rank), data[1].to(model_engine.local_rank)
 
-            # Forward pass
-            outputs = model_engine(inputs.bfloat16())
-            loss = criterion(outputs, labels)
+            with torch.cuda.amp.autocast():
+                # Forward pass
+                outputs = model_engine(inputs)
+                loss = criterion(outputs, labels)
 
             # Backward pass
             model_engine.backward(loss)
@@ -141,7 +142,6 @@ def run(args):
                     epoch, i + 1, running_loss / 200, accuracy))
                 dist.reduce(accuracy, dst=0, op=dist.ReduceOp.SUM)
                 if model_engine.global_rank == 0:
-                    print("WORLD_SIZE:", model_engine.world_size)
                     print('AVERAGED ACCURACY:', accuracy.item() / model_engine.world_size)
                 running_loss = 0.0
 
