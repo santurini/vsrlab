@@ -136,7 +136,7 @@ def run(args):
             total += labels.size(0)
             correct += predicted.eq(labels).sum().item()
             if i % 200 == (200 - 1):
-                accuracy = 100. * correct / total
+                accuracy = torch.tensor(100. * correct / total)
                 print('[epoch %d, iterations %5d] loss: %.3f accuracy: %2f %%' % (
                     epoch, i + 1, running_loss / 200, accuracy))
                 dist.reduce(accuracy, dst=0, op=dist.ReduceOp.SUM)
