@@ -91,10 +91,9 @@ def run(cfg: omegaconf.DictConfig, args):
 
     # Prepare dataset and dataloader
     if rank == 0: print('build loaders ...')
-    train_dl, val_dl, _, _, epoch = build_loaders_ds(cfg,
-                                                     model_engine.train_batch_size(),
-                                                     model_engine.gradient_accumulation_steps()
-                                                     )
+    train_dl, val_dl, _, _, epoch = build_loaders_ds(
+        cfg, model_engine.train_micro_batch_size_per_gpu()
+    )
 
     if rank == 0: print('build metrics and losses ...')
     loss_fn, metric = CharbonnierLoss(), build_metric(cfg.train.metric).to(device)
