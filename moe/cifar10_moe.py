@@ -90,7 +90,6 @@ def run(args):
 
     trainloader = torch.utils.data.DataLoader(trainset,
                                               batch_size=16,
-                                              shuffle=True,
                                               num_workers=2,
                                               sampler=train_sampler)
 
