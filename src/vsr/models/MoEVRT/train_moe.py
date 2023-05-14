@@ -1,14 +1,37 @@
+import argparse
 import time
 import warnings
 
+import deepspeed
 import omegaconf
+import torch.distributed as dist
 import wandb
 from core import PROJECT_ROOT
 from core.losses import CharbonnierLoss
-from core.utils import *
+from core.utils import (
+    get_resources_ds,
+    build_logger,
+    save_config,
+    build_model,
+    get_params,
+    build_loaders,
+    compute_loss,
+    running_metrics,
+    build_metric
+)
 
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
+
+def add_argument():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--local_rank',
+                        type=int,
+                        default=-1,
+                        help='local rank passed from distributed launcher')
+
+    parser = deepspeed.add_config_arguments(parser)
+    return parser.parse_args()
 
 @torch.no_grad()
 def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, metric, cfg):
@@ -34,9 +57,9 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
         logger.log_images("Val", epoch, lr, sr, hr, lq)
         save_checkpoint(cfg, model, logger, cfg.train.ddp)
 
-def run(cfg: DictConfig):
+def run(cfg: DictConfig, args):
     seed_index_everything(cfg.train)
-    rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
+    rank, local_rank, world_size = get_resources_ds()
 
     # Initialize logger
     if rank == 0:
@@ -50,18 +73,15 @@ def run(cfg: DictConfig):
 
     # Encapsulate the model on the GPU assigned to the current process
     if rank == 0: print('build model ...')
-    model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp, cfg.train.restore)
-
-    # Mixed precision
-    if rank == 0: print('build scaler ...')
-    scaler = torch.cuda.amp.GradScaler()
+    model = build_model(cfg.train.model, device, local_rank, False, cfg.train.restore)
 
     # Prepare dataset and dataloader
     if rank == 0: print('build loaders ...')
-    train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch = build_loaders(cfg)
+    train_dl, val_dl, _, _, epoch = build_loaders(cfg)
 
-    if rank == 0: print('build optimizer and scheduler ...')
-    optimizer, scheduler = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler)
+    if rank == 0: print('build engine ...')
+    model_engine, optimizer, _, scheduler = deepspeed.initialize(
+        args=args, model=model, model_parameters=get_params(model))
 
     if rank == 0: print('build metrics and losses ...')
     loss_fn, metric = CharbonnierLoss(), build_metric(cfg.train.metric).to(device)
@@ -76,12 +96,12 @@ def run(cfg: DictConfig):
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
-            with torch.cuda.amp.autocast():
-                sr, lq = model(lr)
-                loss = compute_loss(loss_fn, sr, hr, lq)
+            # with torch.cuda.amp.autocast():
+            sr, lq = model_engine(lr)
+            loss = compute_loss(loss_fn, sr, hr, lq)
 
-            update_weights(model, loss, scaler, scheduler,
-                           optimizer, num_grad_acc, gradient_clip_val, i)
+            model_engine.backward(loss)
+            model_engine.step()
 
             train_loss += loss.detach().item()
             train_metrics = running_metrics(train_metrics, metric, sr, hr)
@@ -108,7 +128,8 @@ def run(cfg: DictConfig):
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
 def main(config: omegaconf.DictConfig):
     try:
-        run(config)
+        args = add_argument()
+        run(config, args)
     except Exception as e:
         if config.train.ddp:
             cleanup()

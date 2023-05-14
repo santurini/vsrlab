@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from typing import List, Optional, Union
 
+import deepspeed
 import hydra
 import numpy as np
 import ptlflow
@@ -12,7 +13,6 @@ from PIL import Image
 from einops import rearrange
 from kornia.geometry.transform import resize
 from omegaconf import DictConfig, ListConfig, OmegaConf
-from ptlflow.utils.io_adapter import IOAdapter
 from pytorch_lightning import seed_everything
 from torch.nn import Sequential
 from torch.nn.utils import clip_grad_norm_
@@ -52,6 +52,18 @@ def get_resources():
         rank = int(os.environ['RANK'])
 
     dist.init_process_group(backend="nccl", rank=rank, world_size=world_size)
+
+    return rank, local_rank, world_size
+
+def get_resources_ds():
+    if os.environ.get('OMPI_COMMAND'):
+        # from mpirun
+        print("Launching with mpirun")
+        rank = int(os.environ["OMPI_COMM_WORLD_RANK"])
+        local_rank = int(os.environ["OMPI_COMM_WORLD_LOCAL_RANK"])
+        world_size = int(os.environ["OMPI_COMM_WORLD_SIZE"])
+
+    deepspeed.init_distributed(dist_backend="nccl", rank=rank, world_size=world_size)
 
     return rank, local_rank, world_size
 
@@ -187,6 +199,11 @@ def build_logger(cfg):
     logger.init(cfg)
     return logger
 
+def build_dataset(cfg):
+    train_ds = hydra.utils.instantiate(cfg.train.data.datasets.train, _recursive_=False)
+    val_ds = hydra.utils.instantiate(cfg.train.data.datasets.val, _recursive_=False)
+    return train_ds, val_ds
+
 def build_loaders(cfg):
     pylogger.info(f"Building Loaders")
     train_ds = hydra.utils.instantiate(cfg.train.data.datasets.train, _recursive_=False)
@@ -275,6 +292,10 @@ def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad
         scaler.update()
         scheduler.step()
         optimizer.zero_grad()
+
+def get_params(model):
+    parameters = filter(lambda p: p.requires_grad, model.parameters())
+    return parameters
 
 def img2tensor(path):
     return to_tensor(Image.open(path))
