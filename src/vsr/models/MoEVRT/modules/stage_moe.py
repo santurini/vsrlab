@@ -34,6 +34,9 @@ class Stage(nn.Module):
                  input_resolution,
                  depth,
                  num_heads,
+                 num_experts,
+                 num_gpus,
+                 top_k,
                  window_size,
                  mul_attn_ratio=0.75,
                  mlp_ratio=2.,
@@ -97,7 +100,14 @@ class Stage(nn.Module):
         self.pa_deform = DCNv2PackFlowGuided(dim, dim, 3, padding=1, deformable_groups=deformable_groups,
                                              max_residue_magnitude=max_residue_magnitude, pa_frames=pa_frames)
 
-        self.pa_fuse = Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2), dim)
+        self.pa_fuse = deepspeed.moe.layer.MoE(
+            hidden_size=dim * (1 + 2),
+            expert=Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2)),
+            num_experts=num_experts,
+            ep_size=num_gpus,
+            k=top_k
+        )
+        self.linear3 = nn.Linear(dim * (1 + 2), dim)
 
     def forward(self, x, flows_backward, flows_forward):
         x = self.reshape(x)
@@ -108,7 +118,7 @@ class Stage(nn.Module):
         x_backward, x_forward = self.get_aligned_features(x, flows_backward, flows_forward)
         x = self.pa_fuse(torch.cat([x, x_backward, x_forward], 2).permute(0, 1, 3, 4, 2)).permute(0, 4, 1, 2, 3)
 
-        return x
+        return self.linear3(x)
 
     def get_aligned_features(self, x, flows_backward, flows_forward):
         '''Parallel feature warping for 2 frames.'''

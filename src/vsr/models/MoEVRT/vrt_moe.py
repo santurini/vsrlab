@@ -2,7 +2,6 @@ import logging
 import math
 from distutils.version import LooseVersion
 
-import deepspeed
 import torch
 import torch.nn as nn
 from core.losses import CharbonnierLoss
@@ -133,7 +132,7 @@ class TinyVRT(nn.Module):
                         deformable_groups=deformable_groups,
                         reshape=reshapes[i],
                         max_residue_magnitude=10 / scales[i]
-                    )
+                        )
                     )
 
         # last stage
@@ -145,35 +144,19 @@ class TinyVRT(nn.Module):
                                         Rearrange('n d h w c -> n c d h w')
                                     ] +
                                     [
-                                        deepspeed.moe.layer.MoE(
-                                            hidden_size=embed_dims[i],
-                                            expert=RTMSA(dim=embed_dims[i],
-                                                         input_resolution=img_size,
-                                                         depth=depths[i],
-                                                         num_heads=num_heads[i],
-                                                         window_size=[1, window_size[1],
-                                                                      window_size[
-                                                                          2]] if i in self.indep_reconsts else window_size,
-                                                         mlp_ratio=mlp_ratio,
-                                                         qkv_bias=qkv_bias, qk_scale=qk_scale,
-                                                         drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
-                                                         norm_layer=norm_layer
-                                                         ),
-                                            num_experts=num_experts,
-                                            ep_size=num_gpus,
-                                            k=top_k
-                                        )
-                                        for i in range(len(scales), len(depths))
+                                        RTMSA(dim=embed_dims[i],
+                                              input_resolution=img_size,
+                                              depth=depths[i],
+                                              num_heads=num_heads[i],
+                                              window_size=[1, window_size[1],
+                                                           window_size[2]] if i in self.indep_reconsts else window_size,
+                                              mlp_ratio=mlp_ratio,
+                                              qkv_bias=qkv_bias, qk_scale=qk_scale,
+                                              drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
+                                              norm_layer=norm_layer
+                                              ) for i in range(len(scales), len(depths))
                                     ]
                                     )
-
-        '''self.stage6 = deepspeed.moe.layer.MoE(
-            hidden_size=embed_dims[-1],
-            expert=stage6,
-            num_experts=num_experts,
-            ep_size=num_gpus,
-            k=top_k
-        )'''
 
         self.norm = norm_layer(embed_dims[-1])
         self.conv_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
