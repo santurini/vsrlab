@@ -140,13 +140,13 @@ def run(args):
                     epoch, i + 1, running_loss / 200, 100. * correct / total))
                 running_loss = 0.0
 
-        evaluate(model_engine, testloader)
+        evaluate(model_engine, net, testloader)
 
     print('Training Done')
     return running_loss
 
 @torch.no_grad()
-def evaluate(model_engine, testloader):
+def evaluate(model_engine, net, testloader):
     class_correct = list(0. for _ in range(10))
     class_total = list(0. for _ in range(10))
     correct = 0
