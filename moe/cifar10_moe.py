@@ -135,7 +135,7 @@ def run(args):
             _, predicted = outputs.max(1)
             total += labels.size(0)
             correct += predicted.eq(labels).sum().item()
-            if i % args.log_interval == (200 - 1):
+            if i % 200 == (200 - 1):
                 print('[epoch %d, iterations %5d] loss: %.3f accuracy: %2f %%' % (
                     epoch, i + 1, running_loss / 200, 100. * correct / total))
                 running_loss = 0.0
