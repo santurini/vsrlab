@@ -210,10 +210,7 @@ class TinyVRT(nn.Module):
         x3 = self.stage3(x2, flows_backward[2::3], flows_forward[2::3])  # stride 4
         x = self.stage4(x3, flows_backward[1::3], flows_forward[1::3])  # stride 2
         x = self.stage5(x + x2, flows_backward[0::3], flows_forward[0::3])  # =
-        x = x + x1
-
-        for layer in self.stage6:
-            x = layer(x)
+        x = self.stage6(x + x1)
 
         x = rearrange(x, 'n c d h w -> n d h w c')
         x = self.norm(x)
