@@ -114,7 +114,7 @@ def run(cfg: omegaconf.DictConfig, args):
             model_engine.step()
 
             train_loss += loss.detach().item()
-            train_metrics = running_metrics(train_metrics, metric, sr, hr)
+            train_metrics = running_metrics(train_metrics, metric, sr.float(), hr.float())
 
         if rank == 0:
             logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
