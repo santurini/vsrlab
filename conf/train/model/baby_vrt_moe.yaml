@@ -15,7 +15,7 @@ num_experts: 2
 num_gpus: 2
 top_k: 1
 mul_attn_ratio: 0.75
-mlp_ratio: 1.
+mlp_ratio: 2.
 qkv_bias: True
 qk_scale: null
 drop_path_rate: 0.2
