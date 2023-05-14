@@ -23,7 +23,6 @@ from core.utils import (
 )
 
 warnings.filterwarnings('ignore')
-pylogger = logging.getLogger(__name__)
 
 def add_argument():
     parser = argparse.ArgumentParser()
