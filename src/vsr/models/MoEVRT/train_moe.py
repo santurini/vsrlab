@@ -96,9 +96,9 @@ def run(cfg: DictConfig, args):
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
-            # with torch.cuda.amp.autocast():
-            sr, lq = model_engine(lr)
-            loss = compute_loss(loss_fn, sr, hr, lq)
+            with torch.cuda.amp.autocast():
+                sr, lq = model_engine(lr)
+                loss = compute_loss(loss_fn, sr, hr, lq)
 
             model_engine.backward(loss)
             model_engine.step()
