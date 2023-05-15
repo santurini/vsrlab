@@ -4,7 +4,7 @@ from typing import Union, Tuple
 import torch
 import torchvision.transforms.functional as F
 from kornia.enhance import normalize
-from skimage import transform
+from kornia.geometry.transform import resize
 
 class Compose(object):
     def __init__(self, transforms):
@@ -24,7 +24,7 @@ class Resize(object):
                  frames,
                  optical_flow):
         frames = F.resize(frames, (self.height, self.width))
-        optical_flow = transform.resize(optical_flow, (self.height, self.width))
+        optical_flow = resize(optical_flow, (self.height, self.width))
 
         return frames, optical_flow
 
