@@ -45,7 +45,7 @@ class Dataset(torch.utils.data.Dataset):
 
     @staticmethod
     def get_path(path):
-        path = path.split('_')
+        path = str(path).split('_')
         video_name = '_'.join(path[:2])
         supp = self.root / video_name / path[-2] / ".png"
         ref = self.root / video_name / Path(path[-1]).stem / ".png"
