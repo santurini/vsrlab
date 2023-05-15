@@ -9,7 +9,7 @@ from core.losses import CharbonnierLoss
 from core.modules.conv import ResidualBlock
 from einops import rearrange
 from einops.layers.torch import Rearrange
-from vsr.models.MoEVRT.deepspeed.stage_moe import Stage
+from moe.MoEVRT.deepspeed.stage_moe import Stage
 from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
 from vsr.models.VRT.modules.tmsa import RTMSA
 
