@@ -2,6 +2,7 @@ import logging
 import math
 from distutils.version import LooseVersion
 
+import deepspeed
 import torch
 import torch.nn as nn
 from core.losses import CharbonnierLoss
