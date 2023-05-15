@@ -1,5 +1,6 @@
 #!/bin/bash
 PROJECT_ROOT="$HOME/Desktop/nn-lab/src/moe/MoEVRT"
+TORCH_DISTRIBUTED_DEBUG=OFF
 
 deepspeed --hostfile="$PROJECT_ROOT/deepspeed/hostfile" \
           --master_addr=192.168.1.42 \
