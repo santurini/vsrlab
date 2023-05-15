@@ -48,7 +48,6 @@ class Dataset(torch.utils.data.Dataset):
         path = str(path).split('_')
         video_name = '_'.join(path[:2])
         print((self.root / video_name))
-        print(path[-2])
         print(list((self.root / video_name).glob(path[-2])))
         supp = list((self.root / video_name).glob(f"{path[-2]}.*"))[0]
         ref = list((self.root / video_name).glob(f"{path[-1].stem}.*"))[0]
