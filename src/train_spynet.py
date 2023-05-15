@@ -62,9 +62,9 @@ def evaluate(
     if prev_pyramid is not None:
         prev_pyramid.eval()
 
-    for i, (x1, x2, of) in enumerate(val_dl):
+    for i, (x1, x2, y) in enumerate(val_dl):
         # lr, hr = data[0].to(device), data[1].to(device)
-        x1, x2, y = x1.to(device), x2.to(device), data[1].to(device)
+        x1, x2, y = x1.to(device), x2.to(device), y.to(device)
 
         # with torch.cuda.amp.autocast():
         # x = get_frames(lr, cleaner, size)
@@ -115,9 +115,9 @@ def train_one_epoch(
     if prev_pyramid is not None:
         prev_pyramid.eval()
 
-    for i, (x1, x2, of) in enumerate(val_dl):
+    for i, (x1, x2, y) in enumerate(train_dl):
         # lr, hr = data[0].to(device), data[1].to(device)
-        x1, x2, y = x1.to(device), x2.to(device), data[1].to(device)
+        x1, x2, y = x1.to(device), x2.to(device), y.to(device)
 
         # with torch.cuda.amp.autocast():
         # x = get_frames(lr, cleaner, size)
