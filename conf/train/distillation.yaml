@@ -1,6 +1,8 @@
 defaults:
   - data: distillation
   - logger: default
+  - optimizer: adam
+  - scheduler: cosine
 
 seed_index: null
 
