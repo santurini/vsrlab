@@ -101,8 +101,8 @@ def build_cleaner(cfg, device):
     return cleaner.to(device)
 
 def load_data(cfg, k: int):
-    path = cfg.data.datasets.train.path
-    size = cfg.data.datasets.train.size
+    path = cfg.train.data.datasets.train.path
+    size = cfg.train.data.datasets.train.size
 
     train_tfms = Compose([
         Resize(*spynet.config.GConf(k).image_size),
@@ -134,14 +134,14 @@ def load_data(cfg, k: int):
 
 def build_dl(train_ds, val_ds, cfg):
     train_dl = DataLoader(train_ds,
-                          batch_size=cfg.data.batch_size,
-                          num_workers=cfg.data.batch_size.num_workers,
+                          batch_size=cfg.train.data.batch_size,
+                          num_workers=cfg.train.data.num_workers,
                           shuffle=True,
                           collate_fn=collate_fn)
 
     val_dl = DataLoader(val_ds,
-                        batch_size=cfg.data.batch_size,
-                        num_workers=cfg.data.batch_size.num_workers,
+                        batch_size=cfg.train.data.batch_size,
+                        num_workers=cfg.train.data.num_workers,
                         shuffle=False,
                         collate_fn=collate_fn)
 
