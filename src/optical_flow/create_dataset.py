@@ -2,6 +2,8 @@ from pathlib import Path
 
 import ptlflow
 import torch
+from PIL import Image
+from torchvision.transforms.functional import to_tensor
 
 teacher = ptlflow.get_model('gmflow', pretrained_ckpt="kitti")
 teacher.cuda()
@@ -16,7 +18,7 @@ with torch.no_grad():
         frames = list(sorted(video.glob('*')))
         couples = zip(frames[:-1], frames[1:])
         for c in couples:
-            filename = '_'.join([p[0].parent.stem, p[0].stem, p[1].stem])
+            filename = '_'.join([c[0].parent.stem, c[0].stem, c[1].stem])
             save_path = f"{SAVE_DIR}/{filename}.pt"
             inputs = {
                 "images": torch.stack(
