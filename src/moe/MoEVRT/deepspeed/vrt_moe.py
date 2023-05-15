@@ -153,7 +153,7 @@ class TinyVRT(nn.Module):
             expert=nn.Sequential(*
                                  [
                                      Debugger(os.environ['RANK']),
-                                     Rearrange('n e (c d h) w ->  n d h w c', h=64, d=6),
+                                     Rearrange('n 1 (c d h) w ->  n d h w c', h=64, d=6),
                                      Debugger(os.environ['RANK']),
                                      nn.LayerNorm(embed_dims[len(scales) - 1]),
                                      Debugger(os.environ['RANK']),
