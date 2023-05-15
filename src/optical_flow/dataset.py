@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Union
 
 import torch
 from PIL import Image
