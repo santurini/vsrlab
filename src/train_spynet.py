@@ -116,7 +116,6 @@ def train_one_epoch(
         prev_pyramid.eval()
 
     for i, ((x1, x2), y) in enumerate(train_dl):
-        print("Batch {}/{}".format(i, len(train_dl)))
         # lr, hr = data[0].to(device), data[1].to(device)
         x1, x2, y = x1.to(device), x2.to(device), y.to(device)
 
