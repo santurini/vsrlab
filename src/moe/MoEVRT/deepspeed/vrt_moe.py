@@ -24,7 +24,8 @@ class Debugger(nn.Module):
         self.rank = rank
 
     def forward(self, x):
-        print("IM HERE:", x.shape)
+        if self.rank == 0:
+            print("IM HERE:", x.shape)
         return x
 
 class Upsample(nn.Sequential):
