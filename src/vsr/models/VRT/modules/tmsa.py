@@ -197,11 +197,11 @@ class TMSAG(nn.Module):
         """
         # calculate attention mask for attention
         B, C, D, H, W = x.shape
-        Debugger(os.environ['WORLD_SIZE'])(x)
+        Debugger(os.environ['RANK'])(x)
         window_size, shift_size = get_window_size((D, H, W), self.window_size, self.shift_size)
-        Debugger(os.environ['WORLD_SIZE'])(x)
+        Debugger(os.environ['RANK'])(x)
         x = rearrange(x, 'b c d h w -> b d h w c')
-        Debugger(os.environ['WORLD_SIZE'])(x)
+        Debugger(os.environ['RANK'])(x)
         Dp = int(np.ceil(D / window_size[0])) * window_size[0]
         Hp = int(np.ceil(H / window_size[1])) * window_size[1]
         Wp = int(np.ceil(W / window_size[2])) * window_size[2]
@@ -209,11 +209,11 @@ class TMSAG(nn.Module):
 
         for blk in self.blocks:
             x = blk(x, attn_mask)
-        Debugger(os.environ['WORLD_SIZE'])(x)
+        Debugger(os.environ['RANK'])(x)
         x = x.view(B, D, H, W, -1)
-        Debugger(os.environ['WORLD_SIZE'])(x)
+        Debugger(os.environ['RANK'])(x)
         x = rearrange(x, 'b d h w c -> b c d h w')
-        Debugger(os.environ['WORLD_SIZE'])(x)
+        Debugger(os.environ['RANK'])(x)
 
         return x
 

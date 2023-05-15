@@ -147,21 +147,21 @@ class TinyVRT(nn.Module):
                     )
                     )
 
-        print('WORLD RAAAAAAANK:', os.environ['LOCAL_RANK'])
+        print('WORLD RAAAAAAANK:', os.environ['RANK'])
         # last stage
         self.stage6 = deepspeed.moe.layer.MoE(
             hidden_size=64,
             expert=nn.Sequential(*
                                  [
-                                     Debugger(os.environ['WORLD_SIZE']),
+                                     Debugger(os.environ['RANK']),
                                      Rearrange('n 1 (c d h) w ->  n d h w c', h=64, d=6),
-                                     Debugger(os.environ['WORLD_SIZE']),
+                                     Debugger(os.environ['RANK']),
                                      nn.LayerNorm(embed_dims[len(scales) - 1]),
-                                     Debugger(os.environ['WORLD_SIZE']),
+                                     Debugger(os.environ['RANK']),
                                      nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
-                                     Debugger(os.environ['WORLD_SIZE']),
+                                     Debugger(os.environ['RANK']),
                                      Rearrange('n d h w c -> n c d h w'),
-                                     Debugger(os.environ['WORLD_SIZE'])
+                                     Debugger(os.environ['RANK'])
                                  ] +
                                  [
                                      RTMSA(dim=embed_dims[i],
@@ -226,7 +226,7 @@ class TinyVRT(nn.Module):
         x = self.stage4(x3, flows_backward[1::3], flows_forward[1::3])  # stride 2
         x = self.stage5(x + x2, flows_backward[0::3], flows_forward[0::3])  # =
         x = x + x1
-        print("PRINTA CRISTODDIO:", x.shape)
+
         x = self.stage6(x)
 
         x = rearrange(x, 'n c d h w -> n d h w c')
