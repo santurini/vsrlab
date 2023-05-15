@@ -29,8 +29,9 @@ class Resize(object):
         return frames, optical_flow
 
 class RandomRotation(object):
-    def __init__(self, minmax: Union[Tuple[int, int], int]) -> None:
+    def __init__(self, minmax: Union[Tuple[int, int], int], p) -> None:
         self.minmax = minmax
+        self.p = p
         if isinstance(minmax, int):
             self.minmax = (-minmax, minmax)
 

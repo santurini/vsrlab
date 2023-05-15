@@ -106,7 +106,7 @@ def load_data(cfg, k: int):
 
     train_tfms = Compose([
         Resize(*spynet.config.GConf(k).image_size),
-        RandomRotation(17),
+        RandomRotation(17, 0.5),
         RandomHorizontalFlip(0.5),
         RandomVerticalFlip(0.5)
     ])
