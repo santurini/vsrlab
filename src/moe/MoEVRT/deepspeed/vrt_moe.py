@@ -1,6 +1,5 @@
 import logging
 import math
-import os
 from distutils.version import LooseVersion
 
 import deepspeed
@@ -17,15 +16,6 @@ from vsr.models.VRT.modules.tmsa import RTMSA
 pylogger = logging.getLogger(__name__)
 
 loss_fn = CharbonnierLoss()
-
-class Debugger(nn.Module):
-    def __init__(self, rank):
-        super().__init__()
-        self.rank = rank
-
-    def forward(self, x):
-        print(f"RANK {self.rank} IM HERE:", x.shape)
-        return x
 
 class Upsample(nn.Sequential):
     def __init__(self, scale, num_feat):
@@ -146,21 +136,15 @@ class TinyVRT(nn.Module):
                     )
                     )
 
-        print('AOOOOOOOOO WORLD RAAAAAAANK:', os.environ['RANK'])
         # last stage
         self.stage6 = deepspeed.moe.layer.MoE(
             hidden_size=64,
             expert=nn.Sequential(*
                                  [
-                                     Debugger(os.environ['RANK']),
                                      Rearrange('n 1 (c d h) w ->  n d h w c', h=64, d=6),
-                                     Debugger(os.environ['RANK']),
                                      nn.LayerNorm(embed_dims[len(scales) - 1]),
-                                     Debugger(os.environ['RANK']),
                                      nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
-                                     Debugger(os.environ['RANK']),
                                      Rearrange('n d h w c -> n c d h w'),
-                                     Debugger(os.environ['RANK'])
                                  ] +
                                  [
                                      RTMSA(dim=embed_dims[i],
