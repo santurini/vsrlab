@@ -1,4 +1,3 @@
-import os.path as osp
 from pathlib import Path
 from typing import Union
 
@@ -48,8 +47,7 @@ class Dataset(torch.utils.data.Dataset):
         print(self.root)
         path = str(path).split('_')
         video_name = '_'.join(path[:2])
-        print(osp.join(self.root, video_name))
-        print(list((self.root / video_name).glob(path[-2])))
+        print(video_name)
         supp = list((self.root / video_name).glob(f"{path[-2]}.*"))[0]
         ref = list((self.root / video_name).glob(f"{path[-1].stem}.*"))[0]
 
