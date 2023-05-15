@@ -88,7 +88,10 @@ class Normalize(object):
     def __call__(self,
                  frames: Tuple[torch.Tensor, torch.Tensor],
                  optical_flow: torch.Tensor):
-        frames = normalize(frames, self.mean, self.std)
+        frames = normalize(frames,
+                           torch.tensor(self.mean),
+                           torch.tensor(self.std)
+                           )
         return frames, optical_flow
 
 class RandomVideoCompression(object):

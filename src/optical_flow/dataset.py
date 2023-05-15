@@ -45,6 +45,7 @@ class Dataset(torch.utils.data.Dataset):
 
     def get_path(self, path):
         optical_flow = torch.load(path, map_location="cpu").squeeze(0).squeeze(0)
+        print(optical_flow.shape)
         path = str(path.stem).split('_')
         video_name = '_'.join(path[:2])
         supp = list((self.root / video_name).glob(f"{path[-2]}.*"))[0]
