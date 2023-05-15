@@ -1,4 +1,4 @@
-_target_: moe.MoEVRT.vrt_moe.TinyVRT
+_target_: moe.MoEVRT.deepspeed.vrt_moe.TinyVRT
 upscale: ${train.data.datasets.train.scale}
 in_chans: 3
 out_chans: 3
