@@ -45,7 +45,7 @@ class RandomRotation(object):
         if p:
             angle = random.randint(*self.minmax)
             frames = F.rotate(frames, angle)
-            optical_flow = rotate(optical_flow, angle)
+            optical_flow = rotate(optical_flow, torch.tensor(angle))
 
         return frames, optical_flow
 
