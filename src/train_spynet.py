@@ -122,9 +122,6 @@ def train_one_epoch(
 
             predictions = Gk(x, Vk_1, upsample_optical_flow=False)
 
-            if Vk_1 is not None:
-                y = y - Vk_1
-
             loss = criterion_fn(y, predictions)
 
         update_weights(loss, scheduler, optimizer, scaler)
@@ -157,10 +154,12 @@ def train_one_level(cfg,
     teacher = build_teacher(cfg.train.teacher, device)
     cleaner = build_cleaner(cfg, device)
 
-    loss_fn = spynet.nn.EPELoss()
+    loss_fn = nn.L1Loss()
     size = spynet.config.GConf(k).image_size
 
-    for epoch in range(cfg.train.max_epochs):
+    max_epochs = cfg.train.max_epochs * 2 if k == 0 else cfg.train.max_epochs
+
+    for epoch in range(max_epochs):
         train_one_epoch(
             cfg,
             train_dl,
