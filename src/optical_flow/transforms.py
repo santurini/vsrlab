@@ -4,7 +4,7 @@ from typing import Union, Tuple
 import torch
 import torchvision.transforms.functional as F
 from kornia.enhance import normalize
-from kornia.geometry.transform import resize
+from kornia.geometry.transform import resize, rotate
 
 class Compose(object):
     def __init__(self, transforms):
@@ -42,7 +42,7 @@ class RandomRotation(object):
         if p:
             angle = random.randint(*self.minmax)
             frames = F.rotate(frames, angle)
-            optical_flow = F.rotate(optical_flow, angle)
+            optical_flow = rotate(optical_flow, angle)
 
         return frames, optical_flow
 
