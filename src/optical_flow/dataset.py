@@ -10,8 +10,8 @@ class Dataset(torch.utils.data.Dataset):
                  path: Union[Path, str],
                  split: str = "train",
                  size: float = 0.9,
-                 augmentation: ListConfig = None,
-                 compression: ListConfig = None
+                 augmentation=None,
+                 compression=None
                  ) -> None:
 
         self.root = Path("/home/aghinassi/Desktop/MergedVSR")
