@@ -33,4 +33,5 @@ with torch.no_grad():
                 ).unsqueeze(0).cuda()
             }
             flow = teacher(inputs)["flows"]
+            print(flow.shape)
             torch.save(flow.detach(), save_path)
