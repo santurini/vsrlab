@@ -81,7 +81,7 @@ class Normalize(object):
 
     def __call__(self,
                  frames: Tuple[torch.Tensor, torch.Tensor],
-                 optical_flow: torch.Tensor) -> Transformed:
+                 optical_flow: torch.Tensor):
         frames = normalize(frames, self.mean, self.std)
         return frames, optical_flow
 
