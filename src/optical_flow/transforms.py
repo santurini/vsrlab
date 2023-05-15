@@ -7,7 +7,6 @@ import av
 import torch
 import torchvision.transforms.functional as F
 from kornia.enhance import normalize
-from kornia.geometry.transform import resize, rotate
 
 class Compose(object):
     def __init__(self, transforms):
@@ -28,7 +27,7 @@ class Resize(object):
                  frames,
                  optical_flow):
         frames = F.resize(frames, (self.height, self.width))
-        optical_flow = resize(optical_flow, (self.height, self.width))
+        optical_flow = f.resize(optical_flow, (self.height, self.width))
 
         return frames, optical_flow
 
@@ -46,7 +45,7 @@ class RandomRotation(object):
         if p:
             angle = random.randint(*self.minmax)
             frames = F.rotate(frames, angle)
-            optical_flow = rotate(optical_flow, torch.tensor(angle))
+            optical_flow = F.rotate(optical_flow, angle)
 
         return frames, optical_flow
 

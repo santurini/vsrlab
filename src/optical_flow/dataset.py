@@ -3,6 +3,7 @@ from typing import Union
 
 import torch
 from PIL import Image
+from einops import rearrange
 from torchvision.transforms.functional import to_tensor
 
 class Dataset(torch.utils.data.Dataset):
@@ -44,7 +45,10 @@ class Dataset(torch.utils.data.Dataset):
         return (sequence[0], sequence[1]), optical_flow
 
     def get_path(self, path):
-        optical_flow = torch.load(path, map_location="cpu").squeeze(0).squeeze(0).squeeze(0).squeeze(0)
+        optical_flow = rearrange(
+            torch.load(path, map_location="cpu"),
+            '1 1 c h w -> c h w'
+        )
         print(optical_flow.shape)
         path = str(path.stem).split('_')
         video_name = '_'.join(path[:2])
