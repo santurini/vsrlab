@@ -39,7 +39,7 @@ class Dataset(torch.utils.data.Dataset):
         sequence = torch.stack([ref, supp])
 
         sequence, optical_flow = self.augmentation(sequence, optical_flow)
-        sequence = self.compression(sequence)
+        sequence, optical_flow = self.compression(sequence, optical_flow)
 
         return (sequence[0], sequence[1]), optical_flow
 
