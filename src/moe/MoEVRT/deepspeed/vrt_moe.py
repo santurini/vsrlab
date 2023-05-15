@@ -147,7 +147,7 @@ class TinyVRT(nn.Module):
                     )
                     )
 
-        print('WORLD RAAAAAAANK:', os.environ['RANK'])
+        print('AOOOOOOOOO WORLD RAAAAAAANK:', os.environ['RANK'])
         # last stage
         self.stage6 = deepspeed.moe.layer.MoE(
             hidden_size=64,
