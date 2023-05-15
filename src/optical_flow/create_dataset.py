@@ -14,7 +14,7 @@ with torch.no_grad():
     for i, video in enumerate(videos):
         print("Video {} / {}".format(i, len(videos)))
         frames = list(sorted(video.glob('*')))
-        couples = zip(video[:-1], video[1:])
+        couples = zip(frames[:-1], frames[1:])
         for c in couples:
             filename = '_'.join([p[0].parent.stem, p[0].stem, p[1].stem])
             save_path = f"{SAVE_DIR}/{filename}.pt"
