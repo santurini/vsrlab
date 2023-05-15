@@ -44,10 +44,8 @@ class Dataset(torch.utils.data.Dataset):
         return (sequence[0], sequence[1]), optical_flow
 
     def get_path(self, path):
-        print(self.root)
-        path = str(path).split('_')
+        path = str(path.stem).split('_')
         video_name = '_'.join(path[:2])
-        print(video_name)
         supp = list((self.root / video_name).glob(f"{path[-2]}.*"))[0]
         ref = list((self.root / video_name).glob(f"{path[-1].stem}.*"))[0]
 
