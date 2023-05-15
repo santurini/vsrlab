@@ -1,3 +1,4 @@
+import warnings
 from pathlib import Path
 
 import ptlflow
@@ -5,7 +6,12 @@ import torch
 from PIL import Image
 from torchvision.transforms.functional import to_tensor, resize
 
+warnings.filterwarnings('ignore')
+
 teacher = ptlflow.get_model('gmflow', pretrained_ckpt="kitti")
+for p in teacher.parameters():
+    p.requires_grad = False
+
 teacher.cuda()
 
 SAVE_DIR = "/home/aghinassi/Desktop/Flow"
