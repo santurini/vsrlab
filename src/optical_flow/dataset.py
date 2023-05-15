@@ -43,8 +43,7 @@ class Dataset(torch.utils.data.Dataset):
 
         return (sequence[0], sequence[1]), optical_flow
 
-    @staticmethod
-    def get_path(path):
+    def get_path(self, path):
         path = str(path).split('_')
         video_name = '_'.join(path[:2])
         supp = self.root / video_name / path[-2] / ".png"
