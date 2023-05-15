@@ -4,36 +4,25 @@ prefetch_factor: 16
 
 datasets:
   train:
-    _target_: vsr.dataset.DatasetVSR
-    path: "/home/aghinassi/Desktop/MergedVSR"
+    _target_: optical_flow.dataset.Dataset
+    path: "/home/aghinassi/Desktop/Flow"
     split: "train"
-    seq: 2
-    scale: 1
     size: 0.9
-    hr_augmentation:
-      - _target_: kornia.augmentation.RandomCrop
+    augmentation:
+      - _target_: optical_flow.transforms.Resize
         size: [ 384, 512 ]
-        pad_if_needed: True
-        same_on_batch: True
-        keepdim: True
 
-      - _target_: kornia.augmentation.RandomHorizontalFlip
+      - _target_: optical_flow.transforms.RandomHorizontalFlip
         p: 0.5
-        same_on_batch: True
-        keepdim: True
 
-      - _target_: kornia.augmentation.RandomVerticalFlip
+      - _target_: optical_flow.transforms.RandomVerticalFlip
         p: 0.5
-        same_on_batch: True
-        keepdim: True
 
-      - _target_: kornia.augmentation.RandomRotation
+      - _target_: optical_flow.transforms.RandomRotation
         degrees: 17
         p: 0.5
-        same_on_batch: True
-        keepdim: True
 
-    lr_augmentation:
+    compression:
       - _target_: core.augmentations.RandomVideoCompression
         codec: [ 'libx264' ]
         crf: [ 40 ]
@@ -43,14 +32,12 @@ datasets:
     _target_: ${train.data.datasets.train._target_}
     path: ${train.data.datasets.train.path}
     split: "val"
-    seq: ${train.data.datasets.train.seq}
-    scale: ${train.data.datasets.train.scale}
     size: 0.1
-    hr_augmentation:
-      - _target_: torchvision.transforms.CenterCrop
+    augmentation:
+      - _target_: optical_flow.transforms.Resize
         size: [ 384, 512 ]
 
-    lr_augmentation:
+    compression:
       - _target_: core.augmentations.RandomVideoCompression
         codec: [ 'libx264' ]
         crf: [ 40 ]
