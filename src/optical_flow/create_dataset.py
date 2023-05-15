@@ -3,7 +3,7 @@ from pathlib import Path
 import ptlflow
 import torch
 from PIL import Image
-from torchvision.transforms.functional import to_tensor
+from torchvision.transforms.functional import to_tensor, resize
 
 teacher = ptlflow.get_model('gmflow', pretrained_ckpt="kitti")
 teacher.cuda()
@@ -22,7 +22,8 @@ with torch.no_grad():
             save_path = f"{SAVE_DIR}/{filename}.pt"
             inputs = {
                 "images": torch.stack(
-                    [to_tensor(Image.open(c[0])), to_tensor(Image.open(c[1]))]
+                    [resize(to_tensor(Image.open(c[0])), size=(384, 512)),
+                     resize(to_tensor(Image.open(c[1])), size=(384, 512))]
                 ).unsqueeze(0).cuda()
             }
             flow = teacher(inputs)["flows"]
