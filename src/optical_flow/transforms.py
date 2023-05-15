@@ -56,7 +56,7 @@ class RandomHorizontalFlip(object):
         p = random.uniform(0, 1) > 1 - self.p
         if p:
             frames = F.hflip(frames)
-            optical_flow = F.hflip(optical_flow, angle)
+            optical_flow = F.hflip(optical_flow)
 
         return frames, optical_flow
 
@@ -70,7 +70,7 @@ class RandomVerticalFlip(object):
         p = random.uniform(0, 1) > 1 - self.p
         if p:
             frames = F.vflip(frames)
-            optical_flow = F.vflip(optical_flow, angle)
+            optical_flow = F.vflip(optical_flow)
 
         return frames, optical_flow
 
