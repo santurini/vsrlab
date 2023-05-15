@@ -47,7 +47,7 @@ class Dataset(torch.utils.data.Dataset):
     def get_path(self, path):
         optical_flow = rearrange(
             torch.load(path, map_location="cpu"),
-            '1 1 c h w -> c h w'
+            '... c h w -> c h w', c=2
         )
         print(optical_flow.shape)
         path = str(path.stem).split('_')
