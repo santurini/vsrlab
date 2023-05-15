@@ -14,7 +14,7 @@ class Dataset(torch.utils.data.Dataset):
                  compression=None
                  ) -> None:
 
-        self.root = "/home/aghinassi/Desktop/MergedVSR"
+        self.root = Path("/home/aghinassi/Desktop/MergedVSR")
         self.path = list(sorted(Path(path).glob('*')))
         self.split = split
         self.augmentation = augmentation
