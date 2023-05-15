@@ -17,6 +17,15 @@ pylogger = logging.getLogger(__name__)
 
 loss_fn = CharbonnierLoss()
 
+class Debugger(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def forward(x):
+        print("IM HERE:", x.shape)
+        return x
+
 class Upsample(nn.Sequential):
     def __init__(self, scale, num_feat):
         assert LooseVersion(torch.__version__) >= LooseVersion('1.8.1'), \
@@ -144,10 +153,15 @@ class TinyVRT(nn.Module):
             hidden_size=64,
             expert=nn.Sequential(*
                                  [
+                                     Debugger(),
                                      Rearrange('n c d h w ->  n d h w c'),
+                                     Debugger(),
                                      nn.LayerNorm(embed_dims[len(scales) - 1]),
+                                     Debugger(),
                                      nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
-                                     Rearrange('n d h w c -> n c d h w')
+                                     Debugger(),
+                                     Rearrange('n d h w c -> n c d h w'),
+                                     Debugger()
                                  ] +
                                  [
                                      RTMSA(dim=embed_dims[i],
