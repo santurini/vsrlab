@@ -14,8 +14,7 @@ class Dataset(torch.utils.data.Dataset):
                  compression=None
                  ) -> None:
 
-        self.root = Path("/home/aghinassi/Desktop/MergedVSR")
-        print(self.root)
+        self.video_folder = Path("/home/aghinassi/Desktop/MergedVSR")
         self.path = list(sorted(Path(path).glob('*')))
         self.split = split
         self.augmentation = augmentation
@@ -47,9 +46,9 @@ class Dataset(torch.utils.data.Dataset):
     def get_path(self, path):
         path = str(path).split('_')
         video_name = '_'.join(path[:2])
-        print((self.root / video_name))
-        print(list((self.root / video_name).glob(path[-2])))
-        supp = list((self.root / video_name).glob(f"{path[-2]}.*"))[0]
-        ref = list((self.root / video_name).glob(f"{path[-1].stem}.*"))[0]
+        print((self.video_folder / video_name))
+        print(list((self.video_folder / video_name).glob(path[-2])))
+        supp = list((self.video_folder / video_name).glob(f"{path[-2]}.*"))[0]
+        ref = list((self.video_folder / video_name).glob(f"{path[-1].stem}.*"))[0]
 
         return supp, ref
