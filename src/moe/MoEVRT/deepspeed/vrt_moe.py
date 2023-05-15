@@ -149,21 +149,21 @@ class TinyVRT(nn.Module):
                     )
                     )
 
-        print('LOCAL RAAAAAAANK:', os.environ['LOCAL_RANK'])
+        print('WORLD RAAAAAAANK:', os.environ['LOCAL_RANK'])
         # last stage
         self.stage6 = deepspeed.moe.layer.MoE(
             hidden_size=64,
             expert=nn.Sequential(*
                                  [
-                                     Debugger(os.environ['LOCAL_RANK']),
+                                     Debugger(os.environ['WORLD_SIZE']),
                                      Rearrange('n 1 (c d h) w ->  n d h w c', h=64, d=6),
-                                     Debugger(os.environ['LOCAL_RANK']),
+                                     Debugger(os.environ['WORLD_SIZE']),
                                      nn.LayerNorm(embed_dims[len(scales) - 1]),
-                                     Debugger(os.environ['LOCAL_RANK']),
+                                     Debugger(os.environ['WORLD_SIZE']),
                                      nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
-                                     Debugger(os.environ['LOCAL_RANK']),
+                                     Debugger(os.environ['WORLD_SIZE']),
                                      Rearrange('n d h w c -> n c d h w'),
-                                     Debugger(os.environ['LOCAL_RANK'])
+                                     Debugger(os.environ['WORLD_SIZE'])
                                  ] +
                                  [
                                      RTMSA(dim=embed_dims[i],
