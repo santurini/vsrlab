@@ -1,6 +1,6 @@
-num_workers: 8
+num_workers: 4
 batch_size: 32
-prefetch_factor: 16
+prefetch_factor: 8
 
 datasets:
   train:
