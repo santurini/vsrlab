@@ -1,5 +1,5 @@
 num_workers: 8
-batch_size: 16
+batch_size: 32
 prefetch_factor: 16
 
 datasets:
@@ -23,7 +23,7 @@ datasets:
         p: 0.5
 
     compression:
-      - _target_: core.augmentations.RandomVideoCompression
+      - _target_: optical_flow.transforms.RandomVideoCompression
         codec: [ 'libx264' ]
         crf: [ 38 ]
         fps: [ 30 ]
@@ -38,7 +38,7 @@ datasets:
         size: [ 384, 512 ]
 
     compression:
-      - _target_: core.augmentations.RandomVideoCompression
+      - _target_: optical_flow.transforms.RandomVideoCompression
         codec: [ 'libx264' ]
         crf: [ 38 ]
         fps: [ 30 ]
