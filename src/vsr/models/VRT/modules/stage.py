@@ -1,5 +1,3 @@
-import os
-
 import torch
 import torch.nn as nn
 from einops.layers.torch import Rearrange
@@ -110,20 +108,12 @@ class Stage(nn.Module):
         self.pa_fuse = Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2), dim)
 
     def forward(self, x, flows_backward, flows_forward):
-        print("STAGE FORWARD")
-        Debugger(os.environ['WORLD_SIZE'])(x)
         x = self.reshape(x)
-        Debugger(os.environ['WORLD_SIZE'])(x)
         x = self.linear1(self.residual_group1(x).transpose(1, 4)).transpose(1, 4) + x
-        Debugger(os.environ['WORLD_SIZE'])(x)
         x = self.linear2(self.residual_group2(x).transpose(1, 4)).transpose(1, 4) + x
-        Debugger(os.environ['WORLD_SIZE'])(x)
         x = x.transpose(1, 2)
-        Debugger(os.environ['WORLD_SIZE'])(x)
         x_backward, x_forward = self.get_aligned_features(x, flows_backward, flows_forward)
-        Debugger(os.environ['WORLD_SIZE'])(x)
         x = self.pa_fuse(torch.cat([x, x_backward, x_forward], 2).permute(0, 1, 3, 4, 2)).permute(0, 4, 1, 2, 3)
-        Debugger(os.environ['WORLD_SIZE'])(x)
         return x
 
     def get_aligned_features(self, x, flows_backward, flows_forward):
