@@ -27,7 +27,7 @@ class Resize(object):
                  frames,
                  optical_flow):
         frames = F.resize(frames, (self.height, self.width))
-        optical_flow = f.resize(optical_flow, (self.height, self.width))
+        optical_flow = F.resize(optical_flow, (self.height, self.width))
 
         return frames, optical_flow
 
