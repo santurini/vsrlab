@@ -15,6 +15,7 @@ class Dataset(torch.utils.data.Dataset):
                  ) -> None:
 
         self.root = Path("/home/aghinassi/Desktop/MergedVSR")
+        print(self.root)
         self.path = list(sorted(Path(path).glob('*')))
         self.split = split
         self.augmentation = augmentation
