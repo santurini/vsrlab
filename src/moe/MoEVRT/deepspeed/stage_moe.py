@@ -1,10 +1,10 @@
-import deepspeed
+# import deepspeed
 import torch
 import torch.nn as nn
 from einops.layers.torch import Rearrange
-from vsr.models.MoEVRT.modules.tmsa_moe import TMSAG
 from vsr.models.VRT.modules.deform_conv import DCNv2PackFlowGuided
 from vsr.models.VRT.modules.spynet import flow_warp
+from vsr.models.VRT.modules.tmsa import TMSAG
 from vsr.models.VRT.modules.window_attention import Mlp_GEGLU
 
 class Stage(nn.Module):
@@ -72,9 +72,6 @@ class Stage(nn.Module):
                                      input_resolution=input_resolution,
                                      depth=int(depth * mul_attn_ratio),
                                      num_heads=num_heads,
-                                     num_experts=num_experts,
-                                     num_gpus=num_gpus,
-                                     top_k=top_k,
                                      window_size=(2, window_size[1], window_size[2]),
                                      mut_attn=True,
                                      mlp_ratio=mlp_ratio,
@@ -90,9 +87,6 @@ class Stage(nn.Module):
                                      input_resolution=input_resolution,
                                      depth=depth - int(depth * mul_attn_ratio),
                                      num_heads=num_heads,
-                                     num_experts=num_experts,
-                                     num_gpus=num_gpus,
-                                     top_k=top_k,
                                      window_size=window_size,
                                      mut_attn=False,
                                      mlp_ratio=mlp_ratio,
@@ -107,15 +101,16 @@ class Stage(nn.Module):
         self.pa_deform = DCNv2PackFlowGuided(dim, dim, 3, padding=1, deformable_groups=deformable_groups,
                                              max_residue_magnitude=max_residue_magnitude, pa_frames=pa_frames)
 
-        pa_fuse = Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2))
-        self.pa_fuse = deepspeed.moe.layer.MoE(
+        self.pa_fuse = Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2), dim)
+
+        '''self.pa_fuse = deepspeed.moe.layer.MoE(
             hidden_size=dim * (1 + 2),
-            expert=pa_fuse,
+            expert=Mlp_GEGLU(dim * (1 + 2), dim * (1 + 2)),
             num_experts=num_experts,
             ep_size=num_gpus,
             k=top_k
         )
-        self.linear3 = nn.Linear(dim * (1 + 2), dim)
+        self.linear3 = nn.Linear(dim * (1 + 2), dim)'''
 
     def forward(self, x, flows_backward, flows_forward):
         x = self.reshape(x)
@@ -125,8 +120,10 @@ class Stage(nn.Module):
         x = x.transpose(1, 2)
         x_backward, x_forward = self.get_aligned_features(x, flows_backward, flows_forward)
         x = self.pa_fuse(torch.cat([x, x_backward, x_forward], 2).permute(0, 1, 3, 4, 2)).permute(0, 4, 1, 2, 3)
+        # x, _, _ = self.pa_fuse(torch.cat([x, x_backward, x_forward], 2).permute(0, 1, 3, 4, 2))
+        # x = self.linear3(x).permute(0, 4, 1, 2, 3)
 
-        return self.linear3(x)
+        return x
 
     def get_aligned_features(self, x, flows_backward, flows_forward):
         '''Parallel feature warping for 2 frames.'''

@@ -8,9 +8,9 @@ from core.losses import CharbonnierLoss
 from core.modules.conv import ResidualBlock
 from einops import rearrange
 from einops.layers.torch import Rearrange
-from vsr.models.MoEVRT.modules.stage_moe import Stage
-from vsr.models.MoEVRT.modules.tmsa_moe import RTMSA
+from vsr.models.MoEVRT.deepspeed.stage_moe import Stage
 from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
+from vsr.models.VRT.modules.tmsa import RTMSA
 
 pylogger = logging.getLogger(__name__)
 
@@ -74,9 +74,9 @@ class TinyVRT(nn.Module):
             indep_reconsts=[-2, -1],
             embed_dims=[64, 64, 64, 64, 64, 80, 80],
             num_heads=[6, 6, 6, 6, 6, 6, 6],
-            num_experts=4,
+            num_experts=2,
             num_gpus=2,
-            top_k=2,
+            top_k=1,
             mul_attn_ratio=0.75,
             mlp_ratio=2.,
             qkv_bias=True,
@@ -139,31 +139,33 @@ class TinyVRT(nn.Module):
                     )
 
         # last stage
-        self.stage6 = nn.ModuleList(
-            [nn.Sequential(
-                Rearrange('n c d h w ->  n d h w c'),
-                nn.LayerNorm(embed_dims[len(scales) - 1]),
-                nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
-                Rearrange('n d h w c -> n c d h w')
-            )]
+        self.stage6 = deepspeed.moe.layer.MoE(
+            hidden_size=64,
+            expert=nn.Sequential(*
+                                 [
+                                     Rearrange('n c d h w ->  n d h w c'),
+                                     nn.LayerNorm(embed_dims[len(scales) - 1]),
+                                     nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
+                                     Rearrange('n d h w c -> n c d h w')
+                                 ] +
+                                 [
+                                     RTMSA(dim=embed_dims[i],
+                                           input_resolution=img_size,
+                                           depth=depths[i],
+                                           num_heads=num_heads[i],
+                                           window_size=[1, window_size[1],
+                                                        window_size[2]] if i in self.indep_reconsts else window_size,
+                                           mlp_ratio=mlp_ratio,
+                                           qkv_bias=qkv_bias, qk_scale=qk_scale,
+                                           drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
+                                           norm_layer=norm_layer
+                                           ) for i in range(len(scales), len(depths))
+                                 ]
+                                 ),
+            num_experts=num_experts,
+            ep_size=num_gpus,
+            k=top_k
         )
-
-        for i in range(len(scales), len(depths)):
-            self.stage6.append(
-                RTMSA(dim=embed_dims[i],
-                      input_resolution=img_size,
-                      depth=depths[i],
-                      num_heads=num_heads[i],
-                      num_experts=num_experts,
-                      num_gpus=num_gpus,
-                      top_k=top_k,
-                      window_size=[1, window_size[1], window_size[2]] if i in self.indep_reconsts else window_size,
-                      mlp_ratio=mlp_ratio,
-                      qkv_bias=qkv_bias, qk_scale=qk_scale,
-                      drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
-                      norm_layer=norm_layer
-                      )
-            )
 
         self.norm = norm_layer(embed_dims[-1])
         self.conv_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
@@ -210,8 +212,7 @@ class TinyVRT(nn.Module):
         x = self.stage5(x + x2, flows_backward[0::3], flows_forward[0::3])  # =
         x = x + x1
 
-        for layer in self.stage6:
-            x = layer(x)
+        x = self.stage6(x)
 
         x = rearrange(x, 'n c d h w -> n d h w c')
         x = self.norm(x)
