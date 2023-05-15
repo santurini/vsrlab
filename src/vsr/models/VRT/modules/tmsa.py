@@ -6,6 +6,16 @@ from einops import rearrange
 from vsr.models.VRT.modules.stochastic_depth import DropPath
 from vsr.models.VRT.modules.window_attention import *
 
+class Debugger(nn.Module):
+    def __init__(self, rank):
+        super().__init__()
+        self.rank = rank
+
+    def forward(self, x):
+        if self.rank == 0:
+            print("IM HERE:", x.shape)
+        return x
+
 class TMSA(nn.Module):
     """ Temporal Mutual Self Attention (TMSA).
 

@@ -6,16 +6,6 @@ from vsr.models.VRT.modules.spynet import flow_warp
 from vsr.models.VRT.modules.tmsa import TMSAG
 from vsr.models.VRT.modules.window_attention import Mlp_GEGLU
 
-class Debugger(nn.Module):
-    def __init__(self, rank):
-        super().__init__()
-        self.rank = rank
-
-    def forward(self, x):
-        if self.rank == 0:
-            print("IM HERE:", x.shape)
-        return x
-
 class Stage(nn.Module):
     """Residual Temporal Mutual Self Attention Group and Parallel Warping.
 
