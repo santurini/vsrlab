@@ -31,7 +31,8 @@ class Dataset(torch.utils.data.Dataset):
         return len(self.path)
 
     def __getitem__(self, idx: int):
-        supp, ref, optical_flow = self.get_path(self.path[idx])
+        of_path = self.path[idx]
+        supp, ref, optical_flow = self.get_path(of_path)
         supp = to_tensor(Image.open(supp))
         ref = to_tensor(Image.open(ref))
 
