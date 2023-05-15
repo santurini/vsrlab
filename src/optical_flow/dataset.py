@@ -31,8 +31,7 @@ class Dataset(torch.utils.data.Dataset):
         return len(self.path)
 
     def __getitem__(self, idx: int):
-        of_path = self.path[idx]
-        supp, ref, optical_flow = self.get_path(of_path)
+        supp, ref, optical_flow = self.get_path(self.path[idx])
         supp = to_tensor(Image.open(supp))
         ref = to_tensor(Image.open(ref))
 
@@ -44,10 +43,10 @@ class Dataset(torch.utils.data.Dataset):
         return (sequence[0], sequence[1]), optical_flow
 
     def get_path(self, path):
+        optical_flow = torch.load(path)
         path = str(path.stem).split('_')
         video_name = '_'.join(path[:2])
         supp = list((self.root / video_name).glob(f"{path[-2]}.*"))[0]
         ref = list((self.root / video_name).glob(f"{Path(path[-1]).stem}.*"))[0]
-        optical_flow = torch.load(of_path)
 
         return supp, ref, optical_flow
