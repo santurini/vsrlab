@@ -11,9 +11,9 @@ depths: [ 4, 4, 4, 4, 4, 4, 4 ]
 indep_reconsts: [ -2, -1 ]
 embed_dims: [ 32, 32, 32, 32, 32, 32, 32 ]
 num_heads: [ 4, 4, 4, 4, 4, 4, 4 ]
-num_experts: 2
+num_experts: 4
 num_gpus: 2
-top_k: 2
+top_k: 1
 mul_attn_ratio: 0.75
 mlp_ratio: 2.
 qkv_bias: True
