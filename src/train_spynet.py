@@ -116,6 +116,7 @@ def train_one_epoch(
         prev_pyramid.eval()
 
     for i, ((x1, x2), y) in enumerate(train_dl):
+        print("Batch {}/{}".format(i, len(train_dl)))
         # lr, hr = data[0].to(device), data[1].to(device)
         x1, x2, y = x1.to(device), x2.to(device), y.to(device)
 
@@ -167,13 +168,21 @@ def train_one_level(cfg,
                     ) -> spynet.BasicModule:
     print(f'Training level {k}...')
 
+    print("Preparing datasets")
     train_ds, val_ds = load_data(cfg, k)
+
+    print("Preparing dataloaders")
     train_dl, val_dl, epoch = build_dl(train_ds, val_ds, cfg)
     # train_dl, val_dl, _, _, epoch = build_loaders(cfg)
 
+    print("Instantiating pyramids")
     current_level, trained_pyramid = build_spynets(cfg, k, previous, device)
+
+    print("Instantiating optimizer")
     optimizer, scheduler = build_optimizer(current_level, cfg.train.optimizer, cfg.train.scheduler)
     # teacher = build_teacher(cfg.train.teacher, device)
+
+    print("Instantiating cleaner")
     cleaner = build_cleaner(cfg, device)
 
     loss_fn = nn.L1Loss()
