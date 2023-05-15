@@ -14,7 +14,6 @@ class Compose(object):
 
     def __call__(self, sequence, optical_flow):
         for t in self.transforms:
-            print(optical_flow.shape)
             sequence, optical_flow = t(sequence, optical_flow)
         return sequence, optical_flow
 
