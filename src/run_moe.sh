@@ -3,7 +3,7 @@ PROJECT_ROOT="$HOME/Desktop/nn-lab/src/moe/MoEVRT"
 
 export CC=gcc-10
 export CXX=g++-10
-export LOGLEVEL=WARNING
+export TORCH_CPP_LOG_LEVEL=ERROR
 
 deepspeed --hostfile="$PROJECT_ROOT/deepspeed/hostfile" \
           --master_addr=10.23.0.80 \
