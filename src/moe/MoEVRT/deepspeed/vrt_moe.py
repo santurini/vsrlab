@@ -1,5 +1,6 @@
 import logging
 import math
+import os
 from distutils.version import LooseVersion
 
 import deepspeed
@@ -16,6 +17,15 @@ from vsr.models.VRT.modules.tmsa import RTMSA
 pylogger = logging.getLogger(__name__)
 
 loss_fn = CharbonnierLoss()
+
+class Debug(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        if int(os.environ["RANK"]) == 0:
+            print("IM HERE:", x.shape)
+        return x
 
 class Upsample(nn.Sequential):
     def __init__(self, scale, num_feat):
