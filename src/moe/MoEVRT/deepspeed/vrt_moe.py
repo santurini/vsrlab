@@ -156,7 +156,8 @@ class TinyVRT(nn.Module):
                                      Debug(),
                                      nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
                                      Debug(),
-                                     Rearrange('n g (c d h w)  -> n (c g) d h w', d=6, w=img_size[1]),
+                                     Rearrange('n g (c d h w)  -> n (c g) d h w', c=embed_dims[len(scales)], d=6,
+                                               h=img_size[0], w=img_size[1]),
                                      Debug(),
                                  ] +
                                  [
