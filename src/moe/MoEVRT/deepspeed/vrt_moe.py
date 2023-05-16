@@ -156,9 +156,8 @@ class TinyVRT(nn.Module):
                                      Debug(),
                                      nn.Linear(embed_dims[len(scales) - 1] // top_k, embed_dims[len(scales)]),
                                      Debug(),
-                                     # Rearrange('n d h w c -> n (c g) d h w', c=embed_dims[len(scales)], d=6,
-                                     # h=img_size[0], w=img_size[1]),
-                                     # Debug(),
+                                     Rearrange('n d h (w e) (c g) -> n g (c e d h) w', e=top_k, g=num_gpus),
+                                     Debug(),
                                  ] +
                                  [
                                      RTMSA(dim=embed_dims[i],
