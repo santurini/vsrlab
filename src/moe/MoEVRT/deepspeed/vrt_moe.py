@@ -146,7 +146,7 @@ class TinyVRT(nn.Module):
 
         # last stage
         self.stage6 = deepspeed.moe.layer.MoE(
-            hidden_size=image_size[1],
+            hidden_size=img_size[1],
             expert=nn.Sequential(*
                                  [
                                      Debug(),
