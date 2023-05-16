@@ -8,9 +8,9 @@ train:
   finetune: True
 
   data:
-    batch_size: 16
+    batch_size: 32
     num_workers: 12
-    prefetch_factor: 8
+    prefetch_factor: 12
 
   cleaner:
     _target_: core.modules.conv.IterativeRefinement
