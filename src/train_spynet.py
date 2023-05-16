@@ -138,7 +138,7 @@ def train_one_epoch(
             predictions = Gk(x, Vk_1, upsample_optical_flow=False)
             loss = criterion_fn(y, predictions)
 
-        update_weights_amp(loss, scheduler, optimizer, scaler)
+        update_weights_amp(loss, Gk, scheduler, optimizer, scaler)
         # update_weights(loss, scheduler, optimizer)
         train_loss += loss.detach().item()
 
