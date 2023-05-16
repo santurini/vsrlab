@@ -150,7 +150,7 @@ class TinyVRT(nn.Module):
             expert=nn.Sequential(*
                                  [
                                      Rearrange('n g (c e d h) w -> n d h w (c g e)', d=6, e=top_k,
-                                               c=embed_dims[len(scales) - 1] / top_k),
+                                               c=embed_dims[len(scales) - 1] // top_k),
                                      Debug(),
                                      nn.LayerNorm(embed_dims[len(scales) - 1]),
                                      Debug(),
