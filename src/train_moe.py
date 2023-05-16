@@ -28,6 +28,7 @@ from core.utils import (
 
 warnings.filterwarnings('ignore')
 logging.getLogger(deepspeed.__name__).setLevel(logging.ERROR)
+logging.getLogger(dist.__name__).setLevel(logging.ERROR)
 
 def add_argument():
     parser = argparse.ArgumentParser()
