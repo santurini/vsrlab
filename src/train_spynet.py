@@ -99,8 +99,9 @@ def train_one_epoch(
         epoch: int = 0,
         k: int = -1,
         logger: nn.Module = None,
-        rank=0,
-        world_size=2
+        device: str = 'cuda:0',
+        rank: int = 0,
+        world_size: int = 2
 ):
     Gk.train()
     dt = time.time()
