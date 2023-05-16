@@ -140,9 +140,9 @@ def train_one_epoch(
         update_weights_amp(loss, Gk, scheduler, optimizer, scaler)
         train_loss += loss.detach().item()
 
-        if rank == 0:
-            logger.log_dict({f"Loss {k}": train_loss / len(train_dl)}, epoch, f"Train")
-            logger.log_flow(f"Train {k}", epoch, denormalize(x[0]), predictions, y)
+    if rank == 0:
+        logger.log_dict({f"Loss {k}": train_loss / len(train_dl)}, epoch, f"Train")
+        logger.log_flow(f"Train {k}", epoch, denormalize(x[0]), predictions, y)
 
     print("Starting Evaluation ...")
 

@@ -118,7 +118,7 @@ def load_data(cfg, k: int):
     compression = Compose([
         RandomVideoCompression(
             codec=['libx264'],
-            crf=[38],
+            crf=[34],
             fps=[30]
         ),
         Normalize(
