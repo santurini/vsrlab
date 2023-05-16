@@ -69,13 +69,9 @@ def evaluate(
                     Vk_1 = F.interpolate(
                         Vk_1, scale_factor=2, mode='bilinear', align_corners=True)
             else:
-                Vk_1 = None
+                Vk_1 = torch.zeros_like(x1)
 
-            predictions = Gk(x, Vk_1, upsample_optical_flow=False)
-
-            '''if Vk_1 is not None:
-                y = y - Vk_1'''
-
+            predictions = Gk(x, Vk_1, upsample_optical_flow=False) + Vk_1
             loss = criterion_fn(y, predictions)
 
             if cfg.train.ddp:
@@ -125,12 +121,9 @@ def train_one_epoch(
                     Vk_1 = F.interpolate(
                         Vk_1, scale_factor=2, mode='bilinear', align_corners=True)
             else:
-                Vk_1 = None
+                Vk_1 = torch.zeros_like(x1)
 
-            '''if Vk_1 is not None:
-                            y = y - Vk_1'''
-
-            predictions = Gk(x, Vk_1, upsample_optical_flow=False)
+            predictions = Gk(x, Vk_1, upsample_optical_flow=False) + Vk_1
             loss = criterion_fn(y, predictions)
 
         update_weights_amp(loss, Gk, scheduler, optimizer, scaler)

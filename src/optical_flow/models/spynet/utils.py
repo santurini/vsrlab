@@ -26,8 +26,15 @@ def clean_frames(cleaner, frame1, frame2):
 
 def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], local_rank, device):
     if cfg.train.restore is not None:
+        assert not cfg.train.finetune, "Only one of restore and finetune option can be specified"
         pretrained = spynet.SpyNet.from_pretrained(cfg.train.k, cfg.train.restore)
         current_train = pretrained.units[k]
+
+    elif cfg.train.finetune:
+        assert not bool(cfg.train.restore), "Only one of restore and finetune option can be specified"
+        pretrained = spynet.SpyNet.from_pretrained(cfg.train.k, None)
+        current_train = pretrained.units[k]
+
     else:
         current_train = spynet.BasicModule()
 

@@ -4,6 +4,8 @@ defaults:
 
 train:
   ddp: True
+  restore: null
+  finetune: True
 
   cleaner:
     _target_: core.modules.conv.IterativeRefinement

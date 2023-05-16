@@ -8,3 +8,4 @@ seed_index: null
 
 max_epochs: 50
 restore: null
+finetune: True
