@@ -3,7 +3,7 @@ defaults:
   - override /train: deepspeed
 
 core:
-  run_id: jhaskvdfka
+  run_id: gvjkvljjl
   run_name: MoEVRT DeepSpeed
 
 train:

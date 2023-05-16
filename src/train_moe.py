@@ -49,16 +49,16 @@ def evaluate(rank, world_size, epoch, model_engine, logger, val_dl, loss_fn, met
     val_loss, val_metrics = 0, {k: 0 for k in cfg.train.metric.metrics}
 
     for i, data in enumerate(val_dl):
-        lr, hr = data[0].half().to(model_engine.local_rank), \
-            data[1].half().to(model_engine.local_rank)
+        lr, hr = data[0].to(model_engine.local_rank), \
+            data[1].to(model_engine.local_rank)
 
-        sr, lq = model_engine(lr)
+        sr, lq = model_engine(lr.half())
         loss = compute_loss(loss_fn, sr, hr)
 
         dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
 
         val_loss += loss.detach().item() / world_size
-        val_metrics = running_metrics(val_metrics, metric, sr.float(), hr.float())
+        val_metrics = running_metrics(val_metrics, metric, sr.float(), hr)
 
     save_checkpoint_ds(cfg, model_engine, logger, rank)
 
@@ -106,21 +106,21 @@ def run(cfg: omegaconf.DictConfig, args):
         train_loss, train_metrics = 0.0, {k: 0 for k in cfg.train.metric.metrics}
 
         for i, data in enumerate(train_dl):
-            lr, hr = data[0].half().to(device), data[1].half().to(device)
+            lr, hr = data[0].to(device), data[1].to(device)
 
-            sr, lq = model_engine(lr)
+            sr, lq = model_engine(lr.half())
             loss = compute_loss(loss_fn, sr, hr, lq)
 
             model_engine.backward(loss)
             model_engine.step()
 
             train_loss += loss.detach().item()
-            train_metrics = running_metrics(train_metrics, metric, sr.float(), hr.float())
+            train_metrics = running_metrics(train_metrics, metric, sr.float(), hr)
 
         if rank == 0:
             logger.log_dict({"Loss": train_loss / len(train_dl)}, epoch, "Train")
             logger.log_dict({k: v / len(train_dl) for k, v in train_metrics.items()}, epoch, "Train")
-            logger.log_images("Train", epoch, lr.float(), sr.float(), hr.float(), lq.float())
+            logger.log_images("Train", epoch, lr.float(), sr, hr, lq.float())
 
             print("Starting Evaluation ...")
 
