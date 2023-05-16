@@ -50,9 +50,9 @@ class WandbLogger(object):
         self.run.log({f'Prediction {stage}': [wandb.Image(grid, caption=f'Stage {stage}, Epoch {epoch}')]})
 
     def log_flow(self, stage, epoch, cleaned, flow, gt_flow):
-        cleaned = resize(cleaned[0], (382, 512)).clamp(0, 1).detach().cpu()
-        flow_viz = resize(flow_tensor_to_image(flow[0]), (382, 512)).detach().cpu()
-        gt_flow = resize(flow_tensor_to_image(gt_flow[0]), (382, 512)).detach().cpu()
+        cleaned = cleaned[0].clamp(0, 1).detach().cpu()
+        flow_viz = flow_tensor_to_image(flow[0]).detach().cpu()
+        gt_flow = flow_tensor_to_image(gt_flow[0]).detach().cpu()
         grid = make_grid([cleaned, flow_viz, gt_flow], nrow=3, ncol=1)
         self.run.log({f'Flow {stage}': [wandb.Image(grid, caption=f'Epoch {epoch}')]})
 
