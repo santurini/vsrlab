@@ -69,10 +69,11 @@ def evaluate(
                     Vk_1 = prev_pyramid(x)
                     Vk_1 = F.interpolate(
                         Vk_1, scale_factor=2, mode='bilinear', align_corners=True)
+                predictions = Gk(x, Vk_1, upsample_optical_flow=False) + Vk_1
             else:
-                Vk_1 = torch.zeros_like(x1)
+                Vk_1 = None
+                predictions = Gk(x, Vk_1, upsample_optical_flow=False) + Vk_1
 
-            predictions = Gk(x, Vk_1, upsample_optical_flow=False) + Vk_1
             loss = criterion_fn(y, predictions)
 
             if cfg.train.ddp:
@@ -125,10 +126,11 @@ def train_one_epoch(
                     Vk_1 = prev_pyramid(x)
                     Vk_1 = F.interpolate(
                         Vk_1, scale_factor=2, mode='bilinear', align_corners=True)
+                predictions = Gk(x, Vk_1, upsample_optical_flow=False) + Vk_1
             else:
-                Vk_1 = torch.zeros_like(x1)
+                Vk_1 = None
+                predictions = Gk(x, Vk_1, upsample_optical_flow=False) + Vk_1
 
-            predictions = Gk(x, Vk_1, upsample_optical_flow=False) + Vk_1
             loss = criterion_fn(y, predictions)
 
         update_weights_amp(loss, Gk, scheduler, optimizer, scaler)
