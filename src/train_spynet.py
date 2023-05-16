@@ -62,6 +62,10 @@ def evaluate(
     for i, (x1, x2, y) in enumerate(val_dl):
         x1, x2, y = x1.to(device), x2.to(device), y.to(device)
 
+        if i % 100 == 0:
+            if rank == 0:
+                print("Batch {}/{}".format(i, len(val_dl) - 1))
+
         with torch.cuda.amp.autocast():
             x = clean_frames(cleaner, x1, x2)
 
@@ -114,6 +118,10 @@ def train_one_epoch(
 
     for i, (x1, x2, y) in enumerate(train_dl):
         x1, x2, y = x1.to(device), x2.to(device), y.to(device)
+
+        if i % 100 == 0:
+            if rank == 0:
+                print("Batch {}/{}".format(i, len(val_dl) - 1))
 
         with torch.cuda.amp.autocast():
             x = clean_frames(cleaner, x1, x2)
