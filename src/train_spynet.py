@@ -49,6 +49,7 @@ def evaluate(
         epoch: int = 0,
         k: int = -1,
         logger: nn.Module = None,
+        device: str = 'cuda:0',
         rank: int = 0,
         world_size: int = 2
 ):
@@ -142,7 +143,7 @@ def train_one_epoch(
     evaluate(
         cfg, val_dl, criterion_fn, Gk,
         cleaner, prev_pyramid, epoch, k, logger,
-        rank, world_size
+        device, rank, world_size
     )
 
     if rank == 0:
