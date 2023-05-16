@@ -3,12 +3,7 @@ defaults:
   - override /train: distillation
 
 train:
-  ddp: False
-
-  teacher:
-    name: "gmflow"
-    ckpt: "kitti"
-    input_size: [ 382, 512 ]
+  ddp: True
 
   cleaner:
     _target_: core.modules.conv.IterativeRefinement

@@ -104,13 +104,13 @@ class SpyNet(nn.Module):
         return Vk_1
 
     @classmethod
-    def from_pretrained(cls: Type['SpyNet'], k) -> 'SpyNet':
+    def from_pretrained(cls: Type['SpyNet'], k, path=None) -> 'SpyNet':
 
         def get_model(ckpt_path: str, levels) -> 'SpyNet':
             checkpoint = torch.load(ckpt_path, map_location=lambda storage, loc: storage)['params']
             checkpoint = {
                 k.replace('basic_module', 'units', 1).replace('basic_module', 'module'): v
-                          for k, v in checkpoint.items()
+                for k, v in checkpoint.items()
             }
 
             instance = cls(k=levels)
@@ -118,5 +118,7 @@ class SpyNet(nn.Module):
 
             return instance
 
-        path = f'{PROJECT_ROOT}/src/vsr/models/VRT/weights/spynet_sintel_final-3d2a1287.pth'
+        if path is None:
+            path = f'{PROJECT_ROOT}/src/vsr/models/VRT/weights/spynet_sintel_final-3d2a1287.pth'
+
         return get_model(path, k)

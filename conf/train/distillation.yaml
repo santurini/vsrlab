@@ -6,5 +6,5 @@ defaults:
 
 seed_index: null
 
-max_epochs: 5000000
+max_epochs: 50
 restore: null

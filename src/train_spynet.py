@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader
 
 from core import PROJECT_ROOT
 from core.utils import (
+    get_resources,
     build_optimizer,
     build_logger,
     save_checkpoint,
@@ -35,7 +36,6 @@ denormalize = Denormalize(
     mean=[.485, .406, .456],
     std=[.229, .225, .224]
 )
-device = torch.device("cuda:{}".format(0))
 
 @torch.no_grad()
 def evaluate(
@@ -47,7 +47,9 @@ def evaluate(
         prev_pyramid: torch.nn.Module = None,
         epoch: int = 0,
         k: int = -1,
-        logger: nn.Module = None
+        logger: nn.Module = None,
+        rank: int = 0,
+        world_size: int = 2
 ):
     Gk.eval()
     val_loss = 0.0
@@ -75,11 +77,16 @@ def evaluate(
                 y = y - Vk_1'''
 
             loss = criterion_fn(y, predictions)
-            val_loss += loss.detach().item()
 
-    logger.log_dict({f"Loss {k}": val_loss / len(val_dl)}, epoch, "Val")
-    logger.log_flow(f"Val {k}", epoch, denormalize(x[0]), predictions, y)
-    save_k_checkpoint(cfg, k, Gk, logger, cfg.train.ddp)
+            if cfg.train.ddp:
+                dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
+
+            val_loss += loss.detach().item() / world_size
+            save_k_checkpoint(cfg, k, Gk, logger, cfg.train.ddp)
+
+    if rank == 0:
+        logger.log_dict({f"Loss {k}": val_loss / len(val_dl)}, epoch, "Val")
+        logger.log_flow(f"Val {k}", epoch, denormalize(x[0]), predictions, y)
 
 def train_one_epoch(
         cfg,
@@ -94,7 +101,9 @@ def train_one_epoch(
         prev_pyramid: torch.nn.Module = None,
         epoch: int = 0,
         k: int = -1,
-        logger: nn.Module = None
+        logger: nn.Module = None,
+        rank=0,
+        world_size=2
 ):
     Gk.train()
     dt = time.time()
@@ -127,23 +136,32 @@ def train_one_epoch(
         update_weights_amp(loss, Gk, scheduler, optimizer, scaler)
         train_loss += loss.detach().item()
 
-    logger.log_dict({f"Loss {k}": train_loss / len(train_dl)}, epoch, f"Train")
-    logger.log_flow(f"Train {k}", epoch, denormalize(x[0]), predictions, y)
+    if rank == 0:
+        logger.log_dict({f"Loss {k}": train_loss / len(train_dl)}, epoch, f"Train")
+        logger.log_flow(f"Train {k}", epoch, denormalize(x[0]), predictions, y)
+
+    print("Starting Evaluation ...")
 
     evaluate(
         cfg, val_dl, criterion_fn, Gk,
-        cleaner, prev_pyramid, epoch, k, logger
+        cleaner, prev_pyramid, epoch, k, logger,
+        rank, world_size
     )
 
-    dt = time.time() - dt
-    print(f"Epoch {epoch} Level {k} - Elapsed time --> {dt:2f}")
+    if rank == 0:
+        dt = time.time() - dt
+        print(f"Epoch {epoch} Level {k} - Elapsed time --> {dt:2f}")
 
 
 def train_one_level(cfg,
                     k: int,
                     previous: Sequence[spynet.BasicModule],
                     scaler,
-                    logger
+                    logger,
+                    device,
+                    rank,
+                    local_rank,
+                    world_size
                     ) -> spynet.BasicModule:
     print(f'Training level {k}...')
 
@@ -154,13 +172,13 @@ def train_one_level(cfg,
     train_dl, val_dl, epoch = build_dl(train_ds, val_ds, cfg)
 
     print("Instantiating pyramids")
-    current_level, trained_pyramid = build_spynets(cfg, k, previous, device)
+    current_level, trained_pyramid = build_spynets(cfg, k, previous, local_rank, device)
 
     print("Instantiating optimizer")
     optimizer, scheduler = build_optimizer(current_level, cfg.train.optimizer, cfg.train.scheduler)
 
     print("Instantiating cleaner")
-    cleaner = build_cleaner(cfg, device)
+    cleaner = build_cleaner(cfg, local_rank, device)
 
     loss_fn = nn.L1Loss()
     max_epochs = cfg.train.max_epochs * 2 if k == 0 else cfg.train.max_epochs
@@ -179,25 +197,38 @@ def train_one_level(cfg,
             trained_pyramid,
             epoch,
             k,
-            logger
+            logger,
+            device,
+            rank,
+            world_size
         )
     
     return current_level
 
-
 def train(cfg):
-    logger = build_logger(cfg)
-    model_config = save_config(cfg)
+    rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
+
+    if rank == 0:
+        logger = build_logger(cfg)
+        model_config = save_config(cfg)
+    else:
+        logger = None
+
+    device = torch.device("cuda:{}".format(local_rank))
     scaler = torch.cuda.amp.GradScaler()
 
     previous = []
     for k in range(cfg.train.k):
-        previous.append(train_one_level(cfg, k, previous, scaler, logger))
+        previous.append(
+            train_one_level(cfg, k, previous, scaler, logger,
+                            device, rank, local_rank, world_size)
+        )
 
     final = spynet.SpyNet(previous)
     save_checkpoint(cfg, final, logger, cfg.train.ddp)
 
-    logger.close()
+    if rank == 0:
+        logger.close()
 
     return model_config
 

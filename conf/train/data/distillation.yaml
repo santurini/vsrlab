@@ -1,4 +1,4 @@
-num_workers: 4
+num_workers: 12
 batch_size: 8
 prefetch_factor: 8
 

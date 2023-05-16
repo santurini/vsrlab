@@ -3,9 +3,7 @@ from pathlib import Path
 from typing import Sequence
 
 import hydra
-import ptlflow
 import torch
-from einops import rearrange
 from optical_flow.dataset import Dataset
 from optical_flow.models import spynet
 from optical_flow.transforms import *
@@ -26,32 +24,38 @@ def clean_frames(cleaner, frame1, frame2):
     ).split(len(frame1))
     return (frame1, frame2)
 
-@torch.no_grad()
-def get_flow(hr, teacher, size):
-    hr = rearrange(hr, 'b t c h w -> (b t) c h w')
-    supp, ref = hr[:-1], hr[1:]
-    input_images = torch.stack((supp, ref), dim=1)
-    inputs = {"images": input_images}
-    soft_labels = teacher(inputs)["flows"].squeeze(1)
-    soft_labels = resize(soft_labels, size=size, antialias=True)
-    inputs = resize(inputs["images"][0], size=size, antialias=True)
-    return soft_labels, inputs
+def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], local_rank, device):
+    if cfg.train.restore is not None:
+        pretrained = spynet.SpyNet.from_pretrained(cfg.train.k, cfg.train.restore)
+        current_train = pretrained.units[k]
+    else:
+        current_train = spynet.BasicModule()
 
-def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], device):
-    # pretrained = spynet.SpyNet.from_pretrained(cfg.train.k)
-    # current_train = pretrained.units[k]
-
-    current_train = spynet.BasicModule()
     current_train.to(device)
-    current_train.train()
+
+    if cfg.train.ddp:
+        current_train = torch.nn.parallel.DistributedDataParallel(
+            current_train,
+            device_ids=[local_rank],
+            output_device=local_rank
+        )
 
     if k == 0:
         Gk = None
     else:
         Gk = spynet.SpyNet(previous)
         Gk.to(device)
+
+        if cfg.train.ddp:
+            Gk = torch.nn.parallel.DistributedDataParallel(
+                Gk,
+                device_ids=[local_rank],
+                output_device=local_rank
+            )
+
         Gk.eval()
 
+    current_train.train()
     return current_train, Gk
 
 def update_weights_amp(loss, model, scheduler, optimizer, scaler):
@@ -91,18 +95,22 @@ def save_k_checkpoint(cfg, k, model, logger, ddp=True):
         torch.save(model.state_dict(), save_path)
         logger.save(save_path, base_path)
 
-def build_teacher(cfg, device):
-    model = ptlflow.get_model(cfg.name, pretrained_ckpt=cfg.ckpt)
-    for p in model.parameters():
-        p.requires_grad = False
-    return model.to(device)
-
-def build_cleaner(cfg, device):
+def build_cleaner(cfg, local_rank, device):
     cleaner = hydra.utils.instantiate(cfg.train.cleaner, _recursive_=False)
     cleaner.load_state_dict(torch.load(cfg.train.cleaner_ckpt))
+    cleaner.to(device)
+
+    if cfg.train.ddp:
+        cleaner = torch.nn.parallel.DistributedDataParallel(
+            cleaner,
+            device_ids=[local_rank],
+            output_device=local_rank
+        )
+
     for p in cleaner.parameters():
         p.requires_grad = False
-    return cleaner.to(device)
+
+    return cleaner
 
 def load_data(cfg, k: int):
     path = cfg.train.data.datasets.train.path
