@@ -2,6 +2,10 @@
 defaults:
   - override /train: deepspeed
 
+core:
+  run_id: jhaskvdfka
+  run_name: MoEVRT DeepSpeed
+
 train:
   data:
     datasets:
