@@ -66,26 +66,26 @@ def evaluate(
         # lr, hr = data[0].to(device), data[1].to(device)
         x1, x2, y = x1.to(device), x2.to(device), y.to(device)
 
-        # with torch.cuda.amp.autocast():
-        # x = get_frames(lr, cleaner, size)
-        # y, hr = get_flow(hr, teacher, size)
-        x = clean_frames(cleaner, x1, x2)
+        with torch.cuda.amp.autocast():
+            # x = get_frames(lr, cleaner, size)
+            # y, hr = get_flow(hr, teacher, size)
+            x = clean_frames(cleaner, x1, x2)
 
-        if prev_pyramid is not None:
-            with torch.no_grad():
-                Vk_1 = prev_pyramid(x)
-                Vk_1 = F.interpolate(
-                    Vk_1, scale_factor=2, mode='bilinear', align_corners=True)
-        else:
-            Vk_1 = None
+            if prev_pyramid is not None:
+                with torch.no_grad():
+                    Vk_1 = prev_pyramid(x)
+                    Vk_1 = F.interpolate(
+                        Vk_1, scale_factor=2, mode='bilinear', align_corners=True)
+            else:
+                Vk_1 = None
 
-        predictions = Gk(x, Vk_1, upsample_optical_flow=False)
+            predictions = Gk(x, Vk_1, upsample_optical_flow=False)
 
-        '''if Vk_1 is not None:
-            y = y - Vk_1'''
+            '''if Vk_1 is not None:
+                y = y - Vk_1'''
 
-        loss = criterion_fn(y, predictions)
-        val_loss += loss.detach().item()
+            loss = criterion_fn(y, predictions)
+            val_loss += loss.detach().item()
 
     logger.log_dict({f"Loss {k}": val_loss / len(val_dl)}, epoch, "Val")
     logger.log_flow(f"Val {k}", epoch, denormalize(x[0]), predictions, y)
@@ -119,24 +119,24 @@ def train_one_epoch(
         # lr, hr = data[0].to(device), data[1].to(device)
         x1, x2, y = x1.to(device), x2.to(device), y.to(device)
 
-        # with torch.cuda.amp.autocast():
-        # x = get_frames(lr, cleaner, size)
-        # y, hr = get_flow(hr, teacher, size)
-        x = clean_frames(cleaner, x1, x2)
+        with torch.cuda.amp.autocast():
+            # x = get_frames(lr, cleaner, size)
+            # y, hr = get_flow(hr, teacher, size)
+            x = clean_frames(cleaner, x1, x2)
 
-        if prev_pyramid is not None:
-            with torch.no_grad():
-                Vk_1 = prev_pyramid(x)
-                Vk_1 = F.interpolate(
-                    Vk_1, scale_factor=2, mode='bilinear', align_corners=True)
-        else:
-            Vk_1 = None
+            if prev_pyramid is not None:
+                with torch.no_grad():
+                    Vk_1 = prev_pyramid(x)
+                    Vk_1 = F.interpolate(
+                        Vk_1, scale_factor=2, mode='bilinear', align_corners=True)
+            else:
+                Vk_1 = None
 
-        '''if Vk_1 is not None:
-                        y = y - Vk_1'''
+            '''if Vk_1 is not None:
+                            y = y - Vk_1'''
 
-        predictions = Gk(x, Vk_1, upsample_optical_flow=False)
-        loss = criterion_fn(y, predictions)
+            predictions = Gk(x, Vk_1, upsample_optical_flow=False)
+            loss = criterion_fn(y, predictions)
 
         # update_weights_amp(loss, scheduler, optimizer, scaler)
         update_weights(loss, scheduler, optimizer)
