@@ -154,7 +154,7 @@ class TinyVRT(nn.Module):
                                      Debug(),
                                      nn.LayerNorm(embed_dims[len(scales) - 1] // top_k),
                                      Debug(),
-                                     nn.Linear(embed_dims[len(scales) - 1] // top_k, embed_dims[len(scales)]),
+                                     nn.Linear(embed_dims[len(scales) - 1] // top_k, embed_dims[len(scales)] // top_k),
                                      Debug(),
                                      Rearrange('n d h (w e) (c g) -> n g (c e d h) w', e=top_k, g=num_gpus),
                                      Debug(),
