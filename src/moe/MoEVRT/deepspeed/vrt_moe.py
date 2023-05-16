@@ -155,7 +155,8 @@ class TinyVRT(nn.Module):
                                      Debug(),
                                      nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
                                      Debug(),
-                                     Rearrange('n g (d h w) c -> n (c g) d h w'),
+                                     Rearrange('n g (d h w) c -> n (c g) d h w', g=num_gpus, h=img_size[0],
+                                               w=img_size[1]),
                                      Debug(),
                                  ] +
                                  [
