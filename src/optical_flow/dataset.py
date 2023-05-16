@@ -42,7 +42,7 @@ class Dataset(torch.utils.data.Dataset):
         sequence, optical_flow = self.augmentation(sequence, optical_flow)
         sequence, optical_flow = self.compression(sequence, optical_flow)
 
-        return (sequence[0], sequence[1]), optical_flow
+        return sequence[0], sequence[1], optical_flow
 
     def get_path(self, path):
         optical_flow = rearrange(

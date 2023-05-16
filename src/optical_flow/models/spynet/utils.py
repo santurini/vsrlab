@@ -133,23 +133,27 @@ def load_data(cfg, k: int):
     return train_ds, val_ds
 
 def build_dl(train_ds, val_ds, cfg):
-    train_dl = DataLoader(train_ds,
-                          batch_size=cfg.train.data.batch_size,
-                          num_workers=cfg.train.data.num_workers,
-                          prefetch_factor=cfg.train.data.prefetch_factor,
-                          persistent_workers=True,
-                          pin_memory=True,
-                          shuffle=True,
-                          collate_fn=collate_fn)
+    train_dl = DataLoader(
+        train_ds,
+        batch_size=cfg.train.data.batch_size,
+        num_workers=cfg.train.data.num_workers,
+        prefetch_factor=cfg.train.data.prefetch_factor,
+        persistent_workers=True,
+        pin_memory=True,
+        shuffle=True,
+        # collate_fn=collate_fn
+    )
 
-    val_dl = DataLoader(val_ds,
-                        batch_size=cfg.train.data.batch_size,
-                        num_workers=cfg.train.data.num_workers,
-                        prefetch_factor=cfg.train.data.prefetch_factor,
-                        persistent_workers=True,
-                        pin_memory=True,
-                        shuffle=False,
-                        collate_fn=collate_fn)
+    val_dl = DataLoader(
+        val_ds,
+        batch_size=cfg.train.data.batch_size,
+        num_workers=cfg.train.data.num_workers,
+        prefetch_factor=cfg.train.data.prefetch_factor,
+        persistent_workers=True,
+        pin_memory=True,
+        shuffle=False,
+        # collate_fn=collate_fn
+    )
 
     return train_dl, val_dl, 0
 
