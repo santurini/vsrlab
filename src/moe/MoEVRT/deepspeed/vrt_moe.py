@@ -149,14 +149,14 @@ class TinyVRT(nn.Module):
             hidden_size=embed_dims[len(scales) - 1],
             expert=nn.Sequential(*
                                  [
-                                     Rearrange('n g (c e d h) w -> n d h (w e) (c g)', d=6, e=top_k,
+                                     Rearrange('n g (c e d h) w -> n d h (w g) (c e)', d=6, e=top_k,
                                                c=embed_dims[len(scales) - 1] // top_k),
                                      Debug(),
-                                     nn.LayerNorm(embed_dims[len(scales) - 1] // top_k),
+                                     nn.LayerNorm(embed_dims[len(scales) - 1]),
                                      Debug(),
-                                     nn.Linear(embed_dims[len(scales) - 1] // top_k, embed_dims[len(scales)] // top_k),
+                                     nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
                                      Debug(),
-                                     # Rearrange('n d h (w e) (c g) -> n g (c e d h) w', e=top_k, g=num_gpus),
+                                     # Rearrange('n d h (w e) (c g) -> n d h (w e) (c g)', e=top_k, g=num_gpus),
                                      # Debug(),
                                  ] +
                                  [
