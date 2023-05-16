@@ -13,7 +13,6 @@ from torch.utils.data import DataLoader
 
 from core import PROJECT_ROOT
 from core.utils import (
-    # build_loaders,
     build_optimizer,
     build_logger,
     save_checkpoint,
@@ -23,14 +22,10 @@ from core.utils import (
 from optical_flow.models import spynet
 from optical_flow.models.spynet.utils import (
     clean_frames,
-    # get_frames,
-    # get_flow,
     build_spynets,
     load_data,
     build_dl,
-    # build_teacher,
     build_cleaner,
-    # update_weights,
     update_weights_amp,
     save_k_checkpoint
 )
@@ -48,12 +43,10 @@ def evaluate(
         val_dl: DataLoader,
         criterion_fn: torch.nn.Module,
         Gk: torch.nn.Module,
-        # teacher: torch.nn.Module,
         cleaner: torch.nn.Module,
         prev_pyramid: torch.nn.Module = None,
         epoch: int = 0,
         k: int = -1,
-        # size: tuple = None,
         logger: nn.Module = None
 ):
     Gk.eval()
@@ -63,12 +56,9 @@ def evaluate(
         prev_pyramid.eval()
 
     for i, (x1, x2, y) in enumerate(val_dl):
-        # lr, hr = data[0].to(device), data[1].to(device)
         x1, x2, y = x1.to(device), x2.to(device), y.to(device)
 
         with torch.cuda.amp.autocast():
-            # x = get_frames(lr, cleaner, size)
-            # y, hr = get_flow(hr, teacher, size)
             x = clean_frames(cleaner, x1, x2)
 
             if prev_pyramid is not None:
@@ -100,12 +90,10 @@ def train_one_epoch(
         scaler: torch.cuda.amp.GradScaler,
         criterion_fn: torch.nn.Module,
         Gk: torch.nn.Module,
-        # teacher: torch.nn.Module,
         cleaner: torch.nn.Module,
         prev_pyramid: torch.nn.Module = None,
         epoch: int = 0,
         k: int = -1,
-        # size: tuple = None,
         logger: nn.Module = None
 ):
     Gk.train()
@@ -116,12 +104,10 @@ def train_one_epoch(
         prev_pyramid.eval()
 
     for i, (x1, x2, y) in enumerate(train_dl):
-        # lr, hr = data[0].to(device), data[1].to(device)
         x1, x2, y = x1.to(device), x2.to(device), y.to(device)
         print("Batch {}/{}".format(i, len(train_dl)))
+
         with torch.cuda.amp.autocast():
-            # x = get_frames(lr, cleaner, size)
-            # y, hr = get_flow(hr, teacher, size)
             x = clean_frames(cleaner, x1, x2)
 
             if prev_pyramid is not None:
@@ -139,16 +125,10 @@ def train_one_epoch(
             loss = criterion_fn(y, predictions)
 
         update_weights_amp(loss, Gk, scheduler, optimizer, scaler)
-        # update_weights(loss, scheduler, optimizer)
         train_loss += loss.detach().item()
 
     logger.log_dict({f"Loss {k}": train_loss / len(train_dl)}, epoch, f"Train")
     logger.log_flow(f"Train {k}", epoch, denormalize(x[0]), predictions, y)
-
-    '''evaluate(
-        cfg, val_dl, criterion_fn, Gk, teacher,
-        cleaner, prev_pyramid, epoch, k, size, logger
-    )'''
 
     evaluate(
         cfg, val_dl, criterion_fn, Gk,
@@ -172,21 +152,17 @@ def train_one_level(cfg,
 
     print("Preparing dataloaders")
     train_dl, val_dl, epoch = build_dl(train_ds, val_ds, cfg)
-    # train_dl, val_dl, _, _, epoch = build_loaders(cfg)
 
     print("Instantiating pyramids")
     current_level, trained_pyramid = build_spynets(cfg, k, previous, device)
 
     print("Instantiating optimizer")
     optimizer, scheduler = build_optimizer(current_level, cfg.train.optimizer, cfg.train.scheduler)
-    # teacher = build_teacher(cfg.train.teacher, device)
 
     print("Instantiating cleaner")
     cleaner = build_cleaner(cfg, device)
 
     loss_fn = nn.L1Loss()
-    # size = spynet.config.GConf(k).image_size
-
     max_epochs = cfg.train.max_epochs * 2 if k == 0 else cfg.train.max_epochs
 
     for epoch in range(max_epochs):
@@ -199,12 +175,10 @@ def train_one_level(cfg,
             scaler,
             loss_fn,
             current_level,
-            # teacher,
             cleaner,
             trained_pyramid,
             epoch,
             k,
-            # size,
             logger
         )
     
@@ -219,7 +193,6 @@ def train(cfg):
     previous = []
     for k in range(cfg.train.k):
         previous.append(train_one_level(cfg, k, previous, scaler, logger))
-        # previous.append(train_one_level(cfg, k, previous, logger))
 
     final = spynet.SpyNet(previous)
     save_checkpoint(cfg, final, logger, cfg.train.ddp)

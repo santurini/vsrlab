@@ -106,7 +106,6 @@ def build_cleaner(cfg, device):
 
 def load_data(cfg, k: int):
     path = cfg.train.data.datasets.train.path
-    size = cfg.train.data.datasets.train.size
 
     train_tfms = Compose([
         Resize(*spynet.config.GConf(k).image_size),
@@ -131,12 +130,16 @@ def load_data(cfg, k: int):
         Resize(*spynet.config.GConf(k).image_size)
     ])
 
-    train_ds = Dataset(path, "train", size, augmentation=train_tfms, compression=compression)
-    val_ds = Dataset(path, "val", 1 - size, augmentation=val_tfms, compression=compression)
+    train_ds = Dataset(path, "train", 0.9, augmentation=train_tfms, compression=compression)
+    val_ds = Dataset(path, "val", 0.1, augmentation=val_tfms, compression=compression)
 
     return train_ds, val_ds
 
 def build_dl(train_ds, val_ds, cfg):
+    # Restricts data loading to a subset of the dataset exclusive to the current process
+    train_sampler = DistributedSampler(dataset=train_ds) if cfg.train.ddp else None
+    val_sampler = DistributedSampler(dataset=val_ds) if cfg.train.ddp else None
+
     train_dl = DataLoader(
         train_ds,
         batch_size=cfg.train.data.batch_size,
@@ -144,8 +147,7 @@ def build_dl(train_ds, val_ds, cfg):
         prefetch_factor=cfg.train.data.prefetch_factor,
         persistent_workers=True,
         pin_memory=True,
-        shuffle=True,
-        # collate_fn=collate_fn
+        sampler=train_sampler
     )
 
     val_dl = DataLoader(
@@ -155,13 +157,8 @@ def build_dl(train_ds, val_ds, cfg):
         prefetch_factor=cfg.train.data.prefetch_factor,
         persistent_workers=True,
         pin_memory=True,
-        shuffle=False,
-        # collate_fn=collate_fn
+        sampler=val_sampler,
+        shuffle=False
     )
 
     return train_dl, val_dl, 0
-
-def collate_fn(batch):
-    frames, flow = zip(*batch)
-    frame1, frame2 = zip(*frames)
-    return (torch.stack(frame1), torch.stack(frame2)), torch.stack(flow)
