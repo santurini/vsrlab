@@ -3,7 +3,7 @@ from typing import NamedTuple, Tuple
 MAX_G = 5
 
 class BaseGConf(NamedTuple):
-    image_size: Tuple[int, int] = (24, 32)
+    image_size: Tuple[int, int] = (382, 512)
 
 class GConf(object):
     def __init__(self, level: int) -> None:
