@@ -53,15 +53,6 @@ def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], local_rank, 
     else:
         Gk = spynet.SpyNet(previous)
         Gk.to(device)
-
-        if cfg.train.ddp:
-            print("Instantiating DDP Pyramid")
-            Gk = torch.nn.parallel.DistributedDataParallel(
-                Gk,
-                device_ids=[local_rank],
-                output_device=local_rank
-            )
-
         Gk.eval()
 
     current_train.train()
@@ -108,14 +99,6 @@ def build_cleaner(cfg, local_rank, device):
     cleaner = hydra.utils.instantiate(cfg.train.cleaner, _recursive_=False)
     cleaner.load_state_dict(torch.load(cfg.train.cleaner_ckpt))
     cleaner.to(device)
-
-    if cfg.train.ddp:
-        print("Instantiating DDP cleaner")
-        cleaner = torch.nn.parallel.DistributedDataParallel(
-            cleaner,
-            device_ids=[local_rank],
-            output_device=local_rank
-        )
 
     for p in cleaner.parameters():
         p.requires_grad = False
