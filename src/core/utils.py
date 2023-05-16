@@ -63,7 +63,12 @@ def get_resources_ds():
         local_rank = int(os.environ["OMPI_COMM_WORLD_LOCAL_RANK"])
         world_size = int(os.environ["OMPI_COMM_WORLD_SIZE"])
 
-    deepspeed.init_distributed(dist_backend="nccl", rank=rank, world_size=world_size)
+        deepspeed.init_distributed(dist_backend="nccl", rank=rank, world_size=world_size)
+
+    else:
+        rank = 0
+        local_rank = 0
+        world_size = 1
 
     return rank, local_rank, world_size
 
