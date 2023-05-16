@@ -114,9 +114,6 @@ def train_one_epoch(
     for i, (x1, x2, y) in enumerate(train_dl):
         x1, x2, y = x1.to(device), x2.to(device), y.to(device)
         print("Batch {}/{}".format(i, len(train_dl)))
-        print("x1 shape:", x1.shape)
-        print("x2 shape:", x2.shape)
-        print("y shape:", y.shape)
 
         with torch.cuda.amp.autocast():
             x = clean_frames(cleaner, x1, x2)
