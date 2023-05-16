@@ -149,6 +149,7 @@ class TinyVRT(nn.Module):
             hidden_size=embed_dims[len(scales) - 1],
             expert=nn.Sequential(*
                                  [
+                                     Debug(),
                                      Rearrange('n g (c e d h) w -> n d h (w g) (c e)', d=6, e=top_k,
                                                c=embed_dims[len(scales) - 1] // top_k),
                                      Debug(),
