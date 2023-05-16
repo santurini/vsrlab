@@ -5,6 +5,7 @@ from typing import Sequence
 import hydra
 import omegaconf
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 import wandb
