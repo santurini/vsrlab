@@ -30,8 +30,8 @@ from optical_flow.models.spynet.utils import (
     build_dl,
     # build_teacher,
     build_cleaner,
-    update_weights,
-    # update_weights_amp,
+    # update_weights,
+    update_weights_amp,
     save_k_checkpoint
 )
 
@@ -97,7 +97,7 @@ def train_one_epoch(
         val_dl: DataLoader,
         optimizer: nn.Module,
         scheduler: nn.Module,
-        # scaler: torch.cuda.amp.GradScaler,
+        scaler: torch.cuda.amp.GradScaler,
         criterion_fn: torch.nn.Module,
         Gk: torch.nn.Module,
         # teacher: torch.nn.Module,
@@ -138,8 +138,8 @@ def train_one_epoch(
             predictions = Gk(x, Vk_1, upsample_optical_flow=False)
             loss = criterion_fn(y, predictions)
 
-        # update_weights_amp(loss, scheduler, optimizer, scaler)
-        update_weights(loss, scheduler, optimizer)
+        update_weights_amp(loss, scheduler, optimizer, scaler)
+        # update_weights(loss, scheduler, optimizer)
         train_loss += loss.detach().item()
 
     logger.log_dict({f"Loss {k}": train_loss / len(train_dl)}, epoch, f"Train")
@@ -162,7 +162,7 @@ def train_one_epoch(
 def train_one_level(cfg,
                     k: int,
                     previous: Sequence[spynet.BasicModule],
-                    # scaler,
+                    scaler,
                     logger
                     ) -> spynet.BasicModule:
     print(f'Training level {k}...')
@@ -196,7 +196,7 @@ def train_one_level(cfg,
             val_dl,
             optimizer,
             scheduler,
-            # scaler,
+            scaler,
             loss_fn,
             current_level,
             # teacher,
@@ -214,12 +214,12 @@ def train_one_level(cfg,
 def train(cfg):
     logger = build_logger(cfg)
     model_config = save_config(cfg)
-    #scaler = torch.cuda.amp.GradScaler()
+    scaler = torch.cuda.amp.GradScaler()
 
     previous = []
     for k in range(cfg.train.k):
-        # previous.append(train_one_level(cfg, k, previous, scaler, logger))
-        previous.append(train_one_level(cfg, k, previous, logger))
+        previous.append(train_one_level(cfg, k, previous, scaler, logger))
+        # previous.append(train_one_level(cfg, k, previous, logger))
 
     final = spynet.SpyNet(previous)
     save_checkpoint(cfg, final, logger, cfg.train.ddp)
