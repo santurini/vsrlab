@@ -41,6 +41,7 @@ def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], local_rank, 
     current_train.to(device)
 
     if cfg.train.ddp:
+        print("Instantiating DDP Model")
         current_train = torch.nn.parallel.DistributedDataParallel(
             current_train,
             device_ids=[local_rank],
@@ -54,6 +55,7 @@ def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], local_rank, 
         Gk.to(device)
 
         if cfg.train.ddp:
+            print("Instantiating DDP Pyramid")
             Gk = torch.nn.parallel.DistributedDataParallel(
                 Gk,
                 device_ids=[local_rank],
@@ -108,6 +110,7 @@ def build_cleaner(cfg, local_rank, device):
     cleaner.to(device)
 
     if cfg.train.ddp:
+        print("Instantiating DDP cleaner")
         cleaner = torch.nn.parallel.DistributedDataParallel(
             cleaner,
             device_ids=[local_rank],
@@ -146,7 +149,7 @@ def load_data(cfg, k: int):
     ])
 
     train_ds = Dataset(path, "train", 0.9, augmentation=train_tfms, compression=compression)
-    val_ds = Dataset(path, "val", 0.1, augmentation=val_tfms, compression=compression)
+    val_ds = Dataset(path, "val", 0.9, augmentation=val_tfms, compression=compression)
 
     return train_ds, val_ds
 
@@ -160,8 +163,8 @@ def build_dl(train_ds, val_ds, cfg):
         batch_size=cfg.train.data.batch_size,
         num_workers=cfg.train.data.num_workers,
         prefetch_factor=cfg.train.data.prefetch_factor,
-        persistent_workers=True,
-        pin_memory=True,
+        # persistent_workers=True,
+        # pin_memory=True,
         sampler=train_sampler
     )
 
@@ -170,8 +173,8 @@ def build_dl(train_ds, val_ds, cfg):
         batch_size=cfg.train.data.batch_size,
         num_workers=cfg.train.data.num_workers,
         prefetch_factor=cfg.train.data.prefetch_factor,
-        persistent_workers=True,
-        pin_memory=True,
+        # persistent_workers=True,
+        # pin_memory=True,
         sampler=val_sampler,
         shuffle=False
     )
