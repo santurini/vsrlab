@@ -21,6 +21,7 @@ class Dataset(torch.utils.data.Dataset):
         self.compression = compression
 
         split_point = int(len(self.path) * size)
+        print("Total Size: {} -> Train Size: {}".format(len(self.path), int(len(self.path) * size)))
 
         if split == 'train':
             self.path = self.path[:split_point]

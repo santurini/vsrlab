@@ -121,7 +121,7 @@ def train_one_epoch(
 
         if i % 100 == 0:
             if rank == 0:
-                print("Batch {}/{}".format(i, len(val_dl) - 1))
+                print("Batch {}/{}".format(i, len(train_dl) - 1))
 
         with torch.cuda.amp.autocast():
             x = clean_frames(cleaner, x1, x2)
