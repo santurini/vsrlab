@@ -138,10 +138,10 @@ class TinyVRT(nn.Module):
 
         # last stage
         self.stage6 = deepspeed.moe.layer.MoE(
-            hidden_size=embed_dims[len(scales) - 1],
+            hidden_size=64,
             expert=nn.Sequential(*
                                  [
-                                     # Rearrange('n c d h w ->  n d h w c'),
+                                     Rearrange('n 1 (c d h) w ->  n d h w c', h=64, d=6),
                                      nn.LayerNorm(embed_dims[len(scales) - 1]),
                                      nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
                                      Rearrange('n d h w c -> n c d h w'),
@@ -208,7 +208,7 @@ class TinyVRT(nn.Module):
         x3 = self.stage3(x2, flows_backward[2::3], flows_forward[2::3])  # stride 4
         x = self.stage4(x3, flows_backward[1::3], flows_forward[1::3])  # stride 2
         x = self.stage5(x + x2, flows_backward[0::3], flows_forward[0::3])  # =
-        x = rearrange(x + x1, 'n c d h w ->  n d h w c')
+        x = x + x1
 
         x, _, _ = self.stage6(x)
 
