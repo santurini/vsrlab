@@ -81,11 +81,11 @@ def evaluate(
                 dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
 
             val_loss += loss.detach().item() / world_size
-            save_k_checkpoint(cfg, k, Gk, logger, cfg.train.ddp)
 
     if rank == 0:
         logger.log_dict({f"Loss {k}": val_loss / len(val_dl)}, epoch, "Val")
         logger.log_flow(f"Val {k}", epoch, denormalize(x[0]), predictions, y)
+        save_k_checkpoint(cfg, k, Gk, logger, cfg.train.ddp)
 
 def train_one_epoch(
         cfg,
@@ -221,9 +221,9 @@ def train(cfg):
         )
 
     final = spynet.SpyNet(previous)
-    save_checkpoint(cfg, final, logger, cfg.train.ddp)
 
     if rank == 0:
+        save_checkpoint(cfg, final, logger, cfg.train.ddp)
         logger.close()
 
     return model_config
