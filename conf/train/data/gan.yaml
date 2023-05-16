@@ -62,7 +62,7 @@ datasets:
     split: "val"
     seq: ${train.data.datasets.train.seq}
     scale: ${train.data.datasets.train.scale}
-    size: 0.1
+    size: ${train.data.datasets.train.size}
     hr_augmentation:
       - _target_: torchvision.transforms.CenterCrop
         size: 256
