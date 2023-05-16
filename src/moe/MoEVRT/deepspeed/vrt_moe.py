@@ -152,11 +152,11 @@ class TinyVRT(nn.Module):
             expert=nn.Sequential(*
                                  [
                                      nn.LayerNorm(embed_dims[len(scales) - 1]),
-                                     lambda x: print(x.shape),
+                                     Debug(),
                                      nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
-                                     lambda x: print(x.shape),
+                                     Debug(),
                                      Rearrange('n d h w c -> n c d h w'),
-                                     lambda x: print(x.shape),
+                                     Debug(),
                                  ] +
                                  [
                                      RTMSA(dim=embed_dims[i],
