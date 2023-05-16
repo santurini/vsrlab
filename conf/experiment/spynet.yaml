@@ -9,7 +9,7 @@ train:
 
   data:
     batch_size: 32
-    num_workers: 12
+    num_workers: 8
     prefetch_factor: 8
 
   cleaner:

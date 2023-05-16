@@ -9,6 +9,6 @@ train:
         seq: 6
 
   model:
-    num_experts: 2
+    num_experts: 4
     num_gpus: 1
     top_k: 2
