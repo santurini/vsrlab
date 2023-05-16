@@ -1,5 +1,5 @@
 #!/bin/bash
-PROJECT_ROOT="$HOME/Desktop/nn-lab/src"
+PROJECT_ROOT="$HOME/Desktop/nn-lab/src/moe/MoEVRT"
 
 deepspeed --hostfile="$PROJECT_ROOT/vsr/models/MoEVRT/hostfile" \
           --master_addr=192.168.1.42 \
