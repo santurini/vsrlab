@@ -1,6 +1,5 @@
 import logging
 import math
-import os
 from distutils.version import LooseVersion
 
 import deepspeed
@@ -23,8 +22,7 @@ class Debug(nn.Module):
         super().__init__()
 
     def forward(self, x):
-        if int(os.environ["RANK"]) == 0:
-            print("IM HERE:", x.shape)
+        print("IM HERE:", x.shape)
         return x
 
 class Upsample(nn.Sequential):
@@ -151,12 +149,13 @@ class TinyVRT(nn.Module):
             hidden_size=embed_dims[len(scales) - 1],
             expert=nn.Sequential(*
                                  [
+                                     Rearrange('n g (c e d h) w -> n d h w c', d=6, h=img_size[0], e=top_k),
                                      Debug(),
                                      nn.LayerNorm(embed_dims[len(scales) - 1]),
                                      Debug(),
                                      nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
                                      Debug(),
-                                     Rearrange('n g (d h w) c -> n (c g) d h w', d=6, w=img_size[1]),
+                                     Rearrange('n g (d h w)  -> n (c g) d h w', d=6, w=img_size[1]),
                                      Debug(),
                                  ] +
                                  [
