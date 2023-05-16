@@ -158,21 +158,21 @@ def train_one_level(cfg,
                     local_rank,
                     world_size
                     ) -> spynet.BasicModule:
-    print(f'Training level {k}...')
+    if rank == 0: print(f'Training level {k}...')
 
-    print("Preparing datasets")
+    if rank == 0: print("Preparing datasets")
     train_ds, val_ds = load_data(cfg, k)
 
-    print("Preparing dataloaders")
+    if rank == 0: print("Preparing dataloaders")
     train_dl, val_dl, epoch = build_dl(train_ds, val_ds, cfg)
 
-    print("Instantiating pyramids")
+    if rank == 0: print("Instantiating pyramids")
     current_level, trained_pyramid = build_spynets(cfg, k, previous, local_rank, device)
 
-    print("Instantiating optimizer")
+    if rank == 0: print("Instantiating optimizer")
     optimizer, scheduler = build_optimizer(current_level, cfg.train.optimizer, cfg.train.scheduler)
 
-    print("Instantiating cleaner")
+    if rank == 0: print("Instantiating cleaner")
     cleaner = build_cleaner(cfg, local_rank, device)
 
     loss_fn = nn.L1Loss()
