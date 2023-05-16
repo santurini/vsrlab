@@ -1,4 +1,5 @@
 from pathlib import Path
+from random import shuffle
 from typing import Union
 
 import torch
@@ -15,7 +16,7 @@ class Dataset(torch.utils.data.Dataset):
                  ) -> None:
 
         self.root = Path("/home/aghinassi/Desktop/MergedVSR")
-        self.path = list(sorted(Path(path).glob('*')))[:10000]
+        self.path = shuffle(list(Path(path).glob('*')))[:10000]
         self.split = split
         self.augmentation = augmentation
         self.compression = compression
