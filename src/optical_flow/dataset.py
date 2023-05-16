@@ -16,7 +16,10 @@ class Dataset(torch.utils.data.Dataset):
                  ) -> None:
 
         self.root = Path("/home/aghinassi/Desktop/MergedVSR")
-        self.path = shuffle(list(Path(path).glob('*')))[:10000]
+
+        self.path = list(Path(path).glob('*'))
+        shuffle(self.path)
+
         self.split = split
         self.augmentation = augmentation
         self.compression = compression
@@ -25,9 +28,9 @@ class Dataset(torch.utils.data.Dataset):
         print("Total Size: {} -> Train Size: {}".format(len(self.path), int(len(self.path) * size)))
 
         if split == 'train':
-            self.path = self.path[:split_point]
+            self.path = self.path[:9000]
         elif split == 'val':
-            self.path = self.path[split_point:]
+            self.path = self.path[9000:10000]
 
     def __len__(self) -> int:
         return len(self.path)
