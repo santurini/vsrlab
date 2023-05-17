@@ -49,7 +49,7 @@ MoE = deepspeed.moe.layer.MoE(
                              Debug(),
                          ] +
                          [
-                             RTMSA(dim=embed_dims[i],
+                             RTMSA(dim=embed_dims[i] // top_k,
                                    input_resolution=img_size,
                                    depth=depths[i],
                                    num_heads=num_heads[i],
