@@ -41,6 +41,7 @@ MoE = deepspeed.moe.layer.MoE(
                              Rearrange('n 1 (c d h) w -> n d h w c', d=window_size[0],
                                        c=embed_dims[len(scales) - 1] // top_k),
                              Debug(),
+                             nn.Linear(embed_dims[len(scales) - 1] // top_k, embed_dims[len(scales) - 1]),
                              nn.LayerNorm(embed_dims[len(scales) - 1]),
                              Debug(),
                              nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
