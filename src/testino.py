@@ -2,6 +2,7 @@ import deepspeed
 import torch
 import torch.nn as nn
 from einops.layers.torch import Rearrange
+
 from vsr.models.VRT.modules.tmsa import RTMSA
 
 class Debug(nn.Module):
@@ -25,7 +26,7 @@ num_heads = [4, 4, 4, 4, 4, 4, 4]
 mul_attn_ratio = 0.75
 mlp_ratio = 2.
 qkv_bias = True
-qk_scale = null
+qk_scale = None
 drop_path_rate = 0.2
 
 MoE = deepspeed.moe.layer.MoE(
