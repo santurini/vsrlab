@@ -66,7 +66,7 @@ def evaluate(
             x1, x2 = clean_frames(cleaner, x1, x2)
             x = (
                 normalize(x1, mean=torch.tensor([.485, .406, .456]), std=torch.tensor([.229, .225, .224])),
-                normalize(x2, mean=torch.tensor(.485, .406, .456), std=torch.tensor([.229, .225, .224]))
+                normalize(x2, mean=torch.tensor([.485, .406, .456]), std=torch.tensor([.229, .225, .224]))
             )
 
             if prev_pyramid is not None:
