@@ -107,7 +107,8 @@ class SpyNet(nn.Module):
     def from_pretrained(cls: Type['SpyNet'], k, path=None) -> 'SpyNet':
 
         def get_model(ckpt_path: str, levels) -> 'SpyNet':
-            checkpoint = torch.load(ckpt_path, map_location=lambda storage, loc: storage)['params']
+            # checkpoint = torch.load(ckpt_path, map_location=lambda storage, loc: storage)['params']
+            checkpoint = torch.load(ckpt_path, map_location=lambda storage, loc: storage)
             checkpoint = {
                 k.replace('basic_module', 'units', 1).replace('basic_module', 'module'): v
                 for k, v in checkpoint.items()
