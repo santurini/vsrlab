@@ -35,12 +35,11 @@ norm_layer = nn.LayerNorm
 deepspeed.init_distributed(dist_backend="nccl", rank=0, world_size=1, distributed_port=50523)
 
 MoE = deepspeed.moe.layer.MoE(
-    hidden_size=embed_dims[len(scales) - 1] // top_k,
+    hidden_size=embed_dims[len(scales) - 1] * window_size[0],
     expert=nn.Sequential(*
                          [
-                             Rearrange('n 1 (d h w) c -> n d h w c', d=window_size[0],
-                                       h=img_size[0]),
-                             nn.LayerNorm(embed_dims[len(scales) - 1] // top_k),
+                             Rearrange('n 1 (h w) (c d)-> n d h w c', d=window_size[0], h=img_size[0]),
+                             nn.LayerNorm(embed_dims[len(scales) - 1]),
                              nn.Linear(embed_dims[len(scales) - 1] // top_k, embed_dims[len(scales)] // top_k),
                              Rearrange('n d h w c -> n c d h w'),
                          ] +
@@ -63,7 +62,7 @@ MoE = deepspeed.moe.layer.MoE(
     k=2
 ).cuda()
 
-x = torch.rand(1, 6, 64, 64, 16).cuda()
+x = torch.rand(1, 64, 64, 16 * 6).cuda()
 
 print("INPUT SHAPE:", x.shape)
 out, _, _ = MoE(x)
