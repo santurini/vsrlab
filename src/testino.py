@@ -48,7 +48,7 @@ MoE = deepspeed.moe.layer.MoE(
                              Rearrange('n d h w c -> n c d h w'),
                          ] +
                          [
-                             RTMSA(dim=embed_dims[i] // top_k,
+                             RTMSA(dim=embed_dims[i],
                                    input_resolution=img_size,
                                    depth=depths[i],
                                    num_heads=num_heads[i],
