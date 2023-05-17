@@ -34,7 +34,7 @@ norm_layer = nn.LayerNorm
 deepspeed.init_distributed(dist_backend="nccl", rank=0, world_size=1, distributed_port=50523)
 
 MoE = deepspeed.moe.layer.MoE(
-    hidden_size=embed_dims[len(scales) - 1],
+    hidden_size=embed_dims[len(scales) - 1] // top_k,
     expert=nn.Sequential(*
                          [
                              Debug(),
@@ -61,12 +61,12 @@ MoE = deepspeed.moe.layer.MoE(
                                    ) for i in range(len(scales), len(depths))
                          ]
                          ),
-    num_experts=2,
+    num_experts=4,
     ep_size=num_gpus,
-    k=1
+    k=2
 ).cuda()
 
-x = torch.rand(1, 6, 64, 64, 32).cuda()
+x = torch.rand(1, 6, 64, 64, 16).cuda()
 
 out, _, _ = MoE(x)
 print(out.shape)
