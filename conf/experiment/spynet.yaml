@@ -4,8 +4,8 @@ defaults:
 
 train:
   ddp: True
-  restore: null
-  finetune: True
+  restore: "/Desktop/nn-lab/storage/video-super-resolution/kjhsdvq/checkpoint/4.ckpt"
+  finetune: False
 
   data:
     batch_size: 32
@@ -27,5 +27,5 @@ train:
   scheduler:
     eta_min: 1e-5
 
-  max_epochs: 50
+  max_epochs: 5
   k: 5
