@@ -31,6 +31,8 @@ drop_path_rate = 0.2
 dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
 norm_layer = nn.LayerNorm
 
+deepspeed.init_distributed(dist_backend="nccl", rank=0, world_size=1, distributed_port=50523)
+
 MoE = deepspeed.moe.layer.MoE(
     hidden_size=img_size[1],
     expert=nn.Sequential(*
