@@ -65,7 +65,7 @@ MoE = deepspeed.moe.layer.MoE(
     num_experts=num_experts,
     ep_size=num_gpus,
     k=top_k
-)
+).cuda()
 
 x = torch.rand(1, 32, 6, 64, 64).cuda()
 
