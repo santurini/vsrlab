@@ -28,6 +28,7 @@ mlp_ratio = 2.
 qkv_bias = True
 qk_scale = None
 drop_path_rate = 0.2
+dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
 
 MoE = deepspeed.moe.layer.MoE(
     hidden_size=img_size[1],
