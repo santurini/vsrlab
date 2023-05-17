@@ -63,6 +63,7 @@ MoE = deepspeed.moe.layer.MoE(
                          ),
     num_experts=num_experts,
     ep_size=num_gpus,
+    drop_tokens=False,
     k=top_k
 ).cuda()
 
