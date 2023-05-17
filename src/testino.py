@@ -66,7 +66,7 @@ MoE = deepspeed.moe.layer.MoE(
     k=2
 ).cuda()
 
-x = torch.rand(1, 2, 64, 64, 32 * 6).cuda()
+x = torch.rand(1, 6, 64, 64, 32).cuda()
 
 print("INPUT SHAPE:", x.shape)
 out, _, _ = MoE(x)

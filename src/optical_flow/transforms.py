@@ -6,7 +6,6 @@ from typing import Union, Tuple
 import av
 import torch
 import torchvision.transforms.functional as F
-from kornia.enhance import normalize
 
 class Compose(object):
     def __init__(self, transforms):
@@ -74,22 +73,6 @@ class RandomVerticalFlip(object):
             frames = F.vflip(frames)
             optical_flow = F.vflip(optical_flow)
 
-        return frames, optical_flow
-
-class Normalize(object):
-    def __init__(self,
-                 mean: Tuple[float, float, float],
-                 std: Tuple[float, float, float]) -> None:
-        self.mean = mean
-        self.std = std
-
-    def __call__(self,
-                 frames: Tuple[torch.Tensor, torch.Tensor],
-                 optical_flow: torch.Tensor):
-        frames = normalize(frames,
-                           torch.tensor(self.mean),
-                           torch.tensor(self.std)
-                           )
         return frames, optical_flow
 
 class RandomVideoCompression(object):

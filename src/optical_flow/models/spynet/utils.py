@@ -22,7 +22,7 @@ def clean_frames(cleaner, frame1, frame2):
     frame1, frame2 = cleaner(
         torch.concat([frame1, frame2])
     ).split(len(frame1))
-    return (frame1, frame2)
+    return frame1, frame2
 
 def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], local_rank, device):
     if cfg.train.restore is not None:
@@ -95,7 +95,7 @@ def save_k_checkpoint(cfg, k, model, logger, ddp=True):
         torch.save(model.state_dict(), save_path)
         logger.save(save_path, base_path)
 
-def build_cleaner(cfg, local_rank, device):
+def build_cleaner(cfg, device):
     cleaner = hydra.utils.instantiate(cfg.train.cleaner, _recursive_=False)
     cleaner.load_state_dict(torch.load(cfg.train.cleaner_ckpt))
     cleaner.to(device)
@@ -120,10 +120,6 @@ def load_data(cfg, k: int):
             codec=['libx264'],
             crf=[34],
             fps=[30]
-        ),
-        Normalize(
-            mean=[.485, .406, .456],
-            std=[.229, .225, .224]
         )]
     )
 

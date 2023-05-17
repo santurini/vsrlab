@@ -9,7 +9,7 @@ import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 import wandb
-from kornia.augmentation import Denormalize
+from kornia.enhance import normalize
 from torch.utils.data import DataLoader
 
 from core import PROJECT_ROOT
@@ -33,10 +33,6 @@ from optical_flow.models.spynet.utils import (
 )
 
 warnings.filterwarnings('ignore')
-denormalize = Denormalize(
-    mean=[.485, .406, .456],
-    std=[.229, .225, .224]
-)
 
 @torch.no_grad()
 def evaluate(
@@ -67,7 +63,11 @@ def evaluate(
                 print("Batch {}/{}".format(i, len(val_dl) - 1))
 
         with torch.cuda.amp.autocast():
-            x = clean_frames(cleaner, x1, x2)
+            x1, x2 = clean_frames(cleaner, x1, x2)
+            x = (
+                normalize(x1, mean=[.485, .406, .456], std=[.229, .225, .224]),
+                normalize(x2, mean=[.485, .406, .456], std=[.229, .225, .224])
+            )
 
             if prev_pyramid is not None:
                 with torch.no_grad():
@@ -88,7 +88,7 @@ def evaluate(
 
     if rank == 0:
         logger.log_dict({f"Loss {k}": val_loss / len(val_dl)}, epoch, "Val")
-        logger.log_flow(f"Val {k}", epoch, denormalize(x[0]), predictions, y)
+        logger.log_flow(f"Val {k}", epoch, x[0], predictions, y)
         save_k_checkpoint(cfg, k, Gk, logger, cfg.train.ddp)
 
 def train_one_epoch(
@@ -182,7 +182,7 @@ def train_one_level(cfg,
     optimizer, scheduler = build_optimizer(current_level, cfg.train.optimizer, cfg.train.scheduler)
 
     if rank == 0: print("Instantiating cleaner")
-    cleaner = build_cleaner(cfg, local_rank, device)
+    cleaner = build_cleaner(cfg, device)
 
     loss_fn = nn.L1Loss()
     max_epochs = cfg.train.max_epochs * 2 if k == 0 else cfg.train.max_epochs
