@@ -2,9 +2,9 @@
 defaults:
   - override /train: deepspeed
 
-core:
-  run_id: wetioren
-  run_name: MoEVRT DeepSpeed
+#core:
+#  run_id: wetioren
+#  run_name: MoEVRT DeepSpeed
 
 train:
   data:
