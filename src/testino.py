@@ -67,5 +67,5 @@ MoE = deepspeed.moe.layer.MoE(
 
 x = torch.rand(1, 32, 6, 64, 64)
 
-out, _, _ = stage6(x)
+out, _, _ = MoE(x)
 print(out.shape)
