@@ -124,7 +124,11 @@ def train_one_epoch(
                 print("Batch {}/{}".format(i, len(train_dl) - 1))
 
         with torch.cuda.amp.autocast():
-            x = clean_frames(cleaner, x1, x2)
+            x1, x2 = clean_frames(cleaner, x1, x2)
+            x = (
+                normalize(x1, mean=[.485, .406, .456], std=[.229, .225, .224]),
+                normalize(x2, mean=[.485, .406, .456], std=[.229, .225, .224])
+            )
 
             if prev_pyramid is not None:
                 with torch.no_grad():
@@ -142,7 +146,7 @@ def train_one_epoch(
 
     if rank == 0:
         logger.log_dict({f"Loss {k}": train_loss / len(train_dl)}, epoch, f"Train")
-        logger.log_flow(f"Train {k}", epoch, denormalize(x[0]), predictions, y)
+        logger.log_flow(f"Train {k}", epoch, x[0], predictions, y)
 
     print("Starting Evaluation ...")
 
