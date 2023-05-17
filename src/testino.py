@@ -38,7 +38,7 @@ MoE = deepspeed.moe.layer.MoE(
     hidden_size=embed_dims[len(scales) - 1] // top_k,
     expert=nn.Sequential(*
                          [
-                             Rearrange('n 1 (c d h) w -> n d h w c', d=window_size[0],
+                             Rearrange('n 1 (d h w) c -> n d h w c', d=window_size[0],
                                        c=embed_dims[len(scales) - 1] // top_k),
                              nn.LayerNorm(embed_dims[len(scales) - 1] // top_k),
                              nn.Linear(embed_dims[len(scales) - 1] // top_k, embed_dims[len(scales)] // top_k),
@@ -63,7 +63,7 @@ MoE = deepspeed.moe.layer.MoE(
     k=2
 ).cuda()
 
-x = torch.rand(1, 32, 6, 64, 64).cuda()
+x = torch.rand(1, 6, 64, 64, 16).cuda()
 
 print("INPUT SHAPE:", x.shape)
 out, _, _ = MoE(x)
