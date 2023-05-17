@@ -88,7 +88,7 @@ def evaluate(
 
     if rank == 0:
         logger.log_dict({f"Loss {k}": val_loss / len(val_dl)}, epoch, "Val")
-        logger.log_flow(f"Val {k}", epoch, x[0], predictions, y)
+        logger.log_flow(f"Val {k}", epoch, x1, predictions, y)
         save_k_checkpoint(cfg, k, Gk, logger, cfg.train.ddp)
 
 def train_one_epoch(
@@ -146,7 +146,7 @@ def train_one_epoch(
 
     if rank == 0:
         logger.log_dict({f"Loss {k}": train_loss / len(train_dl)}, epoch, f"Train")
-        logger.log_flow(f"Train {k}", epoch, x[0], predictions, y)
+        logger.log_flow(f"Train {k}", epoch, x1, predictions, y)
 
     print("Starting Evaluation ...")
 
