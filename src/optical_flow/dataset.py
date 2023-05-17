@@ -1,5 +1,4 @@
 from pathlib import Path
-from random import shuffle
 from typing import Union
 
 import torch
@@ -18,18 +17,17 @@ class Dataset(torch.utils.data.Dataset):
         self.root = Path("/home/aghinassi/Desktop/MergedVSR")
 
         self.path = list(Path(path).glob('*'))
-        shuffle(self.path)
 
         self.split = split
         self.augmentation = augmentation
         self.compression = compression
 
-        # split_point = int(len(self.path) * size)
+        split_point = int(len(self.path) * size)
 
         if split == 'train':
-            self.path = self.path[:9000]
+            self.path = self.path[:split_point]
         elif split == 'val':
-            self.path = self.path[9000:10000]
+            self.path = self.path[split_point:]
 
     def __len__(self) -> int:
         return len(self.path)
