@@ -17,7 +17,7 @@ class DatasetSR(Dataset):
     def __init__(self,
                  path: str,
                  split: str,
-                 size: int,
+                 train_size: int,
                  scale: Any = None,
                  hr_augmentation: ListConfig = None,
                  lr_augmentation: ListConfig = None
@@ -29,7 +29,7 @@ class DatasetSR(Dataset):
         self.hr_augmentation = build_transform(hr_augmentation) if hr_augmentation else None
         self.lr_augmentation = build_transform(lr_augmentation) if lr_augmentation else None
 
-        split_point = int(len(self.path) * size)
+        split_point = int(len(self.path) * train_size)
 
         if split == 'train':
             self.path = self.path[:split_point]

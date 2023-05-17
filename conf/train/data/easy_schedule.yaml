@@ -9,7 +9,7 @@ datasets:
     split: "train"
     seq: 12
     scale: 4
-    size: 0.9
+    train_size: 0.9
     hr_augmentation:
       - _target_: kornia.augmentation.RandomCrop
         size: [ 256, 256 ]
@@ -50,7 +50,7 @@ datasets:
     split: "val"
     seq: ${train.data.datasets.train.seq}
     scale: ${train.data.datasets.train.scale}
-    size: ${train.data.datasets.train.size}
+    train_size: ${train.data.datasets.train.train_size}
     hr_augmentation:
       - _target_: torchvision.transforms.CenterCrop
         size: 256
