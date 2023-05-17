@@ -49,7 +49,7 @@ MoE = deepspeed.moe.layer.MoE(
                              Debug(),
                              nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
                              Debug(),
-                             Rearrange('n d h w c -> n c d h w', e=top_k, g=num_gpus),
+                             Rearrange('n d h w c -> n c d h w'),
                              Debug(),
                          ] +
                          [
