@@ -38,14 +38,19 @@ MoE = deepspeed.moe.layer.MoE(
     expert=nn.Sequential(*
                          [
                              Debug(),
-                             Rearrange('n g (c e d h) w -> n d h (w g) (c e)', d=6, e=top_k,
+                             nn.Linear(
+                                 (embed_dims[len(scales) - 1] // top_k) * window_size[0] * img_size[0],
+                                 embed_dims[len(scales) - 1] * window_size[0] * img_size[0]
+                             ),
+                             Debug(),
+                             Rearrange('n 1 (c d h) w -> n d h w c', d=6, e=top_k,
                                        c=embed_dims[len(scales) - 1] // top_k),
                              Debug(),
                              nn.LayerNorm(embed_dims[len(scales) - 1]),
                              Debug(),
                              nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
                              Debug(),
-                             Rearrange('n d h (w g) (c e) -> n (c e) d h (w g)', e=top_k, g=num_gpus),
+                             Rearrange('n d h w c -> n c d h w', e=top_k, g=num_gpus),
                              Debug(),
                          ] +
                          [
