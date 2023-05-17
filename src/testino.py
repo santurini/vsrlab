@@ -6,11 +6,12 @@ from einops.layers.torch import Rearrange
 from vsr.models.VRT.modules.tmsa import RTMSA
 
 class Debug(nn.Module):
-    def __init__(self):
+    def __init__(self, phrase):
         super().__init__()
+        self.phrase = phrase
 
     def forward(self, x):
-        print("IM HERE:", x.shape)
+        print(self.phrase, x.shape)
         return x
 
 num_gpus = 1
@@ -37,16 +38,15 @@ MoE = deepspeed.moe.layer.MoE(
     hidden_size=img_size[1],
     expert=nn.Sequential(*
                          [
-                             Debug(),
+                             Debug("ENTERING MOE SHAPE:"),
                              Rearrange('n 1 (c d h) w -> n d h w c', d=window_size[0],
                                        c=embed_dims[len(scales) - 1] // top_k),
-                             Debug(),
+                             Debug("AFTER REARRANGE SHAPE:"),
                              nn.LayerNorm(embed_dims[len(scales) - 1] // top_k),
-                             Debug(),
                              nn.Linear(embed_dims[len(scales) - 1] // top_k, embed_dims[len(scales)] // top_k),
-                             Debug(),
+                             Debug("AFTER LINEAR SHAPE:"),
                              Rearrange('n d h w c -> n c d h w'),
-                             Debug(),
+                             Debug("TRANSFORMER INPUT SHAPE:"),
                          ] +
                          [
                              RTMSA(dim=embed_dims[i] // top_k,
@@ -69,5 +69,6 @@ MoE = deepspeed.moe.layer.MoE(
 
 x = torch.rand(1, 32, 6, 64, 64).cuda()
 
+print("INPUT SHAPE:", x.shape)
 out, _, _ = MoE(x)
-print(out.shape)
+print("FINAL SHAPE:", out.shape)
