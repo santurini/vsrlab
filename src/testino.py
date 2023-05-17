@@ -34,7 +34,7 @@ norm_layer = nn.LayerNorm
 deepspeed.init_distributed(dist_backend="nccl", rank=0, world_size=1, distributed_port=50523)
 
 MoE = deepspeed.moe.layer.MoE(
-    hidden_size=img_size[1],
+    hidden_size=embed_dims[len(scales) - 1],
     expert=nn.Sequential(*
                          [
                              Debug(),
