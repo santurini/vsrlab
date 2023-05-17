@@ -35,18 +35,14 @@ norm_layer = nn.LayerNorm
 deepspeed.init_distributed(dist_backend="nccl", rank=0, world_size=1, distributed_port=50523)
 
 MoE = deepspeed.moe.layer.MoE(
-    hidden_size=img_size[1],
+    hidden_size=embed_dims[len(scales) - 1] // top_k,
     expert=nn.Sequential(*
                          [
-                             Debug("ENTERING MOE SHAPE:"),
                              Rearrange('n 1 (c d h) w -> n d h w c', d=window_size[0],
                                        c=embed_dims[len(scales) - 1] // top_k),
-                             Debug("AFTER REARRANGE SHAPE:"),
                              nn.LayerNorm(embed_dims[len(scales) - 1] // top_k),
                              nn.Linear(embed_dims[len(scales) - 1] // top_k, embed_dims[len(scales)] // top_k),
-                             Debug("AFTER LINEAR SHAPE:"),
                              Rearrange('n d h w c -> n c d h w'),
-                             Debug("TRANSFORMER INPUT SHAPE:"),
                          ] +
                          [
                              RTMSA(dim=embed_dims[i] // top_k,
