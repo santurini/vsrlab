@@ -1,7 +1,7 @@
-import deepspeed
 import torch
 import torch.nn as nn
 from einops.layers.torch import Rearrange
+from fmoe.layers import FMoE
 
 from vsr.models.VRT.modules.tmsa import RTMSA
 
@@ -32,15 +32,15 @@ drop_path_rate = 0.2
 dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
 norm_layer = nn.LayerNorm
 
-deepspeed.init_distributed(dist_backend="nccl", rank=0, world_size=1, distributed_port=50523)
-
-MoE = deepspeed.moe.layer.MoE(
-    hidden_size=embed_dims[len(scales) - 1] * window_size[0],
+MoE = FMoE(
+    num_expert=4,
+    d_model=embed_dims[len(scales) - 1],
+    world_size=1,
+    top_k=2,
     expert=nn.Sequential(*
                          [
                              Debug("MoE Input"),
-                             Rearrange('n 1 (h w e) (c d)-> n d h (w e) c', d=window_size[0], h=img_size[1],
-                                       e=top_k, c=embed_dims[len(scales) - 1]),
+                             Rearrange('n c d h w-> n d h w c'),
                              Debug("After Rearrange"),
                              nn.LayerNorm(embed_dims[len(scales) - 1]),
                              nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
@@ -60,10 +60,7 @@ MoE = deepspeed.moe.layer.MoE(
                                    norm_layer=norm_layer
                                    ) for i in range(len(scales), len(depths))
                          ]
-                         ),
-    num_experts=4,
-    ep_size=num_gpus,
-    k=2
+                         )
 ).cuda()
 
 x = torch.rand(1, 6, 64, 64, 32).cuda()
