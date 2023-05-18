@@ -1,0 +1,26 @@
+# @package _global_
+defaults:
+  - override /train/model: baby_vrt_moe
+
+train:
+  ddp: False
+
+  model:
+    _target_: moe.MoEVRT.fastmoe.vrt_moe.TinyVRT
+    num_experts: 4
+    num_gpus: 1
+    top_k: 2
+
+  optimizer:
+    lr: 1e-4
+    betas: [ 0.9, 0.99 ]
+
+  scheduler:
+    eta_min: 1e-6
+
+  data:
+    datasets:
+      train:
+        seq: 6
+
+  num_grad_acc: 4
