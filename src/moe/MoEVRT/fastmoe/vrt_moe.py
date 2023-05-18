@@ -8,7 +8,7 @@ from core.losses import CharbonnierLoss
 from core.modules.conv import ResidualBlock
 from einops import rearrange
 from einops.layers.torch import Rearrange
-from fmoe.gates.swipe_gate import SwipeGate
+from fmoe.gates.gshard_gate import GShardGate
 from moe.MoEVRT.fastmoe.stage import Stage
 from moe.MoEVRT.fastmoe.tmsa import RTMSA
 from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
@@ -81,7 +81,7 @@ class TinyVRT(nn.Module):
             num_experts=4,
             num_gpus=1,
             top_k=2,
-            gate=SwipeGate,
+            gate=GShardGate,
             mul_attn_ratio=0.75,
             mlp_ratio=2.,
             qkv_bias=True,

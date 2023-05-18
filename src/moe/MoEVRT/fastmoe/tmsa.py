@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange
-from fmoe.gates.swipe_gate import SwipeGate
+from fmoe.gates.gshard_gate import GShardGate
 from fmoe.transformer import FMoETransformerMLP
 from vsr.models.VRT.modules.stochastic_depth import DropPath
 from vsr.models.VRT.modules.window_attention import *
@@ -37,7 +37,7 @@ class TMSA(nn.Module):
                  num_experts,
                  num_gpus,
                  top_k,
-                 gate=SwipeGate,
+                 gate=GShardGate,
                  window_size=(6, 8, 8),
                  shift_size=(0, 0, 0),
                  mut_attn=True,
@@ -166,7 +166,7 @@ class TMSAG(nn.Module):
                  num_experts,
                  num_gpus,
                  top_k,
-                 gate=SwipeGate,
+                 gate=GShardGate,
                  window_size=[6, 8, 8],
                  shift_size=None,
                  mut_attn=True,
@@ -254,7 +254,7 @@ class RTMSA(nn.Module):
                  qk_scale=None,
                  drop_path=0.,
                  norm_layer=nn.LayerNorm,
-                 gate=SwipeGate,
+                 gate=GShardGate,
                  ):
         super().__init__()
         self.dim = dim
