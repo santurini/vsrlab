@@ -11,6 +11,8 @@ from core.utils import *
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
+torch.autograd.set_detect_anomaly(True)
+
 @torch.no_grad()
 def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, metric, cfg):
     model.eval()
