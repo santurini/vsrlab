@@ -166,7 +166,6 @@ class TinyVRT(nn.Module):
             nn.LeakyReLU(inplace=True))
 
         self.upsample = Upsample(upscale, num_feat)
-
         self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
     def forward(self, x):
@@ -182,11 +181,16 @@ class TinyVRT(nn.Module):
 
         # video sr
         x = self.conv_first(x.transpose(1, 2))
-        x = x + self.conv_after_body(self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)).transpose(
-            1, 4)
-        x = self.conv_last(self.upsample(self.conv_before_upsample(x))).transpose(1, 2)
-        _, _, C, H, W = x.shape
 
+        x = x + self.conv_after_body(
+            self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)
+        ).transpose(1, 4)
+
+        x = self.conv_last(
+            self.upsample(self.conv_before_upsample(x))
+        ).transpose(1, 2)
+
+        _, _, C, H, W = x.shape
         sr = x + torch.nn.functional.interpolate(x_lq, size=(C, H, W), mode='trilinear', align_corners=False)
 
         return sr, x_lq
