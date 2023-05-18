@@ -45,7 +45,7 @@ class TMSA(nn.Module):
                  qkv_bias=True,
                  qk_scale=None,
                  drop_path=0.,
-                 act_layer=nn.GELU,
+                 act_layer=nn.GELU(),
                  norm_layer=nn.LayerNorm
                  ):
         super().__init__()
