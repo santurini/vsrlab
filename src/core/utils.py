@@ -47,9 +47,9 @@ def get_resources():
     else:
         # from torchrun
         print("Launching with torchrun")
-        local_rank = int(os.environ['LOCAL_RANK'])
-        world_size = int(os.environ['WORLD_SIZE'])
-        rank = int(os.environ['RANK'])
+        local_rank = int(os.environ.get('LOCAL_RANK', 0))
+        world_size = int(os.environ.get('WORLD_SIZE', 1))
+        rank = int(os.environ.get('RANK', 0))
 
     dist.init_process_group(backend="nccl", rank=rank, world_size=world_size)
 
