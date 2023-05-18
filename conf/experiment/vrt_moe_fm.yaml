@@ -19,8 +19,7 @@ train:
     eta_min: 1e-6
 
   data:
+    batch_size: 16
     datasets:
       train:
         seq: 6
-
-  num_grad_acc: 4
