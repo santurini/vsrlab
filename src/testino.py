@@ -11,7 +11,7 @@ class Debug(nn.Module):
         self.phrase = phrase
 
     def forward(self, x):
-        print(self.phrase, x.shape)
+        print(x)
         return x
 
 num_gpus = 1
