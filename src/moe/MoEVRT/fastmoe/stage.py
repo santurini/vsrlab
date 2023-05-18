@@ -107,7 +107,6 @@ class Stage(nn.Module):
                                      drop_path=drop_path,
                                      norm_layer=norm_layer
                                      )
-
         self.linear2 = nn.Linear(dim, dim)
 
         # parallel warping
@@ -124,7 +123,6 @@ class Stage(nn.Module):
             top_k=top_k,
             gate=gate
         )
-
         self.linear3 = nn.Linear(dim * (1 + 2), dim)
 
     def forward(self, x, flows_backward, flows_forward):

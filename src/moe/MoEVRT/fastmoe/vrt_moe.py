@@ -43,7 +43,7 @@ class Upsample(nn.Sequential):
             m.append(Transpose_Dim12())
             m.append(nn.PixelShuffle(2))
             m.append(Transpose_Dim12())
-            m.append(nn.LeakyReLU(negative_slope=0.1, inplace=True))
+            m.append(nn.LeakyReLU(negative_slope=0.1))
         m.append(nn.Conv3d(num_feat, num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
 
         super(Upsample, self).__init__(*m)
@@ -179,7 +179,7 @@ class TinyVRT(nn.Module):
         num_feat = 64
         self.conv_before_upsample = nn.Sequential(
             nn.Conv3d(embed_dims[0], num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)),
-            nn.LeakyReLU(inplace=True))
+            nn.LeakyReLU())
 
         self.upsample = Upsample(upscale, num_feat)
         self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))

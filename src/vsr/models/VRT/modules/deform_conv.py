@@ -136,10 +136,10 @@ class DCNv2PackFlowGuided(ModulatedDeformConvPack):
 
         # offset
         offset = self.max_residue_magnitude * torch.tanh(torch.cat((o1, o2), dim=1))
-        offset = offset + flows[0].flip(1).repeat(1, offset.size(1) // 2, 1, 1).type_as(x)
+        offset = offset + flows[0].flip(1).repeat(1, offset.size(1) // 2, 1, 1)
 
         # mask
-        mask = torch.sigmoid(mask).type_as(x)
+        mask = torch.sigmoid(mask)
 
         return torchvision.ops.deform_conv2d(x, offset, self.weight, self.bias, self.stride, self.padding,
                                              self.dilation, mask)
