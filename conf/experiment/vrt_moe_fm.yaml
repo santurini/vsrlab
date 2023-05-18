@@ -3,7 +3,6 @@ defaults:
   - override /train/model: baby_vrt_moe
 
 train:
-  ddp: False
 
   model:
     _target_: moe.MoEVRT.fastmoe.vrt_moe.TinyVRT
