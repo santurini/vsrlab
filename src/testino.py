@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from fmoe.layer import FMoE
+from fmoe.layers import FMoE
 from fmoe.linear import FMoELinear
 
 class Debug(nn.Module):
