@@ -107,6 +107,7 @@ def build_cleaner(cfg, device):
 
 def load_data(cfg, k: int):
     path = cfg.train.data.datasets.train.path
+    levels = cfg.train.k - 1
 
     train_tfms = Compose([
         Resize(*spynet.config.GConf(k).image_size),
@@ -118,7 +119,7 @@ def load_data(cfg, k: int):
     compression = Compose([
         RandomVideoCompression(
             codec=['libx264'],
-            crf=[34 - (4 - k) * 4],
+            crf=[34 - (levels - k) * 4],
             fps=[12]
         )]
     )

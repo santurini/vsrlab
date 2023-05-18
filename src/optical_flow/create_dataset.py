@@ -32,5 +32,5 @@ with torch.no_grad():
                      resize(to_tensor(Image.open(c[1])), size=(384, 512))]
                 ).unsqueeze(0).cuda()
             }
-            flow = teacher(inputs)["flows"].squeeze(0).squeeze(0)
+            flow = teacher(inputs)["flows"].squeeze(0).squeeze(0)  # (2 H W)
             torch.save(flow.detach(), save_path)
