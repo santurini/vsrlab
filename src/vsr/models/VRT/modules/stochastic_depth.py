@@ -10,7 +10,7 @@ def drop_path(x, drop_prob: float = 0., training: bool = False):
     random_tensor = keep_prob + torch.rand(shape)
     random_tensor.floor_()  # binarize
     output = x.div(keep_prob) * random_tensor.type_as(x)
-    return output.type_as(x)
+    return output
 
 class DropPath(nn.Module):
     """Drop paths (Stochastic Depth) per sample  (when applied in main path of residual blocks)"""
