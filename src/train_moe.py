@@ -1,5 +1,4 @@
 import argparse
-import logging
 import time
 import warnings
 
@@ -27,7 +26,6 @@ from core.utils import (
 )
 
 warnings.filterwarnings('ignore')
-logging.getLogger().disabled = True
 
 def add_argument():
     parser = argparse.ArgumentParser()
