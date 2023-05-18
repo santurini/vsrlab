@@ -20,7 +20,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
         lr, hr = data[0].to(device), data[1].to(device)
 
         with torch.cuda.amp.autocast():
-            sr, lq = model(lr)
+            sr, lq = model(lr.half())
             loss = compute_loss(loss_fn, sr, hr)
 
         if cfg.train.ddp:
@@ -78,7 +78,7 @@ def run(cfg: DictConfig):
             lr, hr = data[0].to(device), data[1].to(device)
 
             with torch.cuda.amp.autocast():
-                sr, lq = model(lr)
+                sr, lq = model(lr.half())
                 loss = compute_loss(loss_fn, sr, hr, lq)
 
             update_weights(model, loss, scaler, scheduler,
