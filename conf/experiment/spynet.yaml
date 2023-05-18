@@ -8,7 +8,7 @@ train:
   finetune: False
 
   data:
-    batch_size: 32
+    batch_size: 16
     num_workers: 12
     prefetch_factor: 8
 
