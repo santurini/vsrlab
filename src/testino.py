@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from fmoe.linear import FMoELinear
+from fmoe.transformer import FMoETransformerMLP
 
 class Debug(nn.Module):
     def __init__(self, phrase):
@@ -29,10 +29,10 @@ drop_path_rate = 0.2
 dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
 norm_layer = nn.LayerNorm
 
-MoE = FMoELinear(
+MoE = FMoETransformerMLP(
     num_expert=4,
-    in_feat=embed_dims[len(scales) - 1],
-    out_feat=embed_dims[len(scales) - 1]
+    d_model=embed_dims[len(scales) - 1],
+    d_hidden=embed_dims[len(scales) - 1]
 )
 
 x = torch.rand(1, 6, 64, 64, 32).cuda()
