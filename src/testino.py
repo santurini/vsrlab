@@ -33,7 +33,7 @@ MoE = FMoETransformerMLP(
     num_expert=4,
     d_model=embed_dims[len(scales) - 1],
     d_hidden=embed_dims[len(scales) - 1]
-)
+).cuda()
 
 x = torch.rand(1, 6, 64, 64, 32).cuda()
 
