@@ -1,9 +1,7 @@
 import torch
 import torch.nn as nn
-from einops.layers.torch import Rearrange
-from fmoe.layers import FMoE
-
-from vsr.models.VRT.modules.tmsa import RTMSA
+from fmoe.layer import FMoE
+from fmoe.linear import FMoELinear
 
 class Debug(nn.Module):
     def __init__(self, phrase):
@@ -37,34 +35,11 @@ MoE = FMoE(
     d_model=embed_dims[len(scales) - 1],
     world_size=1,
     top_k=2,
-    expert=nn.Sequential(*
-                         [
-                             Debug("MoE Input"),
-                             Rearrange('n c d h w-> n d h w c'),
-                             Debug("After Rearrange"),
-                             nn.LayerNorm(embed_dims[len(scales) - 1]),
-                             nn.Linear(embed_dims[len(scales) - 1], embed_dims[len(scales)]),
-                             Debug("After Linear"),
-                             Rearrange('n d h w c -> n c d h w'),
-                         ] +
-                         [
-                             RTMSA(dim=embed_dims[i],
-                                   input_resolution=img_size,
-                                   depth=depths[i],
-                                   num_heads=num_heads[i],
-                                   window_size=[1, window_size[1],
-                                                window_size[2]] if i in indep_reconsts else window_size,
-                                   mlp_ratio=mlp_ratio,
-                                   qkv_bias=qkv_bias, qk_scale=qk_scale,
-                                   drop_path=dpr[sum(depths[:i]):sum(depths[:i + 1])],
-                                   norm_layer=norm_layer
-                                   ) for i in range(len(scales), len(depths))
-                         ]
-                         )
-).cuda()
+    expert=FMoELinear
+)
 
 x = torch.rand(1, 6, 64, 64, 32).cuda()
 
 print("INPUT SHAPE:", x.shape)
-out, _, _ = MoE(x)
+out = MoE(x)
 print("FINAL SHAPE:", out.shape)
