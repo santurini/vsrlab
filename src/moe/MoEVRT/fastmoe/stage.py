@@ -157,4 +157,4 @@ class Stage(nn.Module):
             x_i_warped = flow_warp(x_i, flow.permute(0, 2, 3, 1), 'bilinear')  # frame i-1 aligned towards i
             x_forward.append(self.pa_deform(x_i, [x_i_warped], x[:, i + 1, ...], [flow]))
 
-        return [torch.stack(x_backward, 1), torch.stack(x_forward, 1)]
+        return [torch.stack(x_backward, 1).type_as(x), torch.stack(x_forward, 1).type_as(x)]
