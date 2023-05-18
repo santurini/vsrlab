@@ -11,8 +11,6 @@ from core.utils import *
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
-torch.autograd.set_detect_anomaly(True)
-
 @torch.no_grad()
 def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, metric, cfg):
     model.eval()
@@ -21,9 +19,9 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
     for i, data in enumerate(val_dl):
         lr, hr = data[0].to(device), data[1].to(device)
 
-        # with torch.cuda.amp.autocast():
-        sr, lq = model(lr)
-        loss = compute_loss(loss_fn, sr, hr)
+        with torch.cuda.amp.autocast():
+            sr, lq = model(lr)
+            loss = compute_loss(loss_fn, sr, hr)
 
         if cfg.train.ddp:
             dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
@@ -79,15 +77,12 @@ def run(cfg: DictConfig):
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
-            # with torch.cuda.amp.autocast():
-            sr, lq = model(lr)
-            loss = compute_loss(loss_fn, sr, hr, lq)
+            with torch.cuda.amp.autocast():
+                sr, lq = model(lr)
+                loss = compute_loss(loss_fn, sr, hr, lq)
 
-            # update_weights(model, loss, scaler, scheduler,
-            #               optimizer, num_grad_acc, gradient_clip_val, i)
-
-            update_weights_basic(model, loss, scheduler,
-                                 optimizer, num_grad_acc, gradient_clip_val, i)
+            update_weights(model, loss, scaler, scheduler,
+                           optimizer, num_grad_acc, gradient_clip_val, i)
 
             train_loss += loss.detach().item()
             train_metrics = running_metrics(train_metrics, metric, sr, hr)

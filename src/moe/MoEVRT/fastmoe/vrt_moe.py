@@ -13,11 +13,7 @@ from moe.MoEVRT.fastmoe.stage import Stage
 from moe.MoEVRT.fastmoe.tmsa import RTMSA
 from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
 
-# from vsr.models.VRT.modules.stage import Stage
-# from vsr.models.VRT.modules.tmsa import RTMSA
-
 pylogger = logging.getLogger(__name__)
-
 loss_fn = CharbonnierLoss()
 
 class Upsample(nn.Sequential):
