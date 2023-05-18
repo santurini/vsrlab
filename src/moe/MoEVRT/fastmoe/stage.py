@@ -133,7 +133,7 @@ class Stage(nn.Module):
         x = self.linear2(self.residual_group2(x).transpose(1, 4)).transpose(1, 4) + x
         x = x.transpose(1, 2)
         x_backward, x_forward = self.get_aligned_features(x, flows_backward, flows_forward)
-        print("TYPEEEEEEE:", type(torch.cat([x, x_backward, x_forward], 2)))
+        print("TYPEEEEEEE:", (torch.cat([x, x_backward, x_forward], 2)).dtype)
         x = self.pa_fuse(torch.cat([x, x_backward, x_forward], 2).permute(0, 1, 3, 4, 2))
         x = self.linear3(x).permute(0, 4, 1, 2, 3)
         return x
