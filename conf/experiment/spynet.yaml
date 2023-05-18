@@ -4,7 +4,7 @@ defaults:
 
 train:
   ddp: True
-  restore: "/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/kjhsdvqqq/checkpoint/4.ckpt"
+  restore: "/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/kjhsdvqqqq/checkpoint/4.ckpt"
   finetune: False
 
   data:
