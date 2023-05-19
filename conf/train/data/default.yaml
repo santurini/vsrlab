@@ -35,7 +35,7 @@ datasets:
 
     lr_augmentation:
       - _target_: core.augmentations.RandomJPEGCompression
-        quality: [ 50, 95 ]
+        quality: [ 50, 90 ]
 
       - _target_: kornia.augmentation.RandomGaussianNoise
         mean: 0
@@ -52,11 +52,11 @@ datasets:
         p: 0.5
 
       - _target_: core.augmentations.RandomJPEGCompression
-        quality: [ 60, 95 ]
+        quality: [ 60, 90 ]
 
       - _target_: core.augmentations.RandomVideoCompression
         codec: [ 'libx264', 'h264' ]
-        crf: [ 36, 38 ]
+        crf: [ 36, 42 ]
         fps: [ 30 ]
 
       - _target_: kornia.augmentation.Resize
