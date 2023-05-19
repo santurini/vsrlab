@@ -52,8 +52,8 @@ def run(config):
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                video_hr, video_lr = get_video(video_hr_path, pool).to(device), get_video(video_lr_path, pool).to(
-                    device)
+                video_hr, video_lr = get_video(video_hr_path, pool).to(device), \
+                    get_video(video_lr_path, pool).to(device)
 
                 _, n_frames, c, h, w = video_hr.shape
                 size_bits = (Path(config.hr_dir) / f"fps={fps}_crf=5" / "video" / video_name).stat().st_size * 8
