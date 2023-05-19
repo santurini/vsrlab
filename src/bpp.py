@@ -25,9 +25,7 @@ def run(config):
                 video_hr_path = os.path.join(config.hr_dir, f"fps={fps}_crf=5", "frames", video_name)
                 # Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                print("loading")
                 video_hr = get_video(video_hr_path, pool)
-                print("loaded")
 
                 _, n_frames, c, h, w = video_hr.shape
                 size_bits = (Path(config.lr_dir) / f"fps={fps}_crf={crf}" / "video" / video_name).stat().st_size * 8
