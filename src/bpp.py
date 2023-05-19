@@ -1,4 +1,5 @@
 import warnings
+from concurrent.futures import ThreadPoolExecutor
 
 import omegaconf
 import pandas as pd
@@ -16,6 +17,7 @@ def run(config):
             video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
             output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
+            pool = ThreadPoolExecutor(config.num_workers)
 
             bpp = 0
             for video_lr_path in video_paths:
@@ -24,8 +26,7 @@ def run(config):
                 # Path(save_folder).mkdir(exist_ok=True, parents=True)
 
                 print("loading")
-                video_hr = torch.stack([img2tensor(i) for i in list(sorted(Path(video_hr_path).glob('*')))]).unsqueeze(
-                    0)
+                video_hr = get_video(video_hr_path, pool)
                 print("loaded")
 
                 _, n_frames, c, h, w = video_hr.shape
