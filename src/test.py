@@ -41,7 +41,7 @@ def run(config):
             video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
             output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
-            video_metrics = {k: 0 for k in config.metric.metrics}
+            video_metrics, bpp = {k: 0 for k in config.metric.metrics}, 0
 
             for video_lr_path in video_paths:
                 model.eval()
@@ -55,7 +55,7 @@ def run(config):
                 video_hr, video_lr = get_video(video_hr_path, pool).to(device), get_video(video_lr_path, pool).to(
                     device)
 
-                _, n_frames, c, h, w, bpp = *video_hr.shape, 0
+                _, n_frames, c, h, w = video_hr.shape
                 size_bits = (Path(config.hr_dir) / f"fps={fps}_crf=5" / "video" / video_name).stat().st_size * 8
                 bpp += size_bits / (c * h * w * n_frames)
 
