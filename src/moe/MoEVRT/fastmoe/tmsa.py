@@ -72,7 +72,8 @@ class TMSA(nn.Module):
             expert_rank=os.environ.get("RANK", 0),
             world_size=num_gpus,
             top_k=top_k,
-            gate=gate
+            gate=gate,
+            dp_comm="world" if num_gpus > 1 else "none"
         )
 
     def forward_part1(self, x, mask_matrix):
