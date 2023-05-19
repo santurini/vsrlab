@@ -7,10 +7,11 @@ from core import PROJECT_ROOT
 from core.utils import *
 
 warnings.filterwarnings('ignore')
+video_pd = []
 
 def run(config):
-    for fps in [15]:
-        for crf in [30]:
+    for fps in [15, 12, 10, 8, 6]:
+        for crf in [30, 32, 34, 36, 38, 40]:
             print('Configuration: fps -> {} - crf -> {} '.format(fps, crf))
             video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
             output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
@@ -20,7 +21,7 @@ def run(config):
                 video_name = os.path.basename(video_lr_path)
                 video_hr_path = os.path.join(config.hr_dir, f"fps={fps}_crf=5", "frames", video_name)
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
-                Path(save_folder).mkdir(exist_ok=True, parents=True)
+                # Path(save_folder).mkdir(exist_ok=True, parents=True)
 
                 video_hr = get_video(video_hr_path, pool).to(device)
 
