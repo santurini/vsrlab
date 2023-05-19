@@ -30,6 +30,8 @@ def run(config):
                 size_bits = (Path(config.lr_dir) / f"fps={fps}_crf={crf}" / "video" / video_name).stat().st_size * 8
                 bpp += size_bits / (c * h * w * n_frames)
 
+            print(bpp)
+            print(len(video_paths))
             video_pd.append({"bpp": bpp / len(video_paths), "fps": fps, "crf": crf})
 
     df = pd.read_csv(os.path.join(output_folder, f'{os.path.basename(config.cfg_dir)}.csv'))
