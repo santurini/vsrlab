@@ -14,7 +14,7 @@ def run(config):
     for fps in [15, 12, 10, 8, 6]:
         for crf in [30, 32, 34, 36, 38, 40]:
             print('Configuration: fps -> {} - crf -> {} '.format(fps, crf))
-            pool = ThreadPoolExecutor(config.num_workers)
+            pool = ThreadPoolExecutor(1)
             video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
             output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
@@ -27,13 +27,12 @@ def run(config):
                 # Path(save_folder).mkdir(exist_ok=True, parents=True)
 
                 video_hr = get_video(video_hr_path, pool)
+                print("loaded")
 
                 _, n_frames, c, h, w = video_hr.shape
                 size_bits = (Path(config.lr_dir) / f"fps={fps}_crf={crf}" / "video" / video_name).stat().st_size * 8
                 bpp += size_bits / (c * h * w * n_frames)
 
-            print(bpp)
-            print(len(video_paths))
             video_pd.append({"bpp": bpp / len(video_paths), "fps": fps, "crf": crf})
 
     df = pd.read_csv(os.path.join(output_folder, f'{os.path.basename(config.cfg_dir)}.csv'))
