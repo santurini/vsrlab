@@ -17,6 +17,7 @@ def run(config):
             output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
 
+            bpp = 0
             for video_lr_path in video_paths:
                 video_name = os.path.basename(video_lr_path)
                 video_hr_path = os.path.join(config.hr_dir, f"fps={fps}_crf=5", "frames", video_name)
@@ -25,7 +26,7 @@ def run(config):
 
                 video_hr = get_video(video_hr_path, pool).to(device)
 
-                _, n_frames, c, h, w, bpp = *video_hr.shape, 0
+                _, n_frames, c, h, w = video_hr.shape
                 size_bits = (Path(config.lr_dir) / f"fps={fps}_crf={crf}" / "video" / video_name).stat().st_size * 8
                 bpp += size_bits / (c * h * w * n_frames)
 
