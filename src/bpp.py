@@ -13,6 +13,7 @@ def run(config):
     for fps in [15, 12, 10, 8, 6]:
         for crf in [30, 32, 34, 36, 38, 40]:
             print('Configuration: fps -> {} - crf -> {} '.format(fps, crf))
+            pool = ThreadPoolExecutor(config.num_workers)
             video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
             output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
