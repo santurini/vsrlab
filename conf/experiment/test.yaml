@@ -14,3 +14,5 @@ metric:
       _target_: piqa.PSNR
     SSIM:
       _target_: piqa.SSIM
+    BPP:
+      _target_: core.metrics.BPP

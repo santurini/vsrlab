@@ -12,6 +12,10 @@ from core.utils import *
 warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
+BPP = {
+
+}
+
 @torch.no_grad()
 def run(config):
     rank, local_rank, world_size = (0, 0, 1)
@@ -51,6 +55,10 @@ def run(config):
                 video_hr, video_lr = get_video(video_hr_path, pool).to(device), get_video(video_lr_path, pool).to(
                     device)
 
+                _, n_frames, c, h, w, bpp = *video_hr.shape, 0
+                size_bits = (Path(config.hr_dir) / f"fps={fps}_crf=5" / "video" / video_name).stat().st_size * 8
+                bpp += size_bits / (c * h * w * n_frames)
+
                 outputs = []
                 for i in range(0, video_lr.size(1), config.window_size):
                     lr, hr = video_lr[:, i:i + config.window_size, ...].to(device, non_blocking=True), \
@@ -71,9 +79,11 @@ def run(config):
                 dt = time.time() - dt
                 print(f"Inference Time --> {dt:2f}")
 
-            video_pd.append({"fps": fps, "crf": crf} | {k: v / len(video_paths) for k, v in video_metrics.items()})
+            video_pd.append(
+                {"bpp": bpp / len(video_paths), "fps": fps, "crf": crf} | {k: v / len(video_paths) for k, v in
+                                                                           video_metrics.items()})
 
-    pd.DataFrame(video_pd).to_csv(os.path.join(output_folder, 'metrics.csv'))
+    pd.DataFrame(video_pd).to_csv(os.path.join(output_folder, f'{os.path.basename(config.cfg_dir)}.csv'))
 
     return output_folder
 

@@ -17,7 +17,7 @@ class DatasetSR(Dataset):
     def __init__(self,
                  path: str,
                  split: str,
-                 train_size: int,
+                 train_size: float,
                  scale: Any = None,
                  hr_augmentation: ListConfig = None,
                  lr_augmentation: ListConfig = None
