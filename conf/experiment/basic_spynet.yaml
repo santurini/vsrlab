@@ -3,6 +3,6 @@ defaults:
   - override /train/model: baby_realbasic_spynet
 
 train:
-  num_grad_acc: 4
+  num_grad_acc: 2
   data:
     batch_size: 8
