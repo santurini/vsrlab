@@ -83,6 +83,7 @@ class TinyVRT(nn.Module):
             norm_layer=nn.LayerNorm,
             k=5,
             optical_flow_pretrained=None,
+            return_levels=[2, 3, 4],
             optical_flow_train=False,
             pa_frames=2,
             deformable_groups=8
@@ -223,18 +224,18 @@ class TinyVRT(nn.Module):
         '''Get flow between frames t and t+1 from x.'''
 
         b, n, c, h, w = x.size()
-        x_1 = x[:, :-1, :, :, :].reshape(-1, c, h, w)
-        x_2 = x[:, 1:, :, :, :].reshape(-1, c, h, w)
+        x_1 = (x[:, :-1, :, :, :].reshape(-1, c, h, w) - self.mean) / self.std
+        x_2 = (x[:, 1:, :, :, :].reshape(-1, c, h, w) - self.mean) / self.std
 
         n_scales = len(self.optical_flow.return_levels)
 
         # backward
-        flows_backward = self.optical_flow(x_1, x_2)
+        flows_backward = self.optical_flow((x_1, x_2))
         flows_backward = [flow.view(b, n - 1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in
                           zip(flows_backward, range(n_scales))]
 
         # forward
-        flows_forward = self.optical_flow(x_2, x_1)
+        flows_forward = self.optical_flow((x_2, x_1))
         flows_forward = [flow.view(b, n - 1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in
                          zip(flows_forward, range(n_scales))]
 
@@ -270,29 +271,7 @@ class TinyVRT(nn.Module):
 
 @torch.no_grad()
 def main() -> None:
-    model = TinyVRT(
-        upsample=4,
-        in_chans=3,
-        out_chans=3,
-        refine_steps=3,
-        refine_blocks=5,
-        refine_ch=64,
-        img_size=[6, 64, 64],
-        window_size=[6, 8, 8],
-        depths=[8, 8, 8, 8, 8, 4, 4],
-        indep_reconsts=[-2, -1],
-        embed_dims=[64, 64, 64, 64, 64, 80, 80],
-        num_heads=[6, 6, 6, 6, 6, 6, 6],
-        mul_attn_ratio=0.75,
-        mlp_ratio=2.,
-        qkv_bias=True,
-        qk_scale=None,
-        drop_path_rate=0.2,
-        norm_layer=nn.LayerNorm,
-        optical_flow_pretrained=True,
-        pa_frames=2,
-        deformable_groups=8
-    )
+    model = TinyVRT()
 
     x = torch.rand(2, 6, 3, 64, 64)
     print(model(x).shape)

@@ -49,9 +49,14 @@ class BasicModule(nn.Module):
 
 class SpyNet(nn.Module):
 
-    def __init__(self, units: Sequence[BasicModule] = None, k: int = None):
+    def __init__(
+            self,
+            units: Sequence[BasicModule] = None,
+            k: int = None,
+            return_levels=[2, 3, 4]
+    ):
         super(SpyNet, self).__init__()
-        
+
         if units is not None and k is not None:
             assert len(units) == k
 
@@ -66,6 +71,7 @@ class SpyNet(nn.Module):
             self.units = nn.ModuleList(units)
 
         self.levels = k - 1
+        self.return_levels = return_levels
 
     def forward(self,
                 frames: Tuple[torch.Tensor, torch.Tensor],
@@ -78,6 +84,8 @@ class SpyNet(nn.Module):
             Highest resolution frames. Each tuple element has shape
             [BATCH, 3, HEIGHT, WIDTH]
         """
+        flow_list = []
+
         if limit_k == -1:
             units = self.units
         else:
@@ -106,8 +114,14 @@ class SpyNet(nn.Module):
 
             Vk = G((x1, x2), Vk_1, upsample_optical_flow=False)
             Vk_1 = Vk + Vk_1 if Vk_1 is not None else Vk
-        
-        return Vk_1
+
+            if k in self.return_levels:
+                flow_list.insert(0, Vk_1)
+
+        if len(flow_list) == 1:
+            return flow_list[0]
+
+        return flow_list
 
     @classmethod
     def from_pretrained(cls: Type['SpyNet'], k, path=None) -> 'SpyNet':
