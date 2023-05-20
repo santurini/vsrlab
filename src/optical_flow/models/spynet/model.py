@@ -67,8 +67,9 @@ class SpyNet(nn.Module):
 
         self.levels = k - 1
 
-    def forward(self, 
+    def forward(self,
                 frames: Tuple[torch.Tensor, torch.Tensor],
+                train: bool = True,
                 limit_k: int = -1) -> torch.Tensor:
         """
         Parameters
@@ -85,8 +86,14 @@ class SpyNet(nn.Module):
 
         for k, G in enumerate(units):
             b, c, h, w = frames[0].shape
-            im_size = (
-            (h // 2 ** (self.levels - k)), (w // 2 ** (self.levels - k)))  # spynet.config.GConf(k).image_size
+            if not train:
+                im_size = (
+                    (h // 2 ** (self.levels - k)),
+                    (w // 2 ** (self.levels - k))
+                )
+            else:
+                im_size = spynet.config.GConf(k).image_size
+
             x1 = F.interpolate(frames[0], im_size, mode='bilinear',
                                align_corners=True)
             x2 = F.interpolate(frames[1], im_size, mode='bilinear',
