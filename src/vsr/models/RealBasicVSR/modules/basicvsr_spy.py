@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from core.modules.conv import ResidualBlock
 from core.modules.upsampling import PixelShufflePack
+from optical_flow.models.spynet.model import SpyNet
 from vsr.models.RealBasicVSR.modules.spynet import flow_warp
 
 pylogger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ class BasicVSR(nn.Module):
         self.conv_last = nn.Sequential(nn.Conv2d(mid_channels, 64, 3, 1, 1), nn.LeakyReLU(0.1),
                                        nn.Conv2d(64, 3, 3, 1, 1))
         self.upscale = nn.Upsample(scale_factor=upscale, mode='bilinear', align_corners=False)
-        self.spynet = Spynet.from_pretrained(k, pretrained_flow)
+        self.spynet = SpyNet.from_pretrained(k, pretrained_flow)
 
         if not train_flow:
             pylogger.info('Setting Optical Flow weights to no_grad')
