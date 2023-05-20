@@ -1,0 +1,3 @@
+# @package _global_
+defaults:
+  - override /train/model: baby_realbasic_spynet

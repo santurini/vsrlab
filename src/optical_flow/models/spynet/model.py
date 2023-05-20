@@ -7,23 +7,18 @@ from core import PROJECT_ROOT
 from optical_flow.models import spynet
 
 class BasicModule(nn.Module):
-
     def __init__(self, input_channels: int = 8):
         super(BasicModule, self).__init__()
 
         self.module = nn.Sequential(
             nn.Conv2d(input_channels, 32, kernel_size=7, padding=3, stride=1),
-            nn.ReLU(inplace=False),
-
+            nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=7, padding=3, stride=1),
-            nn.ReLU(inplace=False),
-
+            nn.ReLU(),
             nn.Conv2d(64, 32, kernel_size=7, padding=3, stride=1),
-            nn.ReLU(inplace=False),
-
+            nn.ReLU(),
             nn.Conv2d(32, 16, kernel_size=7, padding=3, stride=1),
-            nn.ReLU(inplace=False),
-
+            nn.ReLU(),
             nn.Conv2d(16, 2, kernel_size=7, padding=3, stride=1))
 
     def forward(self, 
