@@ -34,6 +34,7 @@ class BasicVSR(nn.Module):
         lrs_1 = lrs[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
         lrs_2 = lrs[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
         flow_backward = self.spynet((lrs_1, lrs_2))
+        print(flow_backward.shape)
         if self.is_mirror:
             flow_forward = None
         else:
