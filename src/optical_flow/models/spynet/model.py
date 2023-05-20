@@ -56,7 +56,7 @@ class SpyNet(nn.Module):
             assert len(units) == k
 
         if units is None and k is None:
-            raise ValueError('At least one argument (units or k) must be' 
+            raise ValueError('At least one argument (units or k) must be'
                              'specified')
 
         if units is not None:
@@ -64,6 +64,8 @@ class SpyNet(nn.Module):
         else:
             units = [BasicModule() for _ in range(k)]
             self.units = nn.ModuleList(units)
+
+        self.levels = k - 1
 
     def forward(self, 
                 frames: Tuple[torch.Tensor, torch.Tensor],
@@ -82,15 +84,17 @@ class SpyNet(nn.Module):
         Vk_1 = None
 
         for k, G in enumerate(units):
-            im_size = spynet.config.GConf(k).image_size
+            b, c, h, w = frames[0].shape
+            im_size = (
+            (h // 2 ** (self.levels - k)), (w // 2 ** (self.levels - k)))  # spynet.config.GConf(k).image_size
             x1 = F.interpolate(frames[0], im_size, mode='bilinear',
                                align_corners=True)
             x2 = F.interpolate(frames[1], im_size, mode='bilinear',
                                align_corners=True)
 
-            if Vk_1 is not None: # Upsample the previous optical flow
+            if Vk_1 is not None:  # Upsample the previous optical flow
                 Vk_1 = F.interpolate(
-                    Vk_1, scale_factor=2, align_corners=True, 
+                    Vk_1, scale_factor=2, align_corners=True,
                     mode='bilinear') * 2.
 
             Vk = G((x1, x2), Vk_1, upsample_optical_flow=False)
