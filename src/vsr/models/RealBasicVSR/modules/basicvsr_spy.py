@@ -24,6 +24,9 @@ class BasicVSR(nn.Module):
         self.upscale = nn.Upsample(scale_factor=upscale, mode='bilinear', align_corners=False)
         self.spynet = SpyNet.from_pretrained(k, pretrained_flow)
 
+        self.register_buffer('mean', torch.Tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1))
+        self.register_buffer('std', torch.Tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
+
         if not train_flow:
             pylogger.info('Setting Optical Flow weights to no_grad')
             for param in self.spynet.parameters():
@@ -31,9 +34,12 @@ class BasicVSR(nn.Module):
 
     def compute_flow(self, lrs):
         n, t, c, h, w = lrs.size()
-        lrs_1 = lrs[:, :-1, :, :, :].reshape(-1, c, h, w)  # remove last frame
-        lrs_2 = lrs[:, 1:, :, :, :].reshape(-1, c, h, w)  # remove first frame
+
+        lrs_1 = (lrs[:, :-1, :, :, :].reshape(-1, c, h, w) - self.mean) / self.std  # remove last frame
+        lrs_2 = (lrs[:, 1:, :, :, :].reshape(-1, c, h, w) - self.mean) / self.std  # remove first frame
+
         flow_backward = self.spynet((lrs_1, lrs_2), train=False)
+
         if self.is_mirror:
             flow_forward = None
         else:
