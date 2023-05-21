@@ -106,9 +106,7 @@ class TMSA(nn.Module):
 
     def forward_part2(self, x):
         x = self.norm2(x)
-        print("SHAPE BEFORE MOE:", x.shape)
         x = self.mlp(x)
-        print("SHAPE AFTER MOE:", x.shape)
         return self.drop_path(x)
 
     def forward(self, x, mask_matrix):

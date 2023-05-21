@@ -109,7 +109,7 @@ class TinyVRT(nn.Module):
         self.conv_first = nn.Conv3d(conv_first_in_chans, embed_dims[0], kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
         # main body
-        self.init_flow(k, optical_flow_pretrained, optical_flow_train)
+        self.init_flow(k, optical_flow_pretrained, return_levels, optical_flow_train)
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
         reshapes = ['none', 'down', 'down', 'up', 'up']
@@ -261,8 +261,8 @@ class TinyVRT(nn.Module):
 
         return [torch.stack(x_backward, 1), torch.stack(x_forward, 1)]
 
-    def init_flow(self, k, pretrained, train):
-        self.optical_flow = SpyNet.from_pretrained(k, pretrained)
+    def init_flow(self, k, pretrained, return_levels, train):
+        self.optical_flow = SpyNet.from_pretrained(k, return_levels, pretrained)
 
         if not train:
             pylogger.info(f'Freezing Optical Flow parameters')
