@@ -230,12 +230,12 @@ class TinyVRT(nn.Module):
         n_scales = len(self.optical_flow.return_levels)
 
         # backward
-        flows_backward = self.optical_flow((x_1, x_2))
+        flows_backward = self.optical_flow((x_1, x_2), False)
         flows_backward = [flow.view(b, n - 1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in
                           zip(flows_backward, range(n_scales))]
 
         # forward
-        flows_forward = self.optical_flow((x_2, x_1))
+        flows_forward = self.optical_flow((x_2, x_1), False)
         flows_forward = [flow.view(b, n - 1, 2, h // (2 ** i), w // (2 ** i)) for flow, i in
                          zip(flows_forward, range(n_scales))]
 
