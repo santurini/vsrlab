@@ -116,7 +116,6 @@ class SpyNet(nn.Module):
             Vk_1 = Vk + Vk_1 if Vk_1 is not None else Vk
 
             if k in self.return_levels:
-                print(f"level {k} -> shape {Vk_1.shape}")
                 flow_list.insert(0, Vk_1)
 
         if len(flow_list) == 1:
