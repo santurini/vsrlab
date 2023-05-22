@@ -22,7 +22,7 @@ class BasicVSR(nn.Module):
         self.conv_last = nn.Sequential(nn.Conv2d(mid_channels, 64, 3, 1, 1), nn.LeakyReLU(0.1),
                                        nn.Conv2d(64, 3, 3, 1, 1))
         self.upscale = nn.Upsample(scale_factor=upscale, mode='bilinear', align_corners=False)
-        self.spynet = SpyNet.from_pretrained(k, pretrained_flow)
+        self.spynet = SpyNet.from_pretrained(k, [4], pretrained_flow)
 
         self.register_buffer('mean', torch.Tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1))
         self.register_buffer('std', torch.Tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
