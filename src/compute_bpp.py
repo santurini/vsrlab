@@ -1,18 +1,12 @@
 import time
-import warnings
 
 import omegaconf
 import pandas as pd
 
 from core import PROJECT_ROOT
-from core.utils import *
-
-warnings.filterwarnings('ignore')
-pylogger = logging.getLogger(__name__)
 
 C, H, W = 3, 480, 640
 
-@torch.no_grad()
 def run(config):
     rank, local_rank, world_size = (0, 0, 1)
     video_pd = []
@@ -36,8 +30,9 @@ def run(config):
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                n_frames = len(list(Path(video_hr_path).glob('*')))
-                size_bits = (Path(config.hr_dir) / f"fps={fps}_crf=5" / "video" / video_name).stat().st_size * 8
+                n_frames = len(list(Path(video_lr_path).glob('*')))
+                # size_bits = (Path(config.lr_dir) / f"fps={fps}_crf=5" / "video" / video_name).stat().st_size * 8
+                size_bits = (Path(config.lr_dir) / f"fps={fps}_crf={crf}" / "video" / video_name).stat().st_size * 8
                 bpp += size_bits / (C * H * W * n_frames)
 
             video_pd.append(
@@ -46,7 +41,7 @@ def run(config):
             dt = time.time() - dt
             print(f"Inference Time --> {dt:2f}")
 
-    pd.DataFrame(video_pd).to_csv('/mnt/hdd/dataset/pexels/compressed/bpp.csv')
+    pd.DataFrame(video_pd).to_csv('/mnt/hdd/dataset/pexels/compressed/bpp_compressed.csv')
 
     return pd.DataFrame(video_pd)
 
