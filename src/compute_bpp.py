@@ -21,9 +21,8 @@ def run(config):
         for crf in [30, 32, 34, 36, 38, 40]:
             print('Configuration: fps -> {} - crf -> {} '.format(fps, crf))
             video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
-            output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
-            cf = 0
+            cf, bpp = 0, 0
 
             for video_lr_path in video_paths:
                 dt = time.time()
@@ -34,13 +33,20 @@ def run(config):
                     config.lr_dir) / f"fps={fps}_crf={crf}" / "video" / video_name).stat().st_size * 8
                 cf += size_bits_comp / size_bits_orig
 
+                F = len(list(Path(video_lr_path).glob('*')))
+                bpp += size_bits_comp / (C * H * W * F)
+
+            # video_pd.append(
+            #    {"cf": cf / len(video_paths), "fps": fps, "crf": crf})
+
             video_pd.append(
-                {"cf": cf / len(video_paths), "fps": fps, "crf": crf})
+                {"bpp": bpp / len(video_paths), "fps": fps, "crf": crf})
 
             dt = time.time() - dt
             print(f"Inference Time --> {dt:2f}")
 
-    pd.DataFrame(video_pd).to_csv('/mnt/hdd/dataset/pexels/compressed/cf.csv', index=False)
+    # pd.DataFrame(video_pd).to_csv('/mnt/hdd/dataset/pexels/compressed/cf.csv', index=False)
+    pd.DataFrame(video_pd).to_csv('/mnt/hdd/dataset/pexels/compressed/bpp.csv', index=False)
 
     return pd.DataFrame(video_pd)
 
