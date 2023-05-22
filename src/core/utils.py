@@ -128,18 +128,6 @@ def save_checkpoint_ds(cfg, model, logger, rank):
     if rank == 0:
         logger.save(f"{save_dir}/last*", base_path)
 
-def get_state_dict(path, local_rank):
-    map_location = {"cuda:0": "cuda:{}".format(local_rank)}
-    return torch.load(path, map_location=map_location)
-
-def get_model_state_dict(path, local_rank):
-    state_dict = get_state_dict(path, local_rank)
-    return state_dict
-
-def restore_model(model, path, local_rank):
-    model.load_state_dict(get_model_state_dict(path, local_rank))
-    return model
-
 def build_scheduler(
         optimizer,
         scheduler: Union[ListConfig, DictConfig]
@@ -187,6 +175,18 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
         pylogger.info(f"Adding augmentation <{aug['_target_'].split('.')[-1]}>")
         augmentation.append(hydra.utils.instantiate(aug, _recursive_=False))
     return Sequential(*augmentation)
+
+def get_state_dict(path, local_rank):
+    map_location = {"cuda:0": "cuda:{}".format(local_rank)}
+    return torch.load(path, map_location=map_location)
+
+def get_model_state_dict(path, local_rank):
+    state_dict = get_state_dict(path, local_rank)
+    return state_dict
+
+def restore_model(model, path, local_rank):
+    model.load_state_dict(get_model_state_dict(path, local_rank))
+    return model
 
 def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
     pylogger.info(f"Building Model")
