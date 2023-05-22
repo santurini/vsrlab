@@ -75,21 +75,21 @@ def run(cfg: DictConfig):
     device = torch.device("cuda:{}".format(local_rank))
 
     # Encapsulate the model on the GPU assigned to the current process
-    print('build model ...')
+    if rank == 0: print('build model ...')
     model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp, cfg.train.restore)
 
-    print('build discriminator ...')
+    if rank == 0: print('build discriminator ...')
     discriminator = build_model(cfg.train.discriminator, device, local_rank, cfg.train.ddp)
 
     # Mixed precision
-    print('build scaler ...')
+    if rank == 0: print('build scaler ...')
     scaler = torch.cuda.amp.GradScaler()
 
     # Prepare dataset and dataloader
-    print('build loaders ...')
+    if rank == 0: print('build loaders ...')
     train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch = build_loaders(cfg)
 
-    print('build optimizers and schedulers ...')
+    if rank == 0: print('build optimizers and schedulers ...')
     optimizer_g, scheduler_g = build_optimizer(model,
                                                cfg.train.optimizer.generator,
                                                cfg.train.scheduler.generator
@@ -100,7 +100,7 @@ def run(cfg: DictConfig):
                                                cfg.train.scheduler.discriminator
                                                )
 
-    print('build metrics and losses ...')
+    if rank == 0: print('build metrics and losses ...')
     loss_fn = CharbonnierLoss()
     adversarial_loss = hydra.utils.instantiate(cfg.train.adversarial_loss, _recursive_=False)
     perceptual_loss = hydra.utils.instantiate(cfg.train.perceptual_loss, _recursive_=False).to(device)
@@ -135,12 +135,14 @@ def run(cfg: DictConfig):
             logger.log_dict({k: v / len(train_dl) for k, v in train_metrics.items()}, epoch, "Train")
             logger.log_images("Train", epoch, lr, sr, hr)
 
-        print("Starting Evaluation ...")
+            print("Starting Evaluation ...")
+
         evaluate(rank, world_size, epoch, model, logger, device,
                  val_dl, loss_fn, metric, cfg)
 
-        dt = time.time() - dt
-        print(f"Epoch {epoch} - Elapsed time --> {dt:2f}")
+        if rank == 0:
+            dt = time.time() - dt
+            print(f"Epoch {epoch} - Elapsed time --> {dt:2f}")
 
     if rank == 0:
         logger.close()
