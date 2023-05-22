@@ -20,7 +20,7 @@ discriminator:
 
 perceptual_loss:
   _target_: core.losses.PerceptualLoss
-  weight: 1.0
+  weight: 0.1
 
 adversarial_loss:
   _target_: core.losses.AdversarialLoss
