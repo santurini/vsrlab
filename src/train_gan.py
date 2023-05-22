@@ -130,10 +130,6 @@ def run(cfg: DictConfig):
             train_losses = running_losses(loss_g, perceptual_g, adversarial_g, loss_d, train_losses)
             train_metrics = running_metrics(train_metrics, metric, sr, hr)
 
-            if rank == 0:
-                print(scheduler_g.get_lr())
-                logger.log_dict({"Learning Rate": scheduler_g.get_lr()}, epoch, "Train")
-
         if rank == 0:
             logger.log_dict({k: v / len(train_dl) for k, v in train_losses.items()}, epoch, "Train")
             logger.log_dict({k: v / len(train_dl) for k, v in train_metrics.items()}, epoch, "Train")
