@@ -1,7 +1,8 @@
 generator:
-  _target_: torch.optim.lr_scheduler.LinearLR
-  start_factor: 1e-7
-  total_iters: 750
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  T_max: 300000
+  eta_min: 1e-6
+  verbose: False
 
 discriminator:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR

@@ -6,5 +6,5 @@ generator:
   weight_decay: 0
 
 discriminator:
-  _target_: torch.optim.Adam
-  lr: 1e-4
+  _target_: torch.optim.SGD
+  lr: 2e-4
