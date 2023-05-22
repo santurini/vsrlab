@@ -23,29 +23,24 @@ def run(config):
             video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
             output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
-            bpp, size_bits_tot = 0, 0
+            cf = 0
 
             for video_lr_path in video_paths:
                 dt = time.time()
-
                 video_name = os.path.basename(video_lr_path)
-                video_hr_path = os.path.join(config.hr_dir, f"fps={fps}_crf=5", "frames", video_name)
-                save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
-                Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                n_frames = len(list(Path(video_lr_path).glob('*')))
-                # size_bits = (Path(config.lr_dir) / f"fps={fps}_crf=5" / "video" / video_name).stat().st_size * 8
-                size_bits = (Path(config.lr_dir) / f"fps={fps}_crf={crf}" / "video" / video_name).stat().st_size * 8
-                bpp += size_bits / (C * H * W)
-                size_bits_tot += size_bits
+                size_bits_orig = (Path(config.hr_dir) / f"fps={fps}_crf=5" / "video" / video_name).stat().st_size * 8
+                size_bits_comp = (Path(
+                    config.lr_dir) / f"fps={fps}_crf={crf}" / "video" / video_name).stat().st_size * 8
+                cf += size_bits_comp / size_bits_orig
 
             video_pd.append(
-                {"bpp": bpp / len(video_paths), "size": size_bits_tot / len(video_paths), "fps": fps, "crf": crf})
+                {"cf": cf / len(video_paths), "fps": fps, "crf": crf})
 
             dt = time.time() - dt
             print(f"Inference Time --> {dt:2f}")
 
-    pd.DataFrame(video_pd).to_csv('/mnt/hdd/dataset/pexels/compressed/bpp_compressed_noframe.csv')
+    pd.DataFrame(video_pd).to_csv('/mnt/hdd/dataset/pexels/compressed/cf.csv', index=False)
 
     return pd.DataFrame(video_pd)
 
