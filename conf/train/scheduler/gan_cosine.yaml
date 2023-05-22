@@ -1,11 +1,11 @@
 generator:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
   T_max: 500000
-  eta_min: 1e-6
+  eta_min: 1e-4
   verbose: False
 
 discriminator:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-  T_max: 1000000
+  T_max: 500000
   eta_min: 1e-4
   verbose: False
