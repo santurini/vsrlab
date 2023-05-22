@@ -7,5 +7,5 @@ generator:
 discriminator:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
   T_max: 500000
-  eta_min: 1e-4
+  eta_min: 1e-3
   verbose: False
