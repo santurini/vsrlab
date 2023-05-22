@@ -1,12 +1,10 @@
 # @package _global_
 defaults:
-  - override /nn/data: default
-  - override /nn/module: gan
-  - override /nn/module/optimizer: gan_adam8bit
+  - override /train: gan
 
 train:
-  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasicvsr_standard/checkpoints/last.ckpt'
-  from_lightning: True
+  num_grad_acc: 4
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/opohfdd/checkpoint/last.ckpt'
 
 
 
