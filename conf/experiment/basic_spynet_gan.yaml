@@ -5,7 +5,7 @@ defaults:
 
 train:
   num_grad_acc: 4
-  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasic_standard/checkpoint/last.ckpt'
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/opohfdd/checkpoint/last.ckpt'
 
 
 
