@@ -28,7 +28,6 @@ def run(config):
             bpp = 0
 
             for video_lr_path in video_paths:
-                model.eval()
                 dt = time.time()
 
                 video_name = os.path.basename(video_lr_path)
