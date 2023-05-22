@@ -1,6 +1,6 @@
 generator:
   _target_: torch.optim.lr_scheduler.LinearLR
-  start_factor: 1e-20
+  start_factor: 1e-7
   total_iters: 750
 
 discriminator:
