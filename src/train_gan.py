@@ -131,7 +131,7 @@ def run(cfg: DictConfig):
             train_metrics = running_metrics(train_metrics, metric, sr, hr)
 
             if rank == 0:
-                logger.log({"lr": scheduler_g.get_lr().item()}, epoch)
+                logger.log_dict({"Learning Rate": scheduler_g.get_lr()}, epoch, "Train")
 
         if rank == 0:
             logger.log_dict({k: v / len(train_dl) for k, v in train_losses.items()}, epoch, "Train")
