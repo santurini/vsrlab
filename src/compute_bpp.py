@@ -23,7 +23,7 @@ def run(config):
             video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
             output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
-            bpp = 0
+            bpp, size_bits_tot = 0, 0
 
             for video_lr_path in video_paths:
                 dt = time.time()
@@ -37,9 +37,10 @@ def run(config):
                 # size_bits = (Path(config.lr_dir) / f"fps={fps}_crf=5" / "video" / video_name).stat().st_size * 8
                 size_bits = (Path(config.lr_dir) / f"fps={fps}_crf={crf}" / "video" / video_name).stat().st_size * 8
                 bpp += size_bits / (C * H * W)
+                size_bits_tot += size_bits
 
             video_pd.append(
-                {"bpp": bpp / len(video_paths), "fps": fps, "crf": crf})
+                {"bpp": bpp / len(video_paths), "size": size_bits_tot / len(video_paths), "fps": fps, "crf": crf})
 
             dt = time.time() - dt
             print(f"Inference Time --> {dt:2f}")
