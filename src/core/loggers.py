@@ -63,7 +63,7 @@ class WandbLogger(object):
 
         self.run.log(out_dict | {"epoch": epoch})
 
-    def log(self):
+    def log(self, log_dict, epoch):
         self.run.log(log_dict | {"epoch": epoch})
 
     def save(self, save_path, base_path):
