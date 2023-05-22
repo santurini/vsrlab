@@ -131,6 +131,7 @@ def run(cfg: DictConfig):
             train_metrics = running_metrics(train_metrics, metric, sr, hr)
 
             if rank == 0:
+                print(scheduler_g.get_lr())
                 logger.log_dict({"Learning Rate": scheduler_g.get_lr()}, epoch, "Train")
 
         if rank == 0:
