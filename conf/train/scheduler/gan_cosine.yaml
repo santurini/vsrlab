@@ -1,6 +1,6 @@
 generator:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-  T_max: 500000
+  T_max: 300000
   eta_min: 1e-6
   verbose: False
 
