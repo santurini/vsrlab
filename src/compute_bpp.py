@@ -15,6 +15,7 @@ C, H, W = 3, 480, 640
 @torch.no_grad()
 def run(config):
     rank, local_rank, world_size = (0, 0, 1)
+    video_pd = []
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
@@ -39,11 +40,11 @@ def run(config):
                 size_bits = (Path(config.hr_dir) / f"fps={fps}_crf=5" / "video" / video_name).stat().st_size * 8
                 bpp += size_bits / (C * H * W * n_frames)
 
-                dt = time.time() - dt
-                print(f"Inference Time --> {dt:2f}")
-
             video_pd.append(
                 {"bpp": bpp / len(video_paths), "fps": fps, "crf": crf})
+
+            dt = time.time() - dt
+            print(f"Inference Time --> {dt:2f}")
 
     pd.DataFrame(video_pd).to_csv('/mnt/hdd/dataset/pexels/compressed/bpp.csv')
 
