@@ -4,6 +4,7 @@ defaults:
   - override /train: gan
 
 train:
+  ddp: True
   num_grad_acc: 4
   restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/opohfdd/checkpoint/last.ckpt'
 
