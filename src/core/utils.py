@@ -132,27 +132,11 @@ def build_scheduler(
         optimizer,
         scheduler: Union[ListConfig, DictConfig]
 ):
-    if isinstance(scheduler, DictConfig):
-        return hydra.utils.instantiate(
-            scheduler,
-            optimizer,
-            _recursive_=False
-        )
-
-    if isinstance(scheduler, ListConfig):
-        chained_scheduler = []
-        for sched in scheduler:
-            chained_scheduler.append(
-                hydra.utils.instantiate(
-                    sched,
-                    optimizer,
-                    _recursive_=False
-                )
-            )
-
-        return torch.optim.lr_scheduler.ChainedScheduler(
-            chained_scheduler
-        )
+    return hydra.utils.instantiate(
+        scheduler,
+        optimizer,
+        _recursive_=False
+    )
 
 def build_optimizer(model, optim_cfg, sched_cfg):
     pylogger.info(f"Building scheduler and optimizer")
