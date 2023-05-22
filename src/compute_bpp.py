@@ -36,7 +36,7 @@ def run(config):
                 n_frames = len(list(Path(video_lr_path).glob('*')))
                 # size_bits = (Path(config.lr_dir) / f"fps={fps}_crf=5" / "video" / video_name).stat().st_size * 8
                 size_bits = (Path(config.lr_dir) / f"fps={fps}_crf={crf}" / "video" / video_name).stat().st_size * 8
-                bpp += size_bits / (C * H * W * n_frames)
+                bpp += size_bits / (C * H * W)
 
             video_pd.append(
                 {"bpp": bpp / len(video_paths), "fps": fps, "crf": crf})
@@ -44,7 +44,7 @@ def run(config):
             dt = time.time() - dt
             print(f"Inference Time --> {dt:2f}")
 
-    pd.DataFrame(video_pd).to_csv('/mnt/hdd/dataset/pexels/compressed/bpp_compressed.csv')
+    pd.DataFrame(video_pd).to_csv('/mnt/hdd/dataset/pexels/compressed/bpp_compressed_noframe.csv')
 
     return pd.DataFrame(video_pd)
 
