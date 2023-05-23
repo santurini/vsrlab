@@ -49,8 +49,8 @@ datasets:
         quality: [ 60, 95 ]
 
       - _target_: core.augmentations.RandomVideoCompression
-        codec: [ 'libx264', 'h264' ]
-        crf: [ 36, 40 ]
+        codec: [ 'libx264', 'h264', 'mpeg4' ]
+        crf: [ 36, 38 ]
         fps: [ 30 ]
 
       - _target_: kornia.augmentation.Resize
