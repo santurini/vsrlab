@@ -1,6 +1,7 @@
 import hydra
 from core.utils import restore_model
 from fmoe.distributed import DistributedGroupedDataParallel
+from torch.nn.utils import clip_grad_norm_
 
 def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, i):
     loss = loss / num_grad_acc
