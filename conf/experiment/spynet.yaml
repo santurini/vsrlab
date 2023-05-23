@@ -4,7 +4,7 @@ defaults:
 
 train:
   ddp: True
-  restore: "/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/kjhsdvqqqq/checkpoint/4.ckpt"
+  restore: null # "/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/kjhsdvqqqq/checkpoint/4.ckpt"
   finetune: False
 
   data:
@@ -27,5 +27,5 @@ train:
   scheduler:
     eta_min: 1e-5
 
-  max_epochs: 25
+  max_epochs: 50
   k: 5
