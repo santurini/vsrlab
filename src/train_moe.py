@@ -21,7 +21,6 @@ from core.utils import (
 from moe.MoEVRT.fastmoe.utils import build_model, update_weights
 
 warnings.filterwarnings('ignore')
-pylogger = logging.getLogger(__name__)
 
 @torch.no_grad()
 def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, metric, cfg):
