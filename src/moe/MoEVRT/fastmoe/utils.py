@@ -1,3 +1,5 @@
+import hydra
+from core.utils import restore_model
 from fmoe.distributed import DistributedGroupedDataParallel
 
 def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, i):
@@ -14,7 +16,6 @@ def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad
         optimizer.zero_grad()
 
 def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
-    pylogger.info(f"Building Model")
     model = hydra.utils.instantiate(cfg, _recursive_=False)
     model = model.to(device)
 
@@ -22,7 +23,6 @@ def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
         model = restore_model(model, restore_ckpt, local_rank)
 
     if ddp:
-        pylogger.info(f"Setting up distributed model")
         ddp_model = DistributedGroupedDataParallel(model)
         return ddp_model
 
