@@ -24,6 +24,7 @@ train:
   num_grad_acc: 2
 
   perceptual_loss:
+    _target_: core.losses.OpticalFlowConsistency
     weight: 1e-2
 
   adversarial_loss:
