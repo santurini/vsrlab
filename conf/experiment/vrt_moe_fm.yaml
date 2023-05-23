@@ -4,10 +4,12 @@ defaults:
 
 train:
   ddp: True
+  num_grad_acc: 4
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/awefwuye/checkpoint/last.ckpt'
 
   model:
     _target_: moe.MoEVRT.fastmoe.vrt_moe.TinyVRT
-    num_experts: 4
+    num_experts: 2
     num_gpus: 2
     top_k: 2
     window_size: [ 8, 8, 8 ]
@@ -26,6 +28,3 @@ train:
     datasets:
       train:
         seq: 8
-
-  num_grad_acc: 4
-  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/awefwuye/checkpoint/last.ckpt'
