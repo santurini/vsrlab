@@ -14,7 +14,6 @@ from einops import rearrange
 from kornia.geometry.transform import resize
 from omegaconf import DictConfig, ListConfig, OmegaConf
 from pytorch_lightning import seed_everything
-from torch.distributed.distributed_c10d import Backend
 from torch.nn import Sequential
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader
@@ -64,7 +63,7 @@ def get_resources_ds():
         local_rank = int(os.environ["OMPI_COMM_WORLD_LOCAL_RANK"])
         world_size = int(os.environ["OMPI_COMM_WORLD_SIZE"])
 
-        deepspeed.init_distributed(dist_backend=Backend.NCCL, rank=rank, world_size=world_size)
+        deepspeed.init_distributed(dist_backend="nccl", rank=rank, world_size=world_size)
 
     else:
         rank = 0

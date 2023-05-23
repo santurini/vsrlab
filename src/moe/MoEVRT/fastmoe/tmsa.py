@@ -69,7 +69,7 @@ class TMSA(nn.Module):
             d_model=dim,
             d_hidden=int(dim * mlp_ratio),
             activation=act_layer,
-            expert_rank=os.environ.get("OMPI_COMM_WORLD_RANK", 0),
+            expert_rank=os.environ.get("RANK", 0),  # os.environ.get("OMPI_COMM_WORLD_RANK", 0)
             world_size=num_gpus,
             top_k=top_k,
             gate=gate,
