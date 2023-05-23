@@ -27,3 +27,5 @@ train:
     datasets:
       train:
         seq: 8
+
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/awefwuye/checkpoint/last.ckpt'
