@@ -8,7 +8,7 @@ train:
   model:
     _target_: moe.MoEVRT.fastmoe.vrt_moe.TinyVRT
     num_experts: 4
-    num_gpus: 1
+    num_gpus: 2
     top_k: 2
     window_size: [ 8, 8, 8 ]
 
@@ -26,3 +26,5 @@ train:
         seq: 8
 
   num_grad_acc: 4
+
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/awefwuye/checkpoint/last.ckpt'
