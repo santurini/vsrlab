@@ -118,7 +118,7 @@ class Stage(nn.Module):
             d_model=dim * (1 + 2),
             d_hidden=dim * (1 + 2),
             activation=torch.nn.GELU(),
-            expert_rank=os.environ.get("RANK", 0),
+            expert_rank=os.environ.get("OMPI_COMM_WORLD_RANK", 0),
             world_size=num_gpus,
             top_k=top_k,
             gate=gate,
