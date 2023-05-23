@@ -9,7 +9,7 @@ train:
 
   model:
     _target_: moe.MoEVRT.fastmoe.vrt_moe.TinyVRT
-    num_experts: 2
+    num_experts: 4
     num_gpus: 2
     top_k: 2
     window_size: [ 8, 8, 8 ]
