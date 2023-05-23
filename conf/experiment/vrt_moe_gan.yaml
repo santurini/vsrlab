@@ -14,7 +14,7 @@ train:
     refine_steps: 5
 
   data:
-    batch_size: 4
+    batch_size: 8
     datasets:
       train:
         seq: 8
