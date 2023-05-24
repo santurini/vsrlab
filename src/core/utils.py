@@ -320,7 +320,7 @@ def running_losses(loss_g, perceptual_g, adversarial_g, loss_d, lossess_dict):
 
     return lossess_dict
 
-def update_weights_amp(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, i):
+def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad_clip, i):
     loss = loss / num_grad_acc
     scaler.scale(loss).backward()
 
@@ -329,16 +329,6 @@ def update_weights_amp(model, loss, scaler, scheduler, optimizer, num_grad_acc, 
         clip_grad_norm_(model.parameters(), grad_clip)
         scaler.step(optimizer)
         scaler.update()
-        scheduler.step()
-        optimizer.zero_grad()
-
-def update_weights(model, loss, scheduler, optimizer, num_grad_acc, grad_clip, i):
-    loss = loss / num_grad_acc
-    loss.backward()
-
-    if (i + 1) % num_grad_acc == 0:
-        clip_grad_norm_(model.parameters(), grad_clip)
-        optimizer.step()
         scheduler.step()
         optimizer.zero_grad()
 

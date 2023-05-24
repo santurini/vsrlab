@@ -21,7 +21,6 @@ from core.utils import (
     build_logger,
     build_metric,
     save_checkpoint,
-    update_weights_amp,
     save_config,
     cleanup
 )
