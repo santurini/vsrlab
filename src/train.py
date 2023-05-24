@@ -20,7 +20,7 @@ from core.utils import (
     build_optimizer,
     build_logger,
     build_metric,
-    update_weights,
+    update_weights_amp,
     save_checkpoint,
     save_config,
     cleanup
@@ -75,6 +75,10 @@ def run(cfg: omegaconf.DictConfig):
     if rank == 0: print('build loaders ...')
     train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch = build_loaders(cfg)
 
+    # Mixed precision
+    if rank == 0: print('build scaler ...')
+    scaler = torch.cuda.amp.GradScaler()
+
     if rank == 0: print('build optimizer and scheduler ...')
     optimizer, scheduler = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler)
 
@@ -94,7 +98,7 @@ def run(cfg: omegaconf.DictConfig):
             sr, lq = model(lr)
             loss = compute_loss(loss_fn, sr, hr, lq)
 
-            update_weights(model, loss, scheduler, optimizer, num_grad_acc, gradient_clip_val, i)
+            update_weights_amp(model, loss, scheduler, optimizer, num_grad_acc, gradient_clip_val, i)
 
             train_loss += loss.detach().item()
             train_metrics = running_metrics(train_metrics, metric, sr, hr)
