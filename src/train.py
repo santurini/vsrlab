@@ -93,7 +93,7 @@ def run(cfg: omegaconf.DictConfig):
             sr, lq = model(lr)
             loss = compute_loss(loss_fn, sr, hr, lq)
 
-            update_weights(model, loss, scheduler, optimizer, num_grad_acc, grad_clip, i)
+            update_weights(model, loss, scheduler, optimizer, num_grad_acc, gradient_clip_val, i)
 
             train_loss += loss.detach().item()
             train_metrics = running_metrics(train_metrics, metric, sr, hr)
