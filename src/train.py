@@ -12,7 +12,7 @@ warnings.filterwarnings('ignore')
 pylogger = logging.getLogger(__name__)
 
 @torch.no_grad()
-def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, metric, cfg):
+def evaluate(rank, world_size, epoch, model, optimizer, logger, device, val_dl, loss_fn, metric, cfg):
     model.eval()
     val_loss, val_metrics = 0, {k: 0 for k in cfg.train.metric.metrics}
 
@@ -33,7 +33,7 @@ def evaluate(rank, world_size, epoch, model, logger, device, val_dl, loss_fn, me
         logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
         logger.log_dict({k: v / len(val_dl) for k, v in val_metrics.items()}, epoch, "Val")
         logger.log_images("Val", epoch, lr, sr, hr, lq)
-        save_checkpoint(cfg, model, logger, cfg.train.ddp)
+        save_checkpoint(cfg, model, optimizer, logger, cfg.train.ddp)
 
 def run(cfg: DictConfig):
     seed_index_everything(cfg.train)
@@ -94,8 +94,8 @@ def run(cfg: DictConfig):
 
             print("Starting Evaluation ...")
 
-        evaluate(rank, world_size, epoch, model, logger, device,
-                 val_dl, loss_fn, metric, cfg)
+        evaluate(rank, world_size, epoch, model, logger, optimizer,
+                 device, val_dl, loss_fn, metric, cfg)
 
         if rank == 0:
             dt = time.time() - dt

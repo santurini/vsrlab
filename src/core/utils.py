@@ -90,7 +90,7 @@ def save_config(cfg):
 
     return save_path
 
-def save_checkpoint(cfg, model, logger, ddp=True):
+def save_checkpoint(cfg, model, optimizer, logger, ddp=True):
     base_path = os.path.join(
         cfg.train.logger.save_dir,
         cfg.train.logger.project,
@@ -106,9 +106,11 @@ def save_checkpoint(cfg, model, logger, ddp=True):
     Path(save_path).parent.mkdir(exist_ok=True, parents=True)
     if ddp:
         torch.save(model.module.state_dict(), save_path)
+        torch.save(optimizer.state_dict(), save_path)
         logger.save(save_path, base_path)
     else:
         torch.save(model.state_dict(), save_path)
+        torch.save(optimizer.state_dict(), save_path)
         logger.save(save_path, base_path)
 
 def save_checkpoint_ds(cfg, model, logger, rank):
