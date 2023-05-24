@@ -1,9 +1,3 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-#
-# This source code is licensed under the BSD license found in the
-# LICENSE file in the root directory of this source tree.
-
-
 import math
 import warnings
 from distutils.version import LooseVersion
@@ -17,12 +11,9 @@ import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 import torchvision
 from core import PROJECT_ROOT
-from core.losses import CharbonnierLoss
 from einops import rearrange
 from einops.layers.torch import Rearrange
 from torch.nn.modules.utils import _pair, _single
-
-loss_fn = CharbonnierLoss()
 
 class ModulatedDeformConv(nn.Module):
 
@@ -1359,37 +1350,6 @@ class VRT(nn.Module):
         sr = x + torch.nn.functional.interpolate(x_lq, size=(C, H, W), mode='trilinear', align_corners=False)
 
         return sr, x_lq
-
-    def train_step(self, x, hr):
-        # x: (N, D, C, H, W)
-
-        # main network
-        x_lq = x.clone()
-
-        # calculate flows
-        flows_backward, flows_forward = self.get_flows(x)
-
-        # warp input
-        x_backward, x_forward = self.get_aligned_image_2frames(x, flows_backward[0], flows_forward[0])
-        x = torch.cat([x, x_backward, x_forward], 2)
-
-        # video sr
-        x = self.conv_first(x.transpose(1, 2))
-        x = x + self.conv_after_body(
-            self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)).transpose(1, 4)
-        x = self.conv_last(self.upsample(self.conv_before_upsample(x))).transpose(1, 2)
-        _, _, C, H, W = x.shape
-
-        sr = x + torch.nn.functional.interpolate(x_lq, size=(C, H, W), mode='trilinear', align_corners=False)
-
-        loss = loss_fn(sr, hr)
-
-        return {
-            "lr": x_lq,
-            "sr": sr,
-            "hr": hr,
-            "loss": loss
-        }
 
     def get_flows(self, x):
         ''' Get flows for 2 frames, 4 frames or 6 frames.'''

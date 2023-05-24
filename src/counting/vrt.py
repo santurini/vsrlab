@@ -1,78 +1,24 @@
-import math
-from distutils.version import LooseVersion
-
 import torch
 import torch.nn as nn
-from core.modules.conv import ResidualBlock
 from einops import rearrange
 from einops.layers.torch import Rearrange
-from fmoe.gates.gshard_gate import GShardGate
-from moe.MoEVRT.fastmoe.stage import Stage
-from moe.MoEVRT.fastmoe.tmsa import RTMSA
-from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
 
-class Upsample(nn.Sequential):
-    def __init__(self, scale, num_feat):
-        assert LooseVersion(torch.__version__) >= LooseVersion('1.8.1'), \
-            'PyTorch version >= 1.8.1 to support 5D PixelShuffle.'
-
-        assert (scale & (scale - 1)) == 0, "Scale should be a power of 2"
-
-        class Transpose_Dim12(nn.Module):
-            """ Transpose Dim1 and Dim2 of a tensor."""
-
-            def __init__(self):
-                super().__init__()
-
-            @staticmethod
-            def forward(x):
-                return x.transpose(1, 2)
-
-        m = []
-        for _ in range(int(math.log(scale, 2))):
-            m.append(nn.Conv3d(num_feat, 4 * num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
-            m.append(Transpose_Dim12())
-            m.append(nn.PixelShuffle(2))
-            m.append(Transpose_Dim12())
-            m.append(nn.LeakyReLU(negative_slope=0.1))
-        m.append(nn.Conv3d(num_feat, num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
-
-        super(Upsample, self).__init__(*m)
-
-class IterativeRefinement(nn.Module):
-    def __init__(self, mid_ch, blocks, steps):
-        super().__init__()
-        self.steps = steps
-        self.resblock = ResidualBlock(3, mid_ch, blocks)
-        self.conv = nn.Conv2d(mid_ch, 3, 3, 1, 1, bias=True)
-
-    def forward(self, x):
-        n, t, c, h, w = x.size()
-        x = x.view(-1, c, h, w)
-        for _ in range(self.steps):  # at most 3 cleaning, determined empirically
-            residues = self.conv(self.resblock(x))
-            x += residues
-        return x.view(n, t, c, h, w)
+from vsr.models.VRT.modules.spynet import SpyNet, flow_warp  # TODO: change with correct optical flow
+from vsr.models.VRT.modules.stage import Stage
+from vsr.models.VRT.modules.tmsa import RTMSA
+from vsr.models.VRT.modules.window_attention import Mlp_GEGLU
 
 class TinyVRT(nn.Module):
     def __init__(
             self,
-            upscale=4,
             in_chans=3,
             out_chans=3,
-            refine_steps=3,
-            refine_blocks=5,
-            refine_ch=64,
             img_size=[6, 64, 64],
             window_size=[6, 8, 8],
             depths=[8, 8, 8, 8, 8, 4, 4],
             indep_reconsts=[-2, -1],
             embed_dims=[64, 64, 64, 64, 64, 80, 80],
             num_heads=[6, 6, 6, 6, 6, 6, 6],
-            num_experts=4,
-            num_gpus=1,
-            top_k=2,
-            gate=GShardGate,
             mul_attn_ratio=0.75,
             mlp_ratio=2.,
             qkv_bias=True,
@@ -87,15 +33,8 @@ class TinyVRT(nn.Module):
         super().__init__()
         self.in_chans = in_chans
         self.out_chans = out_chans
-        self.upscale = upscale
         self.pa_frames = pa_frames
         self.indep_reconsts = [i.item() for i in torch.arange(len(depths))[indep_reconsts]]
-
-        self.iterative_refinement = IterativeRefinement(
-            refine_ch,
-            refine_blocks,
-            refine_steps
-        )
 
         # conv_first
         conv_first_in_chans = in_chans * (1 + 2 * 4)
@@ -117,10 +56,6 @@ class TinyVRT(nn.Module):
                         input_resolution=(img_size[0], img_size[1] // scales[i], img_size[2] // scales[i]),
                         depth=depths[i],
                         num_heads=num_heads[i],
-                        num_experts=num_experts,
-                        num_gpus=num_gpus,
-                        top_k=top_k,
-                        gate=gate,
                         mul_attn_ratio=mul_attn_ratio,
                         window_size=window_size,
                         mlp_ratio=mlp_ratio,
@@ -151,10 +86,6 @@ class TinyVRT(nn.Module):
                       input_resolution=img_size,
                       depth=depths[i],
                       num_heads=num_heads[i],
-                      num_experts=num_experts,
-                      num_gpus=num_gpus,
-                      top_k=top_k,
-                      gate=gate,
                       window_size=[1, window_size[1], window_size[2]] if i in self.indep_reconsts else window_size,
                       mlp_ratio=mlp_ratio,
                       qkv_bias=qkv_bias, qk_scale=qk_scale,
@@ -164,20 +95,19 @@ class TinyVRT(nn.Module):
             )
 
         self.norm = norm_layer(embed_dims[-1])
-        self.conv_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
+        self.mlp_after_body = Mlp_GEGLU(embed_dims[-1], embed_dims[0])
 
-        # reconstruction
-        num_feat = 64
-        self.conv_before_upsample = nn.Sequential(
+        # regression
+        num_feat = 256
+        self.conv_pre_last = nn.Sequential(
             nn.Conv3d(embed_dims[0], num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)),
-            nn.LeakyReLU())
+            nn.LeakyReLU()
+        )
 
-        self.upsample = Upsample(upscale, num_feat)
         self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
     def forward(self, x):
         # x: (N, D, C, H, W)
-        x_lq = self.iterative_refinement(x)
 
         # calculate flows
         flows_backward, flows_forward = self.get_flows(x)
@@ -189,18 +119,15 @@ class TinyVRT(nn.Module):
         # video sr
         x = self.conv_first(x.transpose(1, 2))
 
-        x = x + self.conv_after_body(
+        x = x + self.mlp_after_body(
             self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)
         ).transpose(1, 4)
 
         x = self.conv_last(
-            self.upsample(self.conv_before_upsample(x))
+            self.conv_pre_last(x)
         ).transpose(1, 2)
 
-        _, _, C, H, W = x.shape
-        sr = x + torch.nn.functional.interpolate(x_lq, size=(C, H, W), mode='trilinear', align_corners=False)
-
-        return sr, x_lq
+        return x
 
     def forward_features(self, x, flows_backward, flows_forward):
         '''Main network for feature extraction.'''

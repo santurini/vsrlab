@@ -1,58 +1,12 @@
-import math
-from distutils.version import LooseVersion
-
 import torch
 import torch.nn as nn
-from core.modules.conv import ResidualBlock
 from einops import rearrange
 from einops.layers.torch import Rearrange
 from fmoe.gates.gshard_gate import GShardGate
+from fmoe.transformer import FMoETransformerMLP
 from moe.MoEVRT.fastmoe.stage import Stage
 from moe.MoEVRT.fastmoe.tmsa import RTMSA
-from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
-
-class Upsample(nn.Sequential):
-    def __init__(self, scale, num_feat):
-        assert LooseVersion(torch.__version__) >= LooseVersion('1.8.1'), \
-            'PyTorch version >= 1.8.1 to support 5D PixelShuffle.'
-
-        assert (scale & (scale - 1)) == 0, "Scale should be a power of 2"
-
-        class Transpose_Dim12(nn.Module):
-            """ Transpose Dim1 and Dim2 of a tensor."""
-
-            def __init__(self):
-                super().__init__()
-
-            @staticmethod
-            def forward(x):
-                return x.transpose(1, 2)
-
-        m = []
-        for _ in range(int(math.log(scale, 2))):
-            m.append(nn.Conv3d(num_feat, 4 * num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
-            m.append(Transpose_Dim12())
-            m.append(nn.PixelShuffle(2))
-            m.append(Transpose_Dim12())
-            m.append(nn.LeakyReLU(negative_slope=0.1))
-        m.append(nn.Conv3d(num_feat, num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
-
-        super(Upsample, self).__init__(*m)
-
-class IterativeRefinement(nn.Module):
-    def __init__(self, mid_ch, blocks, steps):
-        super().__init__()
-        self.steps = steps
-        self.resblock = ResidualBlock(3, mid_ch, blocks)
-        self.conv = nn.Conv2d(mid_ch, 3, 3, 1, 1, bias=True)
-
-    def forward(self, x):
-        n, t, c, h, w = x.size()
-        x = x.view(-1, c, h, w)
-        for _ in range(self.steps):  # at most 3 cleaning, determined empirically
-            residues = self.conv(self.resblock(x))
-            x += residues
-        return x.view(n, t, c, h, w)
+from vsr.models.VRT.modules.spynet import SpyNet, flow_warp  # TODO: change with correct optical flow
 
 class TinyVRT(nn.Module):
     def __init__(
@@ -60,9 +14,6 @@ class TinyVRT(nn.Module):
             upscale=4,
             in_chans=3,
             out_chans=3,
-            refine_steps=3,
-            refine_blocks=5,
-            refine_ch=64,
             img_size=[6, 64, 64],
             window_size=[6, 8, 8],
             depths=[8, 8, 8, 8, 8, 4, 4],
@@ -90,12 +41,6 @@ class TinyVRT(nn.Module):
         self.upscale = upscale
         self.pa_frames = pa_frames
         self.indep_reconsts = [i.item() for i in torch.arange(len(depths))[indep_reconsts]]
-
-        self.iterative_refinement = IterativeRefinement(
-            refine_ch,
-            refine_blocks,
-            refine_steps
-        )
 
         # conv_first
         conv_first_in_chans = in_chans * (1 + 2 * 4)
@@ -164,20 +109,31 @@ class TinyVRT(nn.Module):
             )
 
         self.norm = norm_layer(embed_dims[-1])
-        self.conv_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
+        self.moe_after_body = FMoETransformerMLP(
+            num_expert=num_experts,
+            d_model=embed_dims[-1],
+            d_hidden=int(embed_dims[-1] * mlp_ratio),
+            activation=act_layer,
+            expert_rank=os.environ.get("OMPI_COMM_WORLD_RANK", 0),
+            world_size=num_gpus,
+            top_k=top_k,
+            gate=gate,
+            expert_dp_comm="world" if num_gpus > 1 else "none"
+        )
 
-        # reconstruction
-        num_feat = 64
-        self.conv_before_upsample = nn.Sequential(
+        self.linear_moe = nn.Linear(embed_dims[-1], embed_dims[0])
+
+        # regression
+        num_feat = 256
+        self.conv_pre_last = nn.Sequential(
             nn.Conv3d(embed_dims[0], num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)),
-            nn.LeakyReLU())
+            nn.LeakyReLU()
+        )
 
-        self.upsample = Upsample(upscale, num_feat)
         self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
     def forward(self, x):
         # x: (N, D, C, H, W)
-        x_lq = self.iterative_refinement(x)
 
         # calculate flows
         flows_backward, flows_forward = self.get_flows(x)
@@ -189,18 +145,17 @@ class TinyVRT(nn.Module):
         # video sr
         x = self.conv_first(x.transpose(1, 2))
 
-        x = x + self.conv_after_body(
-            self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)
+        x = x + self.linear_moe(
+            self.moe_after_body(
+                self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)
+            )
         ).transpose(1, 4)
 
         x = self.conv_last(
-            self.upsample(self.conv_before_upsample(x))
+            self.conv_pre_last(x)
         ).transpose(1, 2)
 
-        _, _, C, H, W = x.shape
-        sr = x + torch.nn.functional.interpolate(x_lq, size=(C, H, W), mode='trilinear', align_corners=False)
-
-        return sr, x_lq
+        return x
 
     def forward_features(self, x, flows_backward, flows_forward):
         '''Main network for feature extraction.'''
