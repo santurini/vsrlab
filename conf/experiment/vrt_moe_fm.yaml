@@ -10,8 +10,8 @@ train:
     num_gpus: 1
     top_k: 2
     window_size: [ 8, 8, 8 ]
-    refine_blocks: 3
-    refine_steps: 5
+    refine_blocks: 5
+    refine_steps: 3
 
   optimizer:
     lr: 1e-4
