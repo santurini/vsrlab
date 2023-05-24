@@ -53,6 +53,7 @@ def evaluate(rank, world_size, epoch, model, optimizer, logger, device, val_dl, 
         save_checkpoint(cfg, model, optimizer, logger, cfg.train.ddp)
 
 def run(cfg: omegaconf.DictConfig):
+    torch.autograd.set_detect_anomaly(True)
     seed_index_everything(cfg.train)
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
 
