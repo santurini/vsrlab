@@ -94,7 +94,7 @@ def run(cfg: DictConfig):
 
             print("Starting Evaluation ...")
 
-        evaluate(rank, world_size, epoch, model, logger, optimizer,
+        evaluate(rank, world_size, epoch, model, optimizer, logger,
                  device, val_dl, loss_fn, metric, cfg)
 
         if rank == 0:
