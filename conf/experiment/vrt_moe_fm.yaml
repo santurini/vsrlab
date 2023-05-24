@@ -13,11 +13,11 @@ train:
     refine_steps: 5
 
   optimizer:
-    lr: 1e-3
+    lr: 1e-6
     betas: [ 0.9, 0.99 ]
 
   scheduler:
-    eta_min: 1e-6
+    eta_min: 1e-7
     T_max: 300000
 
   data:
@@ -26,7 +26,7 @@ train:
       train:
         seq: 8
 
-  ddp: False # True
+  ddp: True
   num_grad_acc: 4
 
-  # restore: "/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/checkpoint/segwlkhtvgb/last.ckpt"
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/awefwuye/checkpoint/last.ckpt'

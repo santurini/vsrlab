@@ -1,7 +1,6 @@
 # @package _global_
 defaults:
   - override /train: gan
-  - override /train/model: baby_vrt_moe
 
 train:
   model:
