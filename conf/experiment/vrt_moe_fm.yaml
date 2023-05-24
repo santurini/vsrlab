@@ -16,5 +16,5 @@ train:
       train:
         seq: 8
 
-  ddp: True
+  ddp: False
   num_grad_acc: 4
