@@ -337,7 +337,7 @@ def update_weights(model, loss, scheduler, optimizer, num_grad_acc, grad_clip, i
     loss.backward()
 
     if (i + 1) % num_grad_acc == 0:
-        clip_grad_norm_(model.parameters(), grad_clip)
+        # clip_grad_norm_(model.parameters(), grad_clip)
         optimizer.step()
         scheduler.step()
         optimizer.zero_grad()
