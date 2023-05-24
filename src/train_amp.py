@@ -1,3 +1,4 @@
+import logging
 import time
 import warnings
 
@@ -51,7 +52,7 @@ def evaluate(rank, world_size, epoch, model, optimizer, logger, device, val_dl, 
         logger.log_images("Val", epoch, lr, sr, hr, lq)
         save_checkpoint(cfg, model, optimizer, logger, cfg.train.ddp)
 
-def run(cfg: DictConfig):
+def run(cfg: omegaconf.DictConfig):
     seed_index_everything(cfg.train)
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
 

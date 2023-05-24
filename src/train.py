@@ -20,7 +20,7 @@ from core.utils import (
     build_optimizer,
     build_logger,
     build_metric,
-    update_weights_amp,
+    update_weights,
     save_checkpoint,
     save_config,
     cleanup
@@ -53,7 +53,6 @@ def evaluate(rank, world_size, epoch, model, optimizer, logger, device, val_dl, 
         save_checkpoint(cfg, model, optimizer, logger, cfg.train.ddp)
 
 def run(cfg: omegaconf.DictConfig):
-    torch.autograd.set_detect_anomaly(True)
     seed_index_everything(cfg.train)
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
 
@@ -75,10 +74,6 @@ def run(cfg: omegaconf.DictConfig):
     if rank == 0: print('build loaders ...')
     train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch = build_loaders(cfg)
 
-    # Mixed precision
-    if rank == 0: print('build scaler ...')
-    scaler = torch.cuda.amp.GradScaler()
-
     if rank == 0: print('build optimizer and scheduler ...')
     optimizer, scheduler = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler)
 
@@ -98,7 +93,7 @@ def run(cfg: omegaconf.DictConfig):
             sr, lq = model(lr)
             loss = compute_loss(loss_fn, sr, hr, lq)
 
-            update_weights_amp(model, loss, scaler, scheduler, optimizer, num_grad_acc, gradient_clip_val, i)
+            update_weights(model, loss, scheduler, optimizer, num_grad_acc, gradient_clip_val, i)
 
             train_loss += loss.detach().item()
             train_metrics = running_metrics(train_metrics, metric, sr, hr)
