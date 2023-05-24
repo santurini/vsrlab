@@ -15,7 +15,7 @@ train:
 
   optimizer:
     lr: 1e-4
-    betas: [ 0.9, 0.999 ]
+    betas: [ 0.9, 0.99 ]
 
   scheduler:
     eta_min: 1e-6
