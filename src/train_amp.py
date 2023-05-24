@@ -19,7 +19,6 @@ from core.utils import (
     build_optimizer,
     build_logger,
     build_metric,
-    update_weights,
     save_checkpoint,
     save_config,
     cleanup
@@ -36,8 +35,9 @@ def evaluate(rank, world_size, epoch, model, optimizer, logger, device, val_dl, 
     for i, data in enumerate(val_dl):
         lr, hr = data[0].to(device), data[1].to(device)
 
-        sr, lq = model(lr)
-        loss = compute_loss(loss_fn, sr, hr)
+        with torch.cuda.amp.autocast():
+            sr, lq = model(lr)
+            loss = compute_loss(loss_fn, sr, hr)
 
         if cfg.train.ddp:
             dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
@@ -69,6 +69,10 @@ def run(cfg: DictConfig):
     if rank == 0: print('build model ...')
     model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp, cfg.train.restore)
 
+    # Mixed precision
+    if rank == 0: print('build scaler ...')
+    scaler = torch.cuda.amp.GradScaler()
+
     # Prepare dataset and dataloader
     if rank == 0: print('build loaders ...')
     train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch = build_loaders(cfg)
@@ -89,10 +93,12 @@ def run(cfg: DictConfig):
         for i, data in enumerate(train_dl):
             lr, hr = data[0].to(device), data[1].to(device)
 
-            sr, lq = model(lr)
-            loss = compute_loss(loss_fn, sr, hr, lq)
+            with torch.cuda.amp.autocast():
+                sr, lq = model(lr)
+                loss = compute_loss(loss_fn, sr, hr, lq)
 
-            update_weights(model, loss, scheduler, optimizer, num_grad_acc, grad_clip, i)
+            update_weights_amp(model, loss, scaler, scheduler,
+                               optimizer, num_grad_acc, gradient_clip_val, i)
 
             train_loss += loss.detach().item()
             train_metrics = running_metrics(train_metrics, metric, sr, hr)
