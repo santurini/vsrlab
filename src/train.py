@@ -87,7 +87,7 @@ def run(cfg: omegaconf.DictConfig):
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Training ...".format(rank, local_rank))
-    for epoch in range(cfg.train.max_epochs):
+    for epoch in range(cfg.train.start_epoch, cfg.train.max_epochs):
         model.train();
         dt = time.time()
         train_loss, train_metrics = 0.0, {k: 0 for k in cfg.train.metric.metrics}
