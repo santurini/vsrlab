@@ -16,10 +16,9 @@ metric:
 seed_index: null
 
 ddp: True
-start_epoch: 0
 max_epochs: 5000000
 gradient_clip_val: 1
 num_grad_acc: 1
 
+finetune: False
 restore: null
-restore_opt: null

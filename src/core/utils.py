@@ -141,22 +141,25 @@ def build_scheduler(
 
 def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None):
     pylogger.info(f"Building scheduler and optimizer")
+
+    start_epoch = 0
     optimizer = hydra.utils.instantiate(optim_cfg,
                                         model.parameters(),
                                         _recursive_=False,
                                         _convert_="partial"
                                         )
 
-    if restore_ckpt:
+    if restore_ckpt is not None:
         state_dict = torch.load(restore_ckpt)  # ['optimizer_state_dict']
-        optimizer.load_state_dict(state_dict)
+        start_epoch = state_dict["epoch"]
+        optimizer.load_state_dict(state_dict['optimizer_state_dict'])
 
     scheduler = build_scheduler(
         optimizer,
         sched_cfg
     )
 
-    return optimizer, scheduler
+    return optimizer, scheduler, start_epoch
 
 def build_transform(cfg: ListConfig) -> List[Sequential]:
     augmentation = list()
@@ -195,6 +198,17 @@ def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
         return ddp_model
 
     return model
+
+def setup_train(cfg, device, local_rank):
+    model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp, cfg.train.restore)
+
+    if cfg.train.finetune:
+        optimizer, scheduler, start_epoch = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler, None)
+    else:
+        optimizer, scheduler, start_epoch = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler,
+                                                            cfg.train.restore)
+
+    return model, optimizer, scheduler, start_epoch
 
 def build_flow(cfg):
     model = ptlflow.get_model(cfg.name, pretrained_ckpt=cfg.ckpt)

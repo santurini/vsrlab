@@ -15,9 +15,8 @@ from core.utils import (
     get_resources,
     compute_loss,
     running_metrics,
-    build_model,
+    setup_train,
     build_loaders,
-    build_optimizer,
     build_logger,
     build_metric,
     save_checkpoint,
@@ -66,11 +65,9 @@ def run(cfg: omegaconf.DictConfig):
     else:
         logger = None
 
-    device = torch.device("cuda:{}".format(local_rank))
-
     # Encapsulate the model on the GPU assigned to the current process
-    if rank == 0: print('build model ...')
-    model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp, cfg.train.restore)
+    if rank == 0: print('setup train ...')
+    model, optimizer, scheduler, start_epoch = setup_train(cfg, device, local_rank)
 
     # Mixed precision
     if rank == 0: print('build scaler ...')
@@ -80,15 +77,12 @@ def run(cfg: omegaconf.DictConfig):
     if rank == 0: print('build loaders ...')
     train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch = build_loaders(cfg)
 
-    if rank == 0: print('build optimizer and scheduler ...')
-    optimizer, scheduler = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler, cfg.train.restore_opt)
-
     if rank == 0: print('build metrics and losses ...')
     loss_fn, metric = CharbonnierLoss(), build_metric(cfg.train.metric).to(device)
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Training ...".format(rank, local_rank))
-    for epoch in range(cfg.train.start_epoch, cfg.train.max_epochs):
+    for epoch in range(start_epoch, cfg.train.max_epochs):
         model.train();
         dt = time.time()
         train_loss, train_metrics = 0.0, {k: 0 for k in cfg.train.metric.metrics}
