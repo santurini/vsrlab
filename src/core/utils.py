@@ -93,7 +93,7 @@ def save_checkpoint(cfg, model, optimizer, epoch, logger, ddp=True):
 
     logger.save(save_path, base_path)
 
-def build_optimizer(model, optim_cfg, restore_ckpt=None):
+def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None):
     start_epoch = 0
     optimizer = hydra.utils.instantiate(optim_cfg,
                                         model.parameters(),
@@ -108,7 +108,7 @@ def build_optimizer(model, optim_cfg, restore_ckpt=None):
         optimizer.load_state_dict(state_dict['optimizer_state_dict'])
 
     scheduler = hydra.utils.instantiate(
-        scheduler,
+        sched_cfg,
         optimizer,
         _recursive_=False
     )
