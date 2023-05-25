@@ -94,8 +94,6 @@ def save_checkpoint(cfg, model, optimizer, epoch, logger, ddp=True):
     logger.save(save_path, base_path)
 
 def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None):
-    pylogger.info(f"Building scheduler and optimizer")
-
     start_epoch = 0
     optimizer = hydra.utils.instantiate(optim_cfg,
                                         model.parameters(),
@@ -104,6 +102,7 @@ def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None):
                                         )
 
     if restore_ckpt is not None:
+        print("restoring optimizer state ...")
         state_dict = torch.load(restore_ckpt)
         start_epoch = state_dict["epoch"]
         optimizer.load_state_dict(state_dict['optimizer_state_dict'])
@@ -123,7 +122,7 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
         augmentation.append(hydra.utils.instantiate(aug, _recursive_=False))
     return Sequential(*augmentation)
 
-def restore_model(model, path, local_rank):
+def restore_model(model, path):
     state_dict = torch.load(path)['model_state_dict']
     model.load_state_dict(state_dict)
     return model
@@ -134,7 +133,8 @@ def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
     model = model.to(device)
 
     if restore_ckpt is not None:
-        model = restore_model(model, restore_ckpt, local_rank)
+        print("restoring model state ...")
+        model = restore_model(model, restore_ckpt)
 
     if ddp:
         pylogger.info(f"Setting up distributed model")
@@ -149,12 +149,8 @@ def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
 
 def setup_train(cfg, device, local_rank):
     model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp, cfg.train.restore)
-
-    if cfg.train.finetune:
-        optimizer, scheduler, start_epoch = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler, None)
-    else:
-        optimizer, scheduler, start_epoch = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler,
-                                                            cfg.train.restore)
+    restore = None if cfg.train.finetune else cfg.train.restore
+    optimizer, scheduler, start_epoch = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler, restore)
 
     return model, optimizer, scheduler, start_epoch
 
