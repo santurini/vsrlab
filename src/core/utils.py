@@ -102,8 +102,6 @@ def save_checkpoint(cfg, model, optimizer, epoch, logger, ddp=True):
         "checkpoint.tar"
     )
 
-    Path(save_path).mkdir(exist_ok=True, parents=True)
-
     model_state_dict = model.module.state_dict() if ddp else model.state_dict()
 
     torch.save({  # Save our checkpoint loc
