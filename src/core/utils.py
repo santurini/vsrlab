@@ -90,7 +90,7 @@ def save_config(cfg):
 
     return save_path
 
-def save_checkpoint(cfg, model, optimizer, logger, ddp=True):
+def save_checkpoint(cfg, model, optimizer, epoch, logger, ddp=True):
     base_path = os.path.join(
         cfg.train.logger.save_dir,
         cfg.train.logger.project,
@@ -99,21 +99,20 @@ def save_checkpoint(cfg, model, optimizer, logger, ddp=True):
 
     save_path = os.path.join(
         base_path,
-        "checkpoint"
+        "checkpoint.tar"
     )
 
     Path(save_path).mkdir(exist_ok=True, parents=True)
 
-    if ddp:
-        torch.save(model.module.state_dict(), os.path.join(save_path, "last.ckpt"))
-        torch.save(optimizer.state_dict(), os.path.join(save_path, "optim.ckpt"))
-        logger.save(os.path.join(save_path, "last.ckpt"), base_path)
-        logger.save(os.path.join(save_path, "optim.ckpt"), base_path)
-    else:
-        torch.save(model.state_dict(), os.path.join(save_path, "last.ckpt"))
-        torch.save(optimizer.state_dict(), os.path.join(save_path, "optim.ckpt"))
-        logger.save(os.path.join(save_path, "last.ckpt"), base_path)
-        logger.save(os.path.join(save_path, "optim.ckpt"), base_path)
+    model_state_dict = model.module.state_dict() if ddp else model.state_dict()
+
+    torch.save({  # Save our checkpoint loc
+        'epoch': epoch,
+        'model_state_dict': model_state_dict,
+        'optimizer_state_dict': optimizer.state_dict(),
+    }, save_path)
+
+    logger.save(save_path, base_path)
 
 def save_checkpoint_ds(cfg, model, logger, rank):
     base_path = os.path.join(
@@ -151,7 +150,7 @@ def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None):
                                         )
 
     if restore_ckpt:
-        state_dict = torch.load(restore_ckpt)
+        state_dict = torch.load(restore_ckpt)['optimizer_state_dict']
         optimizer.load_state_dict(state_dict)
 
     scheduler = build_scheduler(
@@ -170,7 +169,7 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
 
 def get_state_dict(path, local_rank):
     map_location = {"cuda:0": "cuda:{}".format(local_rank)}
-    return torch.load(path, map_location=map_location)
+    return torch.load(path, map_location=map_location)['model_state_dict']
 
 def get_model_state_dict(path, local_rank):
     state_dict = get_state_dict(path, local_rank)

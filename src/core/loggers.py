@@ -13,8 +13,7 @@ class WandbLogger(object):
             save_dir: str = '.',
             id: str = 'sanity',
             name: str = 'Sanity Checking',
-            tags: List[Any] = None,
-            resume: bool = False
+            tags: List[Any] = None
     ):
 
         self.save_dir = save_dir
@@ -49,21 +48,21 @@ class WandbLogger(object):
         else:
             grid = make_grid([lr, sr, hr], nrow=3, ncol=1)
 
-        self.run.log({f'Prediction {stage}': [wandb.Image(grid, caption=f'Stage {stage}, Epoch {epoch}')]})
+        self.run.log({f'Prediction {stage}': [wandb.Image(grid, caption=f'Stage {stage}, Epoch {epoch}')]}, step=epoch)
 
     def log_flow(self, stage, epoch, cleaned, flow, gt_flow):
         cleaned = cleaned[0].clamp(0, 1).detach().cpu()
         flow_viz = flow_tensor_to_image(flow[0]).detach().cpu()
         gt_flow = flow_tensor_to_image(gt_flow[0]).detach().cpu()
         grid = make_grid([cleaned, flow_viz, gt_flow], nrow=3, ncol=1)
-        self.run.log({f'Flow {stage}': [wandb.Image(grid, caption=f'Epoch {epoch}')]})
+        self.run.log({f'Flow {stage}': [wandb.Image(grid, caption=f'Epoch {epoch}')]}, step=epoch)
 
     def log_dict(self, log_dict, epoch, stage="Train"):
         out_dict = {}
         for key in log_dict.keys():
             out_dict['/'.join([key, stage])] = log_dict[key]
 
-        self.run.log(out_dict | {"epoch": epoch})
+        self.run.log(out_dict | {"epoch": epoch}, step=epoch)
 
     def save(self, save_path, base_path):
         self.run.save(glob_str=save_path, base_path=base_path)
