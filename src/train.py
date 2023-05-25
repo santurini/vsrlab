@@ -56,6 +56,8 @@ def run(cfg: omegaconf.DictConfig):
     seed_index_everything(cfg.train)
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
 
+    device = torch.device("cuda:{}".format(local_rank))
+
     # Initialize logger
     if rank == 0:
         print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
