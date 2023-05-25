@@ -1,12 +1,10 @@
 import logging
 import os
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional
 
-import deepspeed
 import hydra
 import numpy as np
-import ptlflow
 import torch
 import torch.distributed as dist
 from PIL import Image
@@ -55,23 +53,6 @@ def get_resources():
 
     return rank, local_rank, world_size
 
-def get_resources_ds():
-    if os.environ.get('OMPI_COMMAND'):
-        # from mpirun
-        print("Launching with mpirun")
-        rank = int(os.environ["OMPI_COMM_WORLD_RANK"])
-        local_rank = int(os.environ["OMPI_COMM_WORLD_LOCAL_RANK"])
-        world_size = int(os.environ["OMPI_COMM_WORLD_SIZE"])
-
-        deepspeed.init_distributed(dist_backend="nccl", rank=rank, world_size=world_size)
-
-    else:
-        rank = 0
-        local_rank = 0
-        world_size = 1
-
-    return rank, local_rank, world_size
-
 def cleanup():
     dist.destroy_process_group()
 
@@ -112,33 +93,6 @@ def save_checkpoint(cfg, model, optimizer, epoch, logger, ddp=True):
 
     logger.save(save_path, base_path)
 
-def save_checkpoint_ds(cfg, model, logger, rank):
-    base_path = os.path.join(
-        cfg.train.logger.save_dir,
-        cfg.train.logger.project,
-        cfg.train.logger.id
-    )
-
-    save_dir = os.path.join(
-        base_path,
-        "checkpoint"
-    )
-
-    Path(save_dir).mkdir(exist_ok=True, parents=True)
-    model.save_checkpoint(save_dir, "last", save_latest=True)
-    if rank == 0:
-        logger.save(f"{save_dir}/last*", base_path)
-
-def build_scheduler(
-        optimizer,
-        scheduler: Union[ListConfig, DictConfig]
-):
-    return hydra.utils.instantiate(
-        scheduler,
-        optimizer,
-        _recursive_=False
-    )
-
 def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None):
     pylogger.info(f"Building scheduler and optimizer")
 
@@ -150,13 +104,14 @@ def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None):
                                         )
 
     if restore_ckpt is not None:
-        state_dict = torch.load(restore_ckpt)  # ['optimizer_state_dict']
+        state_dict = torch.load(restore_ckpt)
         start_epoch = state_dict["epoch"]
         optimizer.load_state_dict(state_dict['optimizer_state_dict'])
 
-    scheduler = build_scheduler(
+    scheduler = hydra.utils.instantiate(
+        scheduler,
         optimizer,
-        sched_cfg
+        _recursive_=False
     )
 
     return optimizer, scheduler, start_epoch
@@ -168,16 +123,9 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
         augmentation.append(hydra.utils.instantiate(aug, _recursive_=False))
     return Sequential(*augmentation)
 
-def get_state_dict(path, local_rank):
-    map_location = {"cuda:0": "cuda:{}".format(local_rank)}
-    return torch.load(path, map_location=map_location)  #['model_state_dict']
-
-def get_model_state_dict(path, local_rank):
-    state_dict = get_state_dict(path, local_rank)
-    return state_dict
-
 def restore_model(model, path, local_rank):
-    model.load_state_dict(get_model_state_dict(path, local_rank))
+    state_dict = torch.load(path)['model_state_dict']
+    model.load_state_dict(state_dict)
     return model
 
 def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
@@ -209,10 +157,6 @@ def setup_train(cfg, device, local_rank):
                                                             cfg.train.restore)
 
     return model, optimizer, scheduler, start_epoch
-
-def build_flow(cfg):
-    model = ptlflow.get_model(cfg.name, pretrained_ckpt=cfg.ckpt)
-    return model
 
 def build_metric(cfg):
     pylogger.info(f"Building Metrics")
@@ -271,37 +215,6 @@ def build_loaders(cfg):
 
     return train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch
 
-def build_loaders_ds(cfg, batch_size):
-    pylogger.info(f"Building Loaders")
-    train_ds = hydra.utils.instantiate(cfg.train.data.datasets.train, _recursive_=False)
-    val_ds = hydra.utils.instantiate(cfg.train.data.datasets.val, _recursive_=False)
-
-    # Restricts data loading to a subset of the dataset exclusive to the current process
-    train_sampler = DistributedSampler(dataset=train_ds)
-    val_sampler = DistributedSampler(dataset=val_ds)
-
-    train_dl = DataLoader(dataset=train_ds,
-                          batch_size=batch_size,
-                          sampler=train_sampler,
-                          num_workers=cfg.train.data.num_workers,
-                          prefetch_factor=cfg.train.data.prefetch_factor,
-                          persistent_workers=True,
-                          # pin_memory=True
-                          )
-
-    # Test loader does not have to follow distributed sampling strategy
-    val_dl = DataLoader(dataset=val_ds,
-                        batch_size=batch_size,
-                        sampler=val_sampler,
-                        num_workers=cfg.train.data.num_workers,
-                        prefetch_factor=cfg.train.data.prefetch_factor,
-                        shuffle=False,
-                        persistent_workers=True,
-                        # pin_memory=True
-                        )
-
-    return train_dl, val_dl, 0
-
 def compute_loss(loss_fn, sr, hr, lq=None):
     loss = loss_fn(sr, hr)
     if lq is not None:
@@ -348,18 +261,6 @@ def update_weights(model, loss, scaler, scheduler, optimizer, num_grad_acc, grad
         scaler.update()
         scheduler.step()
         optimizer.zero_grad()
-
-def get_params(model):
-    params = filter(lambda p: p.requires_grad, model.parameters())
-    return params
-
-def create_moe_param_groups(model):
-    from deepspeed.moe.utils import split_params_into_different_moe_groups_for_optimizer
-    params = {
-        'params': [p for p in model.parameters()],
-        'name': 'parameters'
-    }
-    return split_params_into_different_moe_groups_for_optimizer(params)
 
 def img2tensor(path):
     return to_tensor(Image.open(path))

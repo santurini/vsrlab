@@ -4,7 +4,6 @@ defaults:
 
 train:
   model:
-    _target_: moe.MoEVRT.fastmoe.vrt_moe.TinyVRT
     num_experts: 8
     num_gpus: 1
     top_k: 2
@@ -19,5 +18,4 @@ train:
   ddp: False
   num_grad_acc: 4
 
-  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/asetylkdsfb/checkpoint/last.ckpt'
-  restore_opt: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/asetylkdsfb/checkpoint/optim.ckpt'
+  # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/asetylkdsfb/checkpoint.tar'

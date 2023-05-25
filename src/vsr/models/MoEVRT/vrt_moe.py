@@ -7,8 +7,8 @@ from core.modules.conv import ResidualBlock
 from einops import rearrange
 from einops.layers.torch import Rearrange
 from fmoe.gates.gshard_gate import GShardGate
-from moe.MoEVRT.fastmoe.stage import Stage
-from moe.MoEVRT.fastmoe.tmsa import RTMSA
+from vsr.models.MoEVRT.stage import Stage
+from vsr.models.MoEVRT.tmsa import RTMSA
 from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
 
 class Upsample(nn.Sequential):

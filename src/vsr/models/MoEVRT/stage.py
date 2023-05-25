@@ -5,7 +5,7 @@ import torch.nn as nn
 from einops.layers.torch import Rearrange
 from fmoe.gates.swipe_gate import SwipeGate
 from fmoe.transformer import FMoETransformerMLP
-from moe.MoEVRT.fastmoe.tmsa import TMSAG
+from vsr.models.MoEVRT.tmsa import TMSAG
 from vsr.models.VRT.modules.deform_conv import DCNv2PackFlowGuided
 from vsr.models.VRT.modules.spynet import flow_warp
 
