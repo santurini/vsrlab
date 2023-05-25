@@ -128,7 +128,6 @@ def restore_model(model, path):
     return model
 
 def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
-    pylogger.info(f"Building Model")
     model = hydra.utils.instantiate(cfg, _recursive_=False)
     model = model.to(device)
 
@@ -137,7 +136,7 @@ def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
         model = restore_model(model, restore_ckpt)
 
     if ddp:
-        pylogger.info(f"Setting up distributed model")
+        print(f"setting up distributed model")
         ddp_model = torch.nn.parallel.DistributedDataParallel(
             model,
             device_ids=[local_rank],
