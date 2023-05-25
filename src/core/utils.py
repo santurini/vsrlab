@@ -150,7 +150,7 @@ def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None):
                                         )
 
     if restore_ckpt:
-        state_dict = torch.load(restore_ckpt)['optimizer_state_dict']
+        state_dict = torch.load(restore_ckpt)  # ['optimizer_state_dict']
         optimizer.load_state_dict(state_dict)
 
     scheduler = build_scheduler(
@@ -169,7 +169,7 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
 
 def get_state_dict(path, local_rank):
     map_location = {"cuda:0": "cuda:{}".format(local_rank)}
-    return torch.load(path, map_location=map_location)['model_state_dict']
+    return torch.load(path, map_location=map_location)  #['model_state_dict']
 
 def get_model_state_dict(path, local_rank):
     state_dict = get_state_dict(path, local_rank)
