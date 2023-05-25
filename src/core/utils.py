@@ -104,7 +104,7 @@ def save_checkpoint(cfg, model, optimizer, epoch, logger, ddp=True):
 
     model_state_dict = model.module.state_dict() if ddp else model.state_dict()
 
-    torch.save({  # Save our checkpoint loc
+    torch.save({
         'epoch': epoch,
         'model_state_dict': model_state_dict,
         'optimizer_state_dict': optimizer.state_dict(),

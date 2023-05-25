@@ -19,6 +19,5 @@ train:
   ddp: False
   num_grad_acc: 4
 
-  start_epoch: 115
   restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/asetylkdsfb/checkpoint/last.ckpt'
   restore_opt: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/asetylkdsfb/checkpoint/optim.ckpt'
