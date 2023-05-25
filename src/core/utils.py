@@ -99,19 +99,20 @@ def save_checkpoint(cfg, model, optimizer, logger, ddp=True):
 
     save_path = os.path.join(
         base_path,
-        "checkpoint",
-        "last.ckpt"
+        "checkpoint"
     )
 
     Path(save_path).parent.mkdir(exist_ok=True, parents=True)
     if ddp:
-        torch.save(model.module.state_dict(), save_path)
-        torch.save(optimizer.state_dict(), save_path)
-        logger.save(save_path, base_path)
+        torch.save(model.module.state_dict(), os.path.join(save_path, "last.ckpt"))
+        torch.save(optimizer.state_dict(), os.path.join(save_path, "optim.ckpt"))
+        logger.save(os.path.join(save_path, "last.ckpt"), base_path)
+        logger.save(os.path.join(save_path, "optim.ckpt"), base_path)
     else:
-        torch.save(model.state_dict(), save_path)
-        torch.save(optimizer.state_dict(), save_path)
-        logger.save(save_path, base_path)
+        torch.save(model.state_dict(), os.path.join(save_path, "last.ckpt"))
+        torch.save(optimizer.state_dict(), os.path.join(save_path, "optim.ckpt"))
+        logger.save(os.path.join(save_path, "last.ckpt"), base_path)
+        logger.save(os.path.join(save_path, "optim.ckpt"), base_path)
 
 def save_checkpoint_ds(cfg, model, logger, rank):
     base_path = os.path.join(
