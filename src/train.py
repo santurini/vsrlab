@@ -60,7 +60,8 @@ def run(cfg: omegaconf.DictConfig):
     # Initialize logger
     if rank == 0:
         print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
-        logger = build_logger(cfg)
+        resume = False if cfg.train.restore is None else True
+        logger = build_logger(cfg, resume)
         model_config = save_config(cfg)
     else:
         logger = None

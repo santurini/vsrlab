@@ -208,9 +208,9 @@ def build_metric(cfg):
     metric = hydra.utils.instantiate(cfg, _recursive_=True, _convert_="partial")
     return metric
 
-def build_logger(cfg):
+def build_logger(cfg, resume):
     logger = hydra.utils.instantiate(cfg.train.logger, _recursive_=False)
-    logger.init(cfg)
+    logger.init(cfg, resume)
     return logger
 
 def build_dataset(cfg):

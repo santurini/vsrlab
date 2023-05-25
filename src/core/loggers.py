@@ -13,7 +13,8 @@ class WandbLogger(object):
             save_dir: str = '.',
             id: str = 'sanity',
             name: str = 'Sanity Checking',
-            tags: List[Any] = None
+            tags: List[Any] = None,
+            resume: bool = False
     ):
 
         self.save_dir = save_dir
@@ -22,7 +23,7 @@ class WandbLogger(object):
         self.id = id
         self.tags = tags
 
-    def init(self, cfg):
+    def init(self, cfg, resume):
         cfg = OmegaConf.to_container(cfg, resolve=True)
         self.run = wandb.init(
             dir=self.save_dir,
@@ -30,7 +31,8 @@ class WandbLogger(object):
             name=self.name,
             id=self.id,
             tags=self.tags,
-            config=cfg
+            config=cfg,
+            resume=resume
         )
 
     def log_images(self, stage, epoch, lr, sr, hr, lq=None):
