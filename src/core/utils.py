@@ -140,13 +140,17 @@ def build_scheduler(
         _recursive_=False
     )
 
-def build_optimizer(model, optim_cfg, sched_cfg):
+def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None):
     pylogger.info(f"Building scheduler and optimizer")
     optimizer = hydra.utils.instantiate(optim_cfg,
                                         model.parameters(),
                                         _recursive_=False,
                                         _convert_="partial"
                                         )
+
+    if restore_ckpt:
+        state_dict = torch.load(restore_ckpt)
+        optimizer.load_state_dict(state_dict)
 
     scheduler = build_scheduler(
         optimizer,

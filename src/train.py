@@ -80,7 +80,7 @@ def run(cfg: omegaconf.DictConfig):
     train_dl, val_dl, num_grad_acc, gradient_clip_val, epoch = build_loaders(cfg)
 
     if rank == 0: print('build optimizer and scheduler ...')
-    optimizer, scheduler = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler)
+    optimizer, scheduler = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler, cfg.train.restore_opt)
 
     if rank == 0: print('build metrics and losses ...')
     loss_fn, metric = CharbonnierLoss(), build_metric(cfg.train.metric).to(device)
