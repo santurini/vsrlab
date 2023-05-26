@@ -50,7 +50,7 @@ def evaluate(rank, world_size, epoch, model, optimizer, logger, device, val_dl, 
         logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
         logger.log_dict({k: v / len(val_dl) for k, v in val_metrics.items()}, epoch, "Val")
         logger.log_images("Val", epoch, lr, sr, hr, lq)
-        save_checkpoint(cfg, model, optimizer, epoch, logger, cfg.train.ddp)
+        save_checkpoint(cfg, model, optimizer, scheduler, epoch, logger, cfg.train.ddp)
 
 def run(cfg: omegaconf.DictConfig):
     seed_index_everything(cfg.train)

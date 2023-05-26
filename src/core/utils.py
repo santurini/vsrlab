@@ -71,7 +71,7 @@ def save_config(cfg):
 
     return save_path
 
-def save_checkpoint(cfg, model, optimizer, epoch, logger, ddp=True):
+def save_checkpoint(cfg, model, optimizer, scheduler, epoch, logger, ddp=True):
     base_path = os.path.join(
         cfg.train.logger.save_dir,
         cfg.train.logger.project,
@@ -89,6 +89,7 @@ def save_checkpoint(cfg, model, optimizer, epoch, logger, ddp=True):
         'epoch': epoch,
         'model_state_dict': model_state_dict,
         'optimizer_state_dict': optimizer.state_dict(),
+        'scheduler_state_dict': scheduler.state_dict()
     }, save_path)
 
     logger.save(save_path, base_path)
@@ -101,17 +102,20 @@ def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None):
                                         _convert_="partial"
                                         )
 
-    if restore_ckpt is not None:
-        print("restoring optimizer state ...")
-        state_dict = torch.load(restore_ckpt)
-        start_epoch = state_dict["epoch"]
-        optimizer.load_state_dict(state_dict['optimizer_state_dict'])
-
     scheduler = hydra.utils.instantiate(
         sched_cfg,
         optimizer,
         _recursive_=False
     )
+
+    if restore_ckpt is not None:
+        print("restoring optimizer state ...")
+        state_dict = torch.load(restore_ckpt)
+        start_epoch = state_dict["epoch"] + 1
+        optimizer.load_state_dict(state_dict['optimizer_state_dict'])
+        scheduler.load_state_dict(state_dict['scheduler_state_dict'])
+
+
 
     return optimizer, scheduler, start_epoch
 
