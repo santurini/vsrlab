@@ -11,10 +11,6 @@ train:
     refine_blocks: 5
     refine_steps: 3
 
-  optimizer:
-    lr: 1e-3
-    betas: [ 0.8, 0.99 ]
-
   data:
     batch_size: 8
     datasets:
