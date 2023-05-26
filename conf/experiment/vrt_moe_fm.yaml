@@ -8,8 +8,6 @@ train:
     num_gpus: 1
     top_k: 2
     window_size: [ 8, 8, 8 ]
-    refine_blocks: 5
-    refine_steps: 3
 
   data:
     batch_size: 8
