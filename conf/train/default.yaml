@@ -16,7 +16,7 @@ metric:
 seed_index: null
 
 ddp: True
-max_epochs: 5000000
+max_epochs: 500000
 gradient_clip_val: 1
 num_grad_acc: 1
 
