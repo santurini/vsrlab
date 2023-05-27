@@ -1,7 +1,7 @@
 # @package _global_
 defaults:
   - override /train/model: baby_vrt_moe
-  - override /train/data: easy_schedule
+  - override /train/data: mid_schedule
 
 train:
   model:
@@ -19,4 +19,4 @@ train:
   ddp: True
   num_grad_acc: 4
 
-  restore: null
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/swhretylkdsf/checkpoint_easy.tar'
