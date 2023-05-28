@@ -27,20 +27,19 @@ datasets:
         same_on_batch: True
         keepdim: True
 
+      - _target_: kornia.augmentation.RandomSharpness
+        sharpness: 0.3
+        same_on_batch: True
+        keepdim: True
+        p: 1.0
+
     lr_augmentation:
       - _target_: core.augmentations.RandomJPEGCompression
         quality: [ 60, 95 ]
 
-      - _target_: kornia.augmentation.RandomGaussianBlur
-        kernel_size: 5
-        sigma: [ 0.5, 1.5 ]
-        same_on_batch: False
-        keepdim: True
-        p: 0.5
-
       - _target_: core.augmentations.RandomVideoCompression
         codec: [ 'libx264', 'h264' ]
-        crf: [ 38, 40 ]
+        crf: [ 34, 40 ]
         fps: [ 30 ]
 
       - _target_: kornia.augmentation.Resize
