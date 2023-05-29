@@ -5,13 +5,13 @@ defaults:
 
 train:
   model:
-    num_experts: 8
+    num_experts: 4
     num_gpus: 1
     top_k: 2
     window_size: [ 8, 8, 8 ]
 
   data:
-    batch_size: 4
+    batch_size: 8
     datasets:
       train:
         seq: 8
