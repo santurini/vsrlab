@@ -1,16 +1,12 @@
 # @package _global_
 defaults:
+  - override /train/model: baby_vrt_moe
   - override /train: gan
+  - override /train/data: easy_schedule
 
 train:
   model:
-    _target_: moe.MoEVRT.fastmoe.vrt_moe.TinyVRT
-    num_experts: 4
-    num_gpus: 1
-    top_k: 2
     window_size: [ 8, 8, 8 ]
-    refine_blocks: 3
-    refine_steps: 5
 
   data:
     batch_size: 4
@@ -18,14 +14,29 @@ train:
       train:
         seq: 8
 
-  ddp: False
-  max_epochs: 1000000
+  ddp: True
+  max_epochs: 500000
   num_grad_acc: 4
 
+  optimizer:
+    generator:
+      _target_: torch.optim.Adam
+      lr: 1e-4
+      betas: [ 0.9, 0.99 ]
+      eps: 1e-08
+      weight_decay: 0
+
+  scheduler:
+    generator:
+      _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+      T_max: ${train.max_epochs}
+      eta_min: 1e-6
+      verbose: False
+
   perceptual_loss:
-    weight: 1e-2
+    weight: 1e-3
 
   adversarial_loss:
     weight: 1e-5
 
-  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/awefwuye/checkpoint/last.ckpt'
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/swhretylkdsfb/checkpoint.tar'
