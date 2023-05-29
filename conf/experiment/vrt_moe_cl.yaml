@@ -12,7 +12,7 @@ train:
     img_size: [ 8, 64, 64 ]
 
   data:
-    batch_size: 4
+    batch_size: 8
     datasets:
       train:
         seq: 8
