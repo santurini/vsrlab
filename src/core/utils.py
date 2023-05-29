@@ -150,10 +150,10 @@ def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
 
     return model
 
-def setup_train(cfg, device, local_rank):
-    model = build_model(cfg.train.model, device, local_rank, cfg.train.ddp, cfg.train.restore)
+def setup_train(cfg, model_cfg, optim_cfg, sched_cfg, device, local_rank):
+    model = build_model(model_cfg, device, local_rank, cfg.train.ddp, cfg.train.restore)
     restore = None if cfg.train.finetune else cfg.train.restore
-    optimizer, scheduler, start_epoch = build_optimizer(model, cfg.train.optimizer, cfg.train.scheduler, restore)
+    optimizer, scheduler, start_epoch = build_optimizer(model, optim_cfg, sched_cfg, restore)
 
     return model, optimizer, scheduler, start_epoch
 

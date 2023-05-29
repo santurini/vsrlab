@@ -1,4 +1,3 @@
-import logging
 import time
 import warnings
 
@@ -26,7 +25,6 @@ from core.utils import (
 )
 
 warnings.filterwarnings('ignore')
-pylogger = logging.getLogger(__name__)
 
 @torch.no_grad()
 def evaluate(rank, world_size, epoch, model, optimizer, scheduler, logger, device, val_dl, loss_fn, metric, cfg):
@@ -69,7 +67,8 @@ def run(cfg: omegaconf.DictConfig):
 
     # Encapsulate the model on the GPU assigned to the current process
     if rank == 0: print('setup train ...')
-    model, optimizer, scheduler, start_epoch = setup_train(cfg, device, local_rank)
+    model, optimizer, scheduler, start_epoch = setup_train(cfg, cfg.train.model, cfg.train.optimizer,
+                                                           cfg.train.scheduler, device, local_rank)
 
     # Mixed precision
     if rank == 0: print('build scaler ...')
