@@ -253,7 +253,6 @@ class TinyVRT(nn.Module):
         self.optical_flow = SpyNet(pretrained, [3, 4, 5])
 
         if not train:
-            pylogger.info(f'Freezing Optical Flow parameters')
             for p in self.optical_flow.parameters():
                 p.requires_grad = False
 
