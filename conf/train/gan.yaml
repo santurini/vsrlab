@@ -16,7 +16,7 @@ metric:
 discriminator:
   _target_: vsr.models.RealBasicVSR.modules.unet-discriminator.UNetDiscriminator
   in_ch: 3
-  mid_ch: 32
+  mid_ch: 64
 
 perceptual_loss:
   _target_: core.losses.PerceptualLoss
