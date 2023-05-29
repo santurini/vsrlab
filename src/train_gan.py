@@ -14,6 +14,8 @@ from core.utils import (
     get_resources,
     compute_loss,
     running_metrics,
+    create_gan_losses_dict,
+    running_losses,
     setup_train,
     build_model,
     build_optimizer,
