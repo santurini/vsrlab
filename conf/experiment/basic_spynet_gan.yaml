@@ -8,10 +8,6 @@ train:
   num_grad_acc: 4
   restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/opohfdd/checkpoint/last.ckpt'
 
-  perceptual_loss:
-    _target_: core.losses.OpticalFlowConsistency
-    weight: 1e-2
-
 
 
 

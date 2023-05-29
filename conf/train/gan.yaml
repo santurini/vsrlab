@@ -20,7 +20,7 @@ discriminator:
 
 perceptual_loss:
   _target_: core.losses.PerceptualLoss
-  weight: 0.1
+  weight: 1e-2
 
 adversarial_loss:
   _target_: core.losses.AdversarialLoss
@@ -34,4 +34,4 @@ gradient_clip_val: 1
 num_grad_acc: 1
 
 restore: null
-finetune: False
+finetune: True

@@ -127,7 +127,7 @@ def build_transform(cfg: ListConfig) -> List[Sequential]:
     return Sequential(*augmentation)
 
 def restore_model(model, path):
-    state_dict = torch.load(path)['model_state_dict']
+    state_dict = torch.load(path)  # ['model_state_dict']
     model.load_state_dict(state_dict)
     return model
 
