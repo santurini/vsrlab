@@ -15,6 +15,8 @@ from core.utils import (
     compute_loss,
     running_metrics,
     setup_train,
+    build_model,
+    build_optimizer,
     build_loaders,
     build_logger,
     build_metric,
