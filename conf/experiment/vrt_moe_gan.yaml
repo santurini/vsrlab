@@ -25,4 +25,5 @@ train:
   adversarial_loss:
     weight: 2e-5
 
-  # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/swhretylkdsfb/checkpoint.tar'
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/swhretylkdsfb/checkpoint.tar'
+  finetune: True
