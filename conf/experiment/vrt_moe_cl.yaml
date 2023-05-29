@@ -1,17 +1,17 @@
 # @package _global_
 defaults:
   - override /train/model: baby_vrt_moe
-  - override /train/data: easy_schedule
+  - override /train/data: mid_schedule
 
 train:
   model:
-    num_experts: 4
+    num_experts: 8
     num_gpus: 1
     top_k: 2
     window_size: [ 8, 8, 8 ]
 
   data:
-    batch_size: 4
+    batch_size: 8
     datasets:
       train:
         seq: 8
@@ -19,4 +19,4 @@ train:
   ddp: True
   num_grad_acc: 4
 
-  #restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/swhretylkdsfb/checkpoint.tar'
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/sdvafnaweyefe/checkpoint.tar'
