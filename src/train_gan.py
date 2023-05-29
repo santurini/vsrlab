@@ -6,6 +6,7 @@ import omegaconf
 import torch
 import torch.distributed as dist
 import wandb
+from einops import rearrange
 
 from core import PROJECT_ROOT
 from core.losses import CharbonnierLoss
