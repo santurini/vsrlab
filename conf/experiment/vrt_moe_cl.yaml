@@ -20,4 +20,4 @@ train:
   ddp: False
   num_grad_acc: 4
 
-  # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/sdvafnaweyefe/checkpoint_easy.tar'
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/srbgenrewn/checkpoint.tar'
