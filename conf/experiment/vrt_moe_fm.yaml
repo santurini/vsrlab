@@ -8,6 +8,7 @@ train:
     num_gpus: 1
     top_k: 2
     window_size: [ 8, 8, 8 ]
+    img_size: [ 8, 64, 64 ]
 
   data:
     batch_size: 8
@@ -17,3 +18,5 @@ train:
 
   ddp: False
   num_grad_acc: 4
+
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/sdvafnaweye/checkpoint/last.ckpt'
