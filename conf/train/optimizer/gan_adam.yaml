@@ -7,4 +7,4 @@ generator:
 
 discriminator:
   _target_: torch.optim.SGD
-  lr: 1e-3
+  lr: 2e-4
