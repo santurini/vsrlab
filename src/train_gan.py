@@ -96,8 +96,8 @@ def run(cfg: omegaconf.DictConfig):
 
     # Encapsulate the model on the GPU assigned to the current process
     if rank == 0: print('setup train ...')
-    model, optimizer, scheduler, start_epoch = setup_train(cfg, cfg.train.model, cfg.train.optimizer.generator,
-                                                           cfg.train.scheduler.generator, device, local_rank)
+    model, optimizer_g, scheduler_g, start_epoch = setup_train(cfg, cfg.train.model, cfg.train.optimizer.generator,
+                                                               cfg.train.scheduler.generator, device, local_rank)
 
     if rank == 0: print('build discriminator ...')
     discriminator = build_model(cfg.train.discriminator, device, local_rank, cfg.train.ddp)
