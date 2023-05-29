@@ -24,7 +24,7 @@ perceptual_loss:
 
 adversarial_loss:
   _target_: core.losses.AdversarialLoss
-  weight: 1e-4
+  weight: 2e-5
 
 seed_index: null
 
