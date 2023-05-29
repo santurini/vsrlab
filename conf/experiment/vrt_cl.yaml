@@ -1,7 +1,7 @@
 # @package _global_
 defaults:
   - override /train/model: baby_vrt
-  - override /train/data: hard_schedule
+  - override /train/data: easy_schedule
 
 train:
   ddp: False
