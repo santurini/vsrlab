@@ -20,7 +20,7 @@ train:
 
   perceptual_loss:
     _target_: core.losses.OpticalFlowConsistency
-    weight: 1e-3
+    weight: 1e-5
 
   adversarial_loss:
     weight: 1e-5
