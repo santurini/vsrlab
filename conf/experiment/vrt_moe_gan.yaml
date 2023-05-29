@@ -18,25 +18,11 @@ train:
   max_epochs: 500000
   num_grad_acc: 4
 
-  optimizer:
-    generator:
-      _target_: torch.optim.Adam
-      lr: 1e-4
-      betas: [ 0.9, 0.99 ]
-      eps: 1e-08
-      weight_decay: 0
-
-  scheduler:
-    generator:
-      _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-      T_max: ${train.max_epochs}
-      eta_min: 1e-6
-      verbose: False
-
   perceptual_loss:
-    weight: 1e-3
+    _target_: core.losses.OpticalFlowConsistency
+    weight: 1e-2
 
   adversarial_loss:
-    weight: 1e-5
+    weight: 2e-5
 
-  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/swhretylkdsfb/checkpoint.tar'
+  # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/swhretylkdsfb/checkpoint.tar'

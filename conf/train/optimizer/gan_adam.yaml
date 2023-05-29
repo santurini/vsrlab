@@ -1,10 +1,10 @@
 generator:
   _target_: torch.optim.Adam
-  lr: 1e-6
-  betas: [ 0.9, 0.999 ]
+  lr: 2e-4
+  betas: [ 0.9, 0.99 ]
   eps: 1e-08
   weight_decay: 0
 
 discriminator:
   _target_: torch.optim.SGD
-  lr: 1e-3
+  lr: 2e-4
