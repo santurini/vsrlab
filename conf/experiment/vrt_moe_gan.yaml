@@ -20,10 +20,9 @@ train:
 
   perceptual_loss:
     _target_: core.losses.OpticalFlowConsistency
-    weight: 1e-2
+    weight: 1e-3
 
   adversarial_loss:
     weight: 1e-5
 
   restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/swhretylkdsfb/checkpoint.tar'
-  finetune: True
