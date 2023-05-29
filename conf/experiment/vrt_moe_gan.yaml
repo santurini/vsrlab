@@ -2,7 +2,7 @@
 defaults:
   - override /train/model: baby_vrt_moe
   - override /train: gan
-  - override /train/data: easy_schedule
+  - override /train/data: hard_schedule
 
 train:
   model:
