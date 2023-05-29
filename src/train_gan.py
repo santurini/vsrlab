@@ -75,7 +75,7 @@ def discriminator_step(discriminator, adversarial_loss, sr, hr):
     loss = adversarial_loss(disc_hr, 1, True) + adversarial_loss(disc_sr, 0, True)
     return loss
 
-def run(cfg: DictConfig):
+def run(cfg: omegaconf.DictConfig):
     seed_index_everything(cfg.train)
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
 
