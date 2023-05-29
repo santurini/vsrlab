@@ -4,7 +4,7 @@ defaults:
   - override /train/data: easy_schedule
 
 train:
-  ddp: False
+  ddp: True
   optimizer:
     lr: 1e-4
     betas: [ 0.9, 0.99 ]
