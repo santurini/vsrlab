@@ -11,8 +11,6 @@ from vsr.models.VRT.modules.spynet import flow_warp
 from vsr.models.VRT.modules.stage import Stage
 from vsr.models.VRT.modules.tmsa import RTMSA
 
-pylogger = logging.getLogger(__name__)
-
 loss_fn = CharbonnierLoss()
 
 class Upsample(nn.Sequential):
@@ -263,7 +261,6 @@ class TinyVRT(nn.Module):
         self.optical_flow = SpyNet.from_pretrained(k, return_levels, pretrained)
 
         if not train:
-            pylogger.info(f'Freezing Optical Flow parameters')
             for p in self.optical_flow.parameters():
                 p.requires_grad = False
 
