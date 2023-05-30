@@ -40,6 +40,7 @@ class BasicModule(nn.Module):
                 optical_flow, scale_factor=2, align_corners=True,
                 mode='bilinear') * 2
 
+        print("PRE WARP SHAPE:", optical_flow.shape)
         s_frame = spynet.nn.warp(s_frame, optical_flow, s_frame.device)
         s_frame = torch.cat([s_frame, optical_flow], dim=1)
         
