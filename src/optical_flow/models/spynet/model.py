@@ -40,7 +40,6 @@ class BasicModule(nn.Module):
                 optical_flow, scale_factor=2, align_corners=True,
                 mode='bilinear') * 2
 
-        print("PRE WARP SHAPE:", optical_flow.shape)
         s_frame = spynet.nn.warp(s_frame, optical_flow, s_frame.device)
         s_frame = torch.cat([s_frame, optical_flow], dim=1)
         
@@ -103,20 +102,15 @@ class SpyNet(nn.Module):
             else:
                 im_size = spynet.config.GConf(k).image_size
 
-            print("IMAGE SIZE:", im_size)
             x1 = F.interpolate(frames[0], im_size, mode='bilinear',
                                align_corners=True)
             x2 = F.interpolate(frames[1], im_size, mode='bilinear',
                                align_corners=True)
 
-            print("x1 shape:", x1.shape)
-            print("x2 shape:", x2.shape)
-
             if Vk_1 is not None:  # Upsample the previous optical flow
                 Vk_1 = F.interpolate(
-                    Vk_1, scale_factor=2, align_corners=True,
+                    Vk_1, size=im_size, align_corners=True,
                     mode='bilinear') * 2.
-                print("Vk_1 shape:", Vk_1.shape)
 
             Vk = G((x1, x2), Vk_1, upsample_optical_flow=False)
             Vk_1 = Vk + Vk_1 if Vk_1 is not None else Vk
