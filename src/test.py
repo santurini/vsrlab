@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 import hydra
 import omegaconf
 import pandas as pd
+import torch
 from torchvision.utils import save_image
 
 from core import PROJECT_ROOT
@@ -21,11 +22,11 @@ warnings.filterwarnings('ignore')
 C, H, W = 3, 480, 640
 
 @torch.no_grad()
-def run(config):
+def run(config: omegaconf.DictConfig):
     rank, local_rank, world_size = (0, 0, 1)
     device = torch.device("cuda:{}".format(local_rank))
 
-    cfg = OmegaConf.load(os.path.join(config.cfg_dir, "config.yaml"))
+    cfg = omegaconf.OmegaConf.load(os.path.join(config.cfg_dir, "config.yaml"))
     ckpt_path = os.path.join(config.cfg_dir, "last.ckpt")
 
     # Encapsulate the model on the GPU assigned to the current process
