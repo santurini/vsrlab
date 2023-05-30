@@ -54,7 +54,7 @@ def run(config: omegaconf.DictConfig):
             video_name = os.path.basename(video_lr_path)
             video_hr_path = os.path.join(config.hr_dir, f"fps={fps}_crf=5", "frames", video_name)
             save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
-            # Path(save_folder).mkdir(exist_ok=True, parents=True)
+            Path(save_folder).mkdir(exist_ok=True, parents=True)
 
             video_hr, video_lr = get_video(video_hr_path, pool).to(device), \
                 get_video(video_lr_path, pool).to(device)
@@ -77,10 +77,10 @@ def run(config: omegaconf.DictConfig):
 
             outputs = torch.cat(outputs, dim=1)
 
-            # pool.map(
-            #    lambda x: save_image(x[1], os.path.join(save_folder, "img{:05d}.png".format(x[0]))),
-            #    enumerate(outputs[0]),
-            # )
+            pool.map(
+                lambda x: save_image(x[1], os.path.join(save_folder, "img{:05d}.png".format(x[0]))),
+                enumerate(outputs[0]),
+            )
 
             video_metrics = running_metrics(video_metrics, metric, outputs, video_hr)
 
@@ -92,8 +92,7 @@ def run(config: omegaconf.DictConfig):
                 k: v / len(video_paths) for k, v in
                 video_metrics.items()})
 
-    # pd.DataFrame(video_pd).to_csv(os.path.join(output_folder, f'{os.path.basename(config.cfg_dir)}.csv'))
-    pd.DataFrame(video_pd).to_csv(os.path.join(output_folder, 'metrics.csv'))
+    pd.DataFrame(video_pd).to_csv(os.path.join(output_folder, f'{os.path.basename(config.cfg_dir)}.csv'))
 
     return output_folder
 
