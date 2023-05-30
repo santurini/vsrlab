@@ -1,5 +1,5 @@
 # @package _global_
-cfg_dir: /home/aghinassi/Desktop/checkpoints/vrt_spynet
+cfg_dir: /home/aghinassi/Desktop/checkpoints/moe_cl_2
 lr_dir: /mnt/hdd/dataset/pexels/compressed
 hr_dir: /mnt/hdd/dataset/pexels/groundtruth
 out_dir: /mnt/hdd/dataset/pexels
