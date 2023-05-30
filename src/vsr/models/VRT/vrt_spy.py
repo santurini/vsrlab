@@ -3,6 +3,7 @@ from distutils.version import LooseVersion
 
 import torch
 import torch.nn as nn
+from core.losses import CharbonnierLoss
 from core.modules.conv import ResidualBlock
 from einops import rearrange
 from einops.layers.torch import Rearrange
