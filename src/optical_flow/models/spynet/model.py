@@ -102,6 +102,7 @@ class SpyNet(nn.Module):
             else:
                 im_size = spynet.config.GConf(k).image_size
 
+            print("IMAGE SIZE:", im_size)
             x1 = F.interpolate(frames[0], im_size, mode='bilinear',
                                align_corners=True)
             x2 = F.interpolate(frames[1], im_size, mode='bilinear',
