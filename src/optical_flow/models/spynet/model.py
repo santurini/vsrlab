@@ -109,6 +109,9 @@ class SpyNet(nn.Module):
             x2 = F.interpolate(frames[1], im_size, mode='bilinear',
                                align_corners=True)
 
+            print("x1 shape:", x1.shape)
+            print("x2 shape:", x2.shape)
+
             if Vk_1 is not None:  # Upsample the previous optical flow
                 Vk_1 = F.interpolate(
                     Vk_1, scale_factor=2, align_corners=True,
