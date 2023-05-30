@@ -116,6 +116,7 @@ class SpyNet(nn.Module):
                 Vk_1 = F.interpolate(
                     Vk_1, scale_factor=2, align_corners=True,
                     mode='bilinear') * 2.
+                print("Vk_1 shape:", Vk_1.shape)
 
             Vk = G((x1, x2), Vk_1, upsample_optical_flow=False)
             Vk_1 = Vk + Vk_1 if Vk_1 is not None else Vk
