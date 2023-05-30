@@ -150,6 +150,17 @@ def build_model(cfg, device, local_rank=None, ddp=False, restore_ckpt=None):
 
     return model
 
+def build_test_model(cfg, device, restore_ckpt=None):
+    model = hydra.utils.instantiate(cfg, _recursive_=False)
+    model = model.to(device)
+
+    if restore_ckpt is not None:
+        print("restoring model state ...")
+        state_dict = torch.load(restore_ckpt)
+        model.load_state_dict(state_dict)
+
+    return model
+
 def setup_train(cfg, model_cfg, optim_cfg, sched_cfg, device, local_rank):
     model = build_model(model_cfg, device, local_rank, cfg.train.ddp, cfg.train.restore)
     restore = None if cfg.train.finetune else cfg.train.restore

@@ -11,7 +11,7 @@ from torchvision.utils import save_image
 
 from core import PROJECT_ROOT
 from core.utils import (
-    build_model,
+    build_test_model,
     build_metric,
     get_video,
     running_metrics
@@ -31,7 +31,7 @@ def run(config: omegaconf.DictConfig):
 
     # Encapsulate the model on the GPU assigned to the current process
     print('build model ...')
-    model = build_model(cfg.train.model, device, local_rank, False, ckpt_path)
+    model = build_test_model(cfg.train.model, device, ckpt_path)
 
     print('build metrics and losses ...')
     metric, video_pd = build_metric(config.metric).to(device), []
