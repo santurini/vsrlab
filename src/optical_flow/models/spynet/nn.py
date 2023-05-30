@@ -1,11 +1,11 @@
 import torch
 import torch.nn.functional as F
 
-
 def warp(image: torch.Tensor, 
          optical_flow: torch.Tensor,
          device: torch.device = torch.device('cpu')) -> torch.Tensor:
 
+    print("OPTICAL FLOW SHAPE:", optical_flow.shape)
     b, c, im_h, im_w = image.size() 
     
     hor = torch.linspace(-1.0, 1.0, im_w).view(1, 1, 1, im_w)

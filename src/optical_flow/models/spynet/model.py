@@ -34,14 +34,11 @@ class BasicModule(nn.Module):
             upsample_optical_flow = False
             b, c, h, w = f_frame.size()
             optical_flow = torch.zeros(b, 2, h, w, device=s_frame.device)
-            print("OPTICAL FLOW SHAPE:", optical_flow.shape)
 
         if upsample_optical_flow:
             optical_flow = F.interpolate(
                 optical_flow, scale_factor=2, align_corners=True,
                 mode='bilinear') * 2
-
-            print("OPTICAL FLOW UP SHAPE:", optical_flow.shape)
 
         s_frame = spynet.nn.warp(s_frame, optical_flow, s_frame.device)
         s_frame = torch.cat([s_frame, optical_flow], dim=1)
