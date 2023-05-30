@@ -17,7 +17,6 @@ from core.utils import (
 )
 
 warnings.filterwarnings('ignore')
-pylogger = logging.getLogger(__name__)
 
 C, H, W = 3, 480, 640
 
