@@ -7,9 +7,10 @@ from core.modules.conv import ResidualBlock
 from einops import rearrange
 from einops.layers.torch import Rearrange
 from fmoe.gates.gshard_gate import GShardGate
+from optical_flow.models.spynet.model import SpyNet
 from vsr.models.MoEVRT.stage import Stage
 from vsr.models.MoEVRT.tmsa import RTMSA
-from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
+from vsr.models.VRT.modules.spynet import flow_warp
 
 class Upsample(nn.Sequential):
     def __init__(self, scale, num_feat):
