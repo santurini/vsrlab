@@ -81,10 +81,10 @@ def run(config: omegaconf.DictConfig):
             outputs = torch.cat(outputs, dim=1)
             print(outputs.size())
 
-            pool.map(
+            list(pool.map(
                 lambda x: save_image(x[1], os.path.join(save_folder, "img{:05d}.png".format(x[0]))),
                 enumerate(outputs[0]),
-            )
+            ))
 
             video_metrics = running_metrics(video_metrics, metric, outputs, video_hr)
             print(video_metrics)
