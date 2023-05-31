@@ -1,7 +1,7 @@
 # @package _global_
 defaults:
   - override /train/model: baby_vrt_moe
-  - override /train/data: mid_schedule
+  - override /train/data: easy_schedule
 
 train:
   model:
