@@ -1,10 +1,10 @@
 # @package _global_
-cfg_dir: /home/aghinassi/Desktop/checkpoints/moe_cl_2
+cfg_dir: /home/aghinassi/Desktop/checkpoints/moe
 lr_dir: /mnt/hdd/dataset/pexels/compressed
 hr_dir: /mnt/hdd/dataset/pexels/groundtruth
 out_dir: /mnt/hdd/dataset/pexels
 
-window_size: 24
+window_size: 6
 num_workers: 4
 
 metric:
