@@ -57,8 +57,6 @@ def run(config: omegaconf.DictConfig):
             save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
             Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-            print(save_folder)
-
             video_hr, video_lr = get_video(video_hr_path, pool).to(device), \
                 get_video(video_lr_path, pool).to(device)
 
@@ -79,15 +77,13 @@ def run(config: omegaconf.DictConfig):
                 outputs.append(sr)
 
             outputs = torch.cat(outputs, dim=1)
-            print(outputs.size())
 
-            list(pool.map(
+            pool.map(
                 lambda x: save_image(x[1], os.path.join(save_folder, "img{:05d}.png".format(x[0]))),
                 enumerate(outputs[0]),
-            ))
+            )
 
             video_metrics = running_metrics(video_metrics, metric, outputs, video_hr)
-            print(video_metrics)
 
             dt = time.time() - dt
             print(f"Inference Time --> {dt:2f}")
