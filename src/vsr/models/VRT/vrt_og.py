@@ -1,4 +1,11 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+#
+# This source code is licensed under the BSD license found in the
+# LICENSE file in the root directory of this source tree.
+
+
 import math
+import os
 import warnings
 from distutils.version import LooseVersion
 from functools import reduce, lru_cache
@@ -10,7 +17,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 import torchvision
-from core import PROJECT_ROOT
 from einops import rearrange
 from einops.layers.torch import Rearrange
 from torch.nn.modules.utils import _pair, _single
@@ -57,6 +63,10 @@ class ModulatedDeformConv(nn.Module):
         if self.bias is not None:
             self.bias.data.zero_()
 
+    # def forward(self, x, offset, mask):
+    #     return modulated_deform_conv(x, offset, mask, self.weight, self.bias, self.stride, self.padding, self.dilation,
+    #                                  self.groups, self.deformable_groups)
+
 class ModulatedDeformConvPack(ModulatedDeformConv):
     """A ModulatedDeformable Conv Encapsulation that acts as normal Conv layers.
 
@@ -93,6 +103,14 @@ class ModulatedDeformConvPack(ModulatedDeformConv):
         if hasattr(self, 'conv_offset'):
             self.conv_offset.weight.data.zero_()
             self.conv_offset.bias.data.zero_()
+
+    # def forward(self, x):
+    #     out = self.conv_offset(x)
+    #     o1, o2, mask = torch.chunk(out, 3, dim=1)
+    #     offset = torch.cat((o1, o2), dim=1)
+    #     mask = torch.sigmoid(mask)
+    #     return modulated_deform_conv(x, offset, mask, self.weight, self.bias, self.stride, self.padding, self.dilation,
+    #                                  self.groups, self.deformable_groups)
 
 def _no_grad_trunc_normal_(tensor, mean, std, a, b):
     # From: https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/layers/weight_init.py
@@ -131,6 +149,7 @@ def _no_grad_trunc_normal_(tensor, mean, std, a, b):
         tensor.clamp_(min=a, max=b)
         return tensor
 
+
 def trunc_normal_(tensor, mean=0., std=1., a=-2., b=2.):
     r"""Fills the input Tensor with values drawn from a truncated
     normal distribution.
@@ -156,6 +175,7 @@ def trunc_normal_(tensor, mean=0., std=1., a=-2., b=2.):
     """
     return _no_grad_trunc_normal_(tensor, mean, std, a, b)
 
+
 def drop_path(x, drop_prob: float = 0., training: bool = False):
     """Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
     From: https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/layers/drop.py
@@ -169,6 +189,7 @@ def drop_path(x, drop_prob: float = 0., training: bool = False):
     output = x.div(keep_prob) * random_tensor
     return output
 
+
 class DropPath(nn.Module):
     """Drop paths (Stochastic Depth) per sample  (when applied in main path of residual blocks).
     From: https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/layers/drop.py
@@ -180,6 +201,7 @@ class DropPath(nn.Module):
 
     def forward(self, x):
         return drop_path(x, self.drop_prob, self.training)
+
 
 def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corners=True, use_pad_mask=False):
     """Warp an image or feature map with optical flow.
@@ -211,8 +233,11 @@ def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corne
 
     vgrid = grid + flow
 
+    # if use_pad_mask: # for PWCNet
+    #     x = F.pad(x, (0,0,0,0,0,1), mode='constant', value=1)
+
     # scale grid to [-1,1]
-    if interp_mode == 'nearest4':
+    if interp_mode == 'nearest4':  # todo: bug, no gradient for flow model in this case!!! but the result is good
         vgrid_x_floor = 2.0 * torch.floor(vgrid[:, :, :, 0]) / max(w - 1, 1) - 1.0
         vgrid_x_ceil = 2.0 * torch.ceil(vgrid[:, :, :, 0]) / max(w - 1, 1) - 1.0
         vgrid_y_floor = 2.0 * torch.floor(vgrid[:, :, :, 1]) / max(h - 1, 1) - 1.0
@@ -237,6 +262,7 @@ def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corne
                                align_corners=align_corners)
 
         return output
+
 
 class DCNv2PackFlowGuided(ModulatedDeformConvPack):
     """Flow-guided deformable alignment module.
@@ -311,6 +337,7 @@ class DCNv2PackFlowGuided(ModulatedDeformConvPack):
         return torchvision.ops.deform_conv2d(x, offset, self.weight, self.bias, self.stride, self.padding,
                                              self.dilation, mask)
 
+
 class BasicModule(nn.Module):
     """Basic Module for SpyNet.
     """
@@ -328,6 +355,7 @@ class BasicModule(nn.Module):
     def forward(self, tensor_input):
         return self.basic_module(tensor_input)
 
+
 class SpyNet(nn.Module):
     """SpyNet architecture.
 
@@ -336,16 +364,20 @@ class SpyNet(nn.Module):
         return_levels (list[int]): return flows of different levels. Default: [5].
     """
 
-    def __init__(self, pretrained=True, return_levels=[5]):
+    def __init__(self, load_path=None, return_levels=[5]):
         super(SpyNet, self).__init__()
         self.return_levels = return_levels
         self.basic_module = nn.ModuleList([BasicModule() for _ in range(6)])
-        if pretrained:
-            load_path = f'{PROJECT_ROOT}/src/vsr/models/VRT/weights/spynet_sintel_final-3d2a1287.pth'
+        if load_path:
+            if not os.path.exists(load_path):
+                import requests
+                url = 'https://github.com/JingyunLiang/VRT/releases/download/v0.0/spynet_sintel_final-3d2a1287.pth'
+                r = requests.get(url, allow_redirects=True)
+                print(f'downloading SpyNet pretrained model from {url}')
+                os.makedirs(os.path.dirname(load_path), exist_ok=True)
+                open(load_path, 'wb').write(r.content)
+
             self.load_state_dict(torch.load(load_path, map_location=lambda storage, loc: storage)['params'])
-            print('FREEZING SPYNET PARAMETERS')
-            for p in self.parameters():
-                p.requires_grad = False
 
         self.register_buffer('mean', torch.Tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1))
         self.register_buffer('std', torch.Tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
@@ -408,6 +440,7 @@ class SpyNet(nn.Module):
 
         return flow_list[0] if len(flow_list) == 1 else flow_list
 
+
 def window_partition(x, window_size):
     """ Partition the input into windows. Attention will be conducted within the windows.
 
@@ -424,6 +457,7 @@ def window_partition(x, window_size):
     windows = x.permute(0, 1, 3, 5, 2, 4, 6, 7).contiguous().view(-1, reduce(mul, window_size), C)
 
     return windows
+
 
 def window_reverse(windows, window_size, B, D, H, W):
     """ Reverse windows back to the original input. Attention was conducted within the windows.
@@ -443,6 +477,7 @@ def window_reverse(windows, window_size, B, D, H, W):
 
     return x
 
+
 def get_window_size(x_size, window_size, shift_size=None):
     """ Get the window size and the shift size """
 
@@ -459,6 +494,7 @@ def get_window_size(x_size, window_size, shift_size=None):
         return tuple(use_window_size)
     else:
         return tuple(use_window_size), tuple(use_shift_size)
+
 
 @lru_cache()
 def compute_mask(D, H, W, window_size, shift_size, device):
@@ -1226,7 +1262,7 @@ class VRT(nn.Module):
                  img_size=[6, 64, 64],
                  window_size=[6, 8, 8],
                  depths=[8, 8, 8, 8, 8, 8, 8, 4, 4, 4, 4, 4, 4],
-                 indep_reconsts=[-2, -1],
+                 indep_reconsts=[11, 12],
                  embed_dims=[120, 120, 120, 120, 120, 120, 120, 180, 180, 180, 180, 180, 180],
                  num_heads=[6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
                  mul_attn_ratio=0.75,
@@ -1235,10 +1271,11 @@ class VRT(nn.Module):
                  qk_scale=None,
                  drop_path_rate=0.2,
                  norm_layer=nn.LayerNorm,
-                 optical_flow_pretrained=True,
+                 spynet_path=None,
                  pa_frames=2,
                  deformable_groups=16,
                  recal_all_flows=False,
+                 nonblind_denoising=False,
                  use_checkpoint_attn=False,
                  use_checkpoint_ffn=False,
                  no_checkpoint_attn_blocks=[],
@@ -1250,14 +1287,21 @@ class VRT(nn.Module):
         self.upscale = upscale
         self.pa_frames = pa_frames
         self.recal_all_flows = recal_all_flows
-        self.indep_reconsts = [i.item() for i in torch.arange(len(depths))[indep_reconsts]]
+        self.nonblind_denoising = nonblind_denoising
 
         # conv_first
-        conv_first_in_chans = in_chans * (1 + 2 * 4)
+        if self.pa_frames:
+            if self.nonblind_denoising:
+                conv_first_in_chans = in_chans * (1 + 2 * 4) + 1
+            else:
+                conv_first_in_chans = in_chans * (1 + 2 * 4)
+        else:
+            conv_first_in_chans = in_chans
         self.conv_first = nn.Conv3d(conv_first_in_chans, embed_dims[0], kernel_size=(1, 3, 3), padding=(0, 1, 1))
 
         # main body
-        self.spynet = SpyNet(optical_flow_pretrained, [2, 3, 4, 5])
+        if self.pa_frames:
+            self.spynet = SpyNet(spynet_path, [2, 3, 4, 5])
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
         reshapes = ['none', 'down', 'down', 'down', 'up', 'up', 'up']
         scales = [1, 2, 4, 8, 4, 2, 1]
@@ -1320,36 +1364,102 @@ class VRT(nn.Module):
         self.conv_after_body = nn.Linear(embed_dims[-1], embed_dims[0])
 
         # reconstruction
-        num_feat = 64
-        self.conv_before_upsample = nn.Sequential(
-            nn.Conv3d(embed_dims[0], num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)),
-            nn.LeakyReLU(inplace=True))
+        if self.pa_frames:
+            if self.upscale == 1:
+                # for video deblurring, etc.
+                self.conv_last = nn.Conv3d(embed_dims[0], out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
+            else:
+                # for video sr
+                num_feat = 64
+                self.conv_before_upsample = nn.Sequential(
+                    nn.Conv3d(embed_dims[0], num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)),
+                    nn.LeakyReLU(inplace=True))
+                self.upsample = Upsample(upscale, num_feat)
+                self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
+        else:
+            num_feat = 64
+            self.linear_fuse = nn.Conv2d(embed_dims[0] * img_size[0], num_feat, kernel_size=1, stride=1)
+            self.conv_last = nn.Conv2d(num_feat, out_chans, kernel_size=7, stride=1, padding=0)
 
-        self.upsample = Upsample(upscale, num_feat)
+    def init_weights(self, pretrained=None, strict=True):
+        """Init weights for models.
 
-        self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
+        Args:
+            pretrained (str, optional): Path for pretrained weights. If given
+                None, pretrained weights will not be loaded. Defaults: None.
+            strict (boo, optional): Whether strictly load the pretrained model.
+                Defaults to True.
+        """
+        if isinstance(pretrained, str):
+            logger = get_root_logger()
+            load_checkpoint(self, pretrained, strict=strict, logger=logger)
+        elif pretrained is not None:
+            raise TypeError(f'"pretrained" must be a str or None. '
+                            f'But received {type(pretrained)}.')
+
+    def reflection_pad2d(self, x, pad=1):
+        """ Reflection padding for any dtypes (torch.bfloat16.
+
+        Args:
+            x: (tensor): BxCxHxW
+            pad: (int): Default: 1.
+        """
+
+        x = torch.cat([torch.flip(x[:, :, 1:pad + 1, :], [2]), x, torch.flip(x[:, :, -pad - 1:-1, :], [2])], 2)
+        x = torch.cat([torch.flip(x[:, :, :, 1:pad + 1], [3]), x, torch.flip(x[:, :, :, -pad - 1:-1], [3])], 3)
+        return x
 
     def forward(self, x):
         # x: (N, D, C, H, W)
-        x_lq = x.clone()
 
-        # calculate flows
-        flows_backward, flows_forward = self.get_flows(x)
+        # main network
+        if self.pa_frames:
+            # obtain noise level map
+            if self.nonblind_denoising:
+                x, noise_level_map = x[:, :, :self.in_chans, :, :], x[:, :, self.in_chans:, :, :]
 
-        # warp input
-        x_backward, x_forward = self.get_aligned_image_2frames(x, flows_backward[0], flows_forward[0])
-        x = torch.cat([x, x_backward, x_forward], 2)
+            x_lq = x.clone()
 
-        # video sr
-        x = self.conv_first(x.transpose(1, 2))
-        x = x + self.conv_after_body(self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)).transpose(
-            1, 4)
-        x = self.conv_last(self.upsample(self.conv_before_upsample(x))).transpose(1, 2)
-        _, _, C, H, W = x.shape
+            # calculate flows
+            flows_backward, flows_forward = self.get_flows(x)
 
-        sr = x + torch.nn.functional.interpolate(x_lq, size=(C, H, W), mode='trilinear', align_corners=False)
+            # warp input
+            x_backward, x_forward = self.get_aligned_image_2frames(x, flows_backward[0], flows_forward[0])
+            x = torch.cat([x, x_backward, x_forward], 2)
 
-        return sr, x_lq
+            # concatenate noise level map
+            if self.nonblind_denoising:
+                x = torch.cat([x, noise_level_map], 2)
+
+            if self.upscale == 1:
+                # video deblurring, etc.
+                x = self.conv_first(x.transpose(1, 2))
+                x = x + self.conv_after_body(
+                    self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)).transpose(1, 4)
+                x = self.conv_last(x).transpose(1, 2)
+                return x + x_lq
+            else:
+                # video sr
+                x = self.conv_first(x.transpose(1, 2))
+                x = x + self.conv_after_body(
+                    self.forward_features(x, flows_backward, flows_forward).transpose(1, 4)).transpose(1, 4)
+                x = self.conv_last(self.upsample(self.conv_before_upsample(x))).transpose(1, 2)
+                _, _, C, H, W = x.shape
+                return x + torch.nn.functional.interpolate(x_lq, size=(C, H, W), mode='trilinear', align_corners=False)
+        else:
+            # video fi
+            x_mean = x.mean([1, 3, 4], keepdim=True)
+            x = x - x_mean
+
+            x = self.conv_first(x.transpose(1, 2))
+            x = x + self.conv_after_body(
+                self.forward_features(x, [], []).transpose(1, 4)).transpose(1, 4)
+
+            x = torch.cat(torch.unbind(x, 2), 1)
+            x = self.conv_last(self.reflection_pad2d(F.leaky_relu(self.linear_fuse(x), 0.2), pad=3))
+            x = torch.stack(torch.split(x, dim=1, split_size_or_sections=3), 1)
+
+            return x + x_mean
 
     def get_flows(self, x):
         ''' Get flows for 2 frames, 4 frames or 6 frames.'''
