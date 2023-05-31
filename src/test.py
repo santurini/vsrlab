@@ -8,6 +8,7 @@ import hydra
 import omegaconf
 import pandas as pd
 import torch
+from torchvision.utils import save_image
 
 from core import PROJECT_ROOT
 from core.utils import (
