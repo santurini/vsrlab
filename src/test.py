@@ -78,7 +78,7 @@ def run(config: omegaconf.DictConfig):
                 outputs.append(sr)
 
             outputs = torch.cat(outputs, dim=1)
-            print(len(outputs))
+            print(outputs.size())
 
             pool.map(
                 lambda x: save_image(x[1], os.path.join(save_folder, "img{:05d}.png".format(x[0]))),
