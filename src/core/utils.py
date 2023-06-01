@@ -11,7 +11,6 @@ from PIL import Image
 from einops import rearrange
 from kornia.geometry.transform import resize
 from omegaconf import DictConfig, ListConfig, OmegaConf
-from pytorch_lightning import seed_everything
 from torch.nn import Sequential
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader
@@ -21,18 +20,14 @@ from torchvision.transforms.functional import to_tensor
 CPU_DEVICE = torch.device("cpu")
 pylogger = logging.getLogger(__name__)
 
-def seed_index_everything(cfg: DictConfig, sampling_seed: int = 42) -> Optional[int]:
+def seed_index_everything(cfg: DictConfig) -> Optional[int]:
     if "seed_index" in cfg and cfg.seed_index is not None:
-        seed_index = cfg.seed_index
-        np.random.seed(sampling_seed)
-        seeds = np.random.randint(np.iinfo(np.int32).max, size=max(42, seed_index + 1))
-        seed = seeds[seed_index]
-        seed_everything(seed)
-        pylogger.info(f"Setting seed {seed} from seeds[{seed_index}]")
-        return seed
-    else:
-        pylogger.warning("The seed has not been set! The reproducibility is not guaranteed.")
-        return None
+        random.seed(cfg.seed_index)
+        np.random.seed(cfg.seed_index)
+        torch.manual_seed(cfg.seed_index)
+        torch.cuda.manual_seed_all(cfg.seed_index)
+
+    return cfg.seed_index
 
 def get_resources():
     if os.environ.get('OMPI_COMMAND'):
