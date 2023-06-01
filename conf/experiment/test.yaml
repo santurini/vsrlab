@@ -4,8 +4,8 @@ lr_dir: /mnt/hdd/dataset/pexels/compressed
 hr_dir: /mnt/hdd/dataset/pexels/groundtruth
 out_dir: /mnt/hdd/dataset/pexels
 
-window_size: 64
-num_workers: 8
+window_size: 32
+num_workers: 4
 
 metric:
   _target_: core.metrics.MetricCollection
