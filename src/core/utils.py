@@ -236,9 +236,9 @@ def compute_metric(metric, sr, hr):
     )
     return metrics
 
-def running_metrics(metrics_dict, metric, sr, hr, norm_factor=1):
+def running_metrics(metrics_dict, metric, sr, hr):
     metric_out = compute_metric(metric, sr, hr)
-    out = {k: (metrics_dict[k] + metric_out[k]) / norm_factor for k in set(metrics_dict) & set(metric_out)}
+    out = {k: (metrics_dict[k] + metric_out[k]) for k in set(metrics_dict) & set(metric_out)}
     return out
 
 def create_gan_losses_dict():
