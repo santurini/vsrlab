@@ -71,8 +71,8 @@ def run(config: omegaconf.DictConfig):
     rank, local_rank, world_size = (0, 0, 1)
     device = torch.device("cuda:{}".format(local_rank))
 
-    cfg = os.path.join(config.cfg_dir, "configs/realbasicvsr_x4.py")
-    ckpt_path = os.path.join(config.cfg_dir, "checkpoints/RealBasicVSR_x4.pth")
+    cfg = os.path.join(config.cfg_dir, "realbasicvsr_x4.py")
+    ckpt_path = os.path.join(config.cfg_dir, "RealBasicVSR_x4.pth")
 
     # Encapsulate the model on the GPU assigned to the current process
     print('build model ...')
