@@ -5,7 +5,7 @@ hr_dir: /mnt/hdd/dataset/pexels/groundtruth
 out_dir: /mnt/hdd/dataset/pexels
 
 window_size: 32
-num_workers: 4
+num_workers: 2
 
 metric:
   _target_: core.metrics.MetricCollection
