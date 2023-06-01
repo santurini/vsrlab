@@ -124,15 +124,15 @@ class SpyNet(nn.Module):
         return flow_list
 
     @classmethod
-    def from_pretrained(cls: Type['SpyNet'], k, return_levels=[2, 3, 4], path=None) -> 'SpyNet':
+    def from_pretrained(cls: Type['SpyNet'], k, return_levels=[-1], path=None) -> 'SpyNet':
 
         def get_model(ckpt_path: str, levels) -> 'SpyNet':
-            # checkpoint = torch.load(ckpt_path, map_location=lambda storage, loc: storage)['params']
-            checkpoint = torch.load(ckpt_path, map_location=lambda storage, loc: storage)
-            checkpoint = {
-                k.replace('basic_module', 'units', 1).replace('basic_module', 'module'): v
-                for k, v in checkpoint.items()
-            }
+            checkpoint = torch.load(ckpt_path, map_location=lambda storage, loc: storage)['model_state_dict']
+
+            # checkpoint = {
+            #     k.replace('basic_module', 'units', 1).replace('basic_module', 'module'): v
+            #     for k, v in checkpoint.items()
+            # }
 
             instance = cls(k=levels, return_levels=return_levels)
             instance.load_state_dict(checkpoint, strict=False)

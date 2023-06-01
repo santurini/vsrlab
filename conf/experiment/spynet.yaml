@@ -4,8 +4,6 @@ defaults:
 
 train:
   ddp: True
-  restore: null # "/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/kjhsdvqqqq/checkpoint/4.ckpt"
-  finetune: False
 
   data:
     batch_size: 16
@@ -22,10 +20,14 @@ train:
 
   optimizer:
     lr: 1e-4
-    betas: [ 0.9, 0.999 ]
+    betas: [ 0.9, 0.99 ]
 
   scheduler:
     eta_min: 1e-5
 
   max_epochs: [ 250, 100, 100, 100, 50 ]
   k: 5
+  start_k: 0
+
+  restore: null # "/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/kjhsdvqqqq/checkpoint/4.ckpt"
+  finetune: False

@@ -15,16 +15,13 @@ from torch.utils.data import DataLoader
 from core import PROJECT_ROOT
 from core.utils import (
     get_resources,
-    build_optimizer,
     build_logger,
-    save_checkpoint,
     save_config,
     cleanup
 )
 from optical_flow.models import spynet
 from optical_flow.models.spynet.utils import (
     clean_frames,
-    build_spynets,
     load_data,
     build_dl,
     build_cleaner,
@@ -89,7 +86,7 @@ def evaluate(
     if rank == 0:
         logger.log_dict({f"Loss {k}": val_loss / len(val_dl)}, epoch, "Val")
         logger.log_flow(f"Val {k}", epoch, x1, predictions, y)
-        save_k_checkpoint(cfg, k, Gk, logger, cfg.train.ddp)
+        save_k_checkpoint(cfg, k, Gk, optimizer, scheduler, epoch, logger, cfg.train.ddp)
 
 def train_one_epoch(
         cfg,
@@ -180,10 +177,10 @@ def train_one_level(cfg,
     train_dl, val_dl, epoch = build_dl(train_ds, val_ds, cfg)
 
     if rank == 0: print("Instantiating pyramids")
-    current_level, trained_pyramid = build_spynets(cfg, k, previous, local_rank, device)
-
-    if rank == 0: print("Instantiating optimizer")
-    optimizer, scheduler = build_optimizer(current_level, cfg.train.optimizer, cfg.train.scheduler)
+    current_level, trained_pyramid, optimizer, scheduler, start_epoch = setup_train(cfg, k, previous,
+                                                                                    cfg.train.optimizer,
+                                                                                    cfg.train.scheduler, device,
+                                                                                    local_rank)
 
     if rank == 0: print("Instantiating cleaner")
     cleaner = build_cleaner(cfg, device)
@@ -191,7 +188,7 @@ def train_one_level(cfg,
     loss_fn = nn.L1Loss()
     max_epochs = cfg.train.max_epochs[k]
 
-    for epoch in range(max_epochs):
+    for epoch in range(start_epoch, max_epochs):
         train_one_epoch(
             cfg,
             train_dl,
@@ -216,8 +213,11 @@ def train_one_level(cfg,
 def train(cfg):
     rank, local_rank, world_size = get_resources() if cfg.train.ddp else (0, 0, 1)
 
+    # Initialize logger
     if rank == 0:
-        logger = build_logger(cfg)
+        print("Global Rank {} - Local Rank {} - Initializing Wandb".format(rank, local_rank))
+        resume = False if cfg.train.restore is None else True
+        logger = build_logger(cfg, resume)
         model_config = save_config(cfg)
     else:
         logger = None
@@ -226,16 +226,29 @@ def train(cfg):
     scaler = torch.cuda.amp.GradScaler()
 
     previous = []
-    for k in range(cfg.train.k):
+    for k in range(cfg.train.start_k, cfg.train.k):
         previous.append(
             train_one_level(cfg, k, previous, scaler, logger,
                             device, rank, local_rank, world_size)
         )
 
     final = spynet.SpyNet(previous)
+    model_state_dict = final.module.state_dict() if cfg.train.ddp else final.state_dict()
+
+    base_path = os.path.join(
+        cfg.train.logger.save_dir,
+        cfg.train.logger.project,
+        cfg.train.logger.id
+    )
+
+    save_path = os.path.join(
+        base_path,
+        "checkpoint.tar"
+    )
 
     if rank == 0:
-        save_checkpoint(cfg, final, logger, cfg.train.ddp)
+        torch.save(model_state_dict, save_path)
+        logger.save(save_path, base_path)
         logger.close()
 
     return model_config

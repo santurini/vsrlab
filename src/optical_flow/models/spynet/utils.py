@@ -1,9 +1,9 @@
 import os
-from pathlib import Path
 from typing import Sequence
 
 import hydra
 import torch
+from core.utils import build_optimizer
 from optical_flow.dataset import Dataset
 from optical_flow.models import spynet
 from optical_flow.transforms import *
@@ -24,15 +24,24 @@ def clean_frames(cleaner, frame1, frame2):
     ).split(len(frame1))
     return frame1, frame2
 
+def setup_train(cfg, k, previous, optim_cfg, sched_cfg, device, local_rank):
+    current_level, trained_pyramid = build_spynets(cfg, k, previous, local_rank, device)
+    restore = None if cfg.train.finetune else cfg.train.restore
+
+    print('Restoring optimizer state?', restore)
+    optimizer, scheduler, start_epoch = build_optimizer(current_level, optim_cfg, sched_cfg, restore)
+
+    return current_level, trained_pyramid, optimizer, scheduler, start_epoch
+
 def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], local_rank, device):
     if cfg.train.restore is not None:
         assert not cfg.train.finetune, "Only one of restore and finetune option can be specified"
-        pretrained = spynet.SpyNet.from_pretrained(cfg.train.k, cfg.train.restore)
+        pretrained = spynet.SpyNet.from_pretrained(cfg.train.k, path=cfg.train.restore)
         current_train = pretrained.units[k]
 
     elif cfg.train.finetune:
         assert not bool(cfg.train.restore), "Only one of restore and finetune option can be specified"
-        pretrained = spynet.SpyNet.from_pretrained(cfg.train.k, None)
+        pretrained = spynet.SpyNet.from_pretrained(cfg.train.k, path=None)
         current_train = pretrained.units[k]
 
     else:
@@ -67,7 +76,7 @@ def update_weights(loss, model, scheduler, optimizer, scaler):
     scheduler.step()
     optimizer.zero_grad()
 
-def save_k_checkpoint(cfg, k, model, logger, ddp=True):
+def save_k_checkpoint(cfg, k, model, optimizer, scheduler, epoch, logger, ddp=True):
     base_path = os.path.join(
         cfg.train.logger.save_dir,
         cfg.train.logger.project,
@@ -76,18 +85,19 @@ def save_k_checkpoint(cfg, k, model, logger, ddp=True):
 
     save_path = os.path.join(
         base_path,
-        "checkpoint",
-        f"{k}.ckpt"
+        "checkpoint_{}.tar".format(k)
     )
 
-    Path(save_path).parent.mkdir(exist_ok=True, parents=True)
+    model_state_dict = model.module.state_dict() if ddp else model.state_dict()
 
-    if ddp:
-        torch.save(model.module.state_dict(), save_path)
-        logger.save(save_path, base_path)
-    else:
-        torch.save(model.state_dict(), save_path)
-        logger.save(save_path, base_path)
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model_state_dict,
+        'optimizer_state_dict': optimizer.state_dict(),
+        'scheduler_state_dict': scheduler.state_dict()
+    }, save_path)
+
+    logger.save(save_path, base_path)
 
 def build_cleaner(cfg, device):
     cleaner = hydra.utils.instantiate(cfg.train.cleaner, _recursive_=False)
@@ -128,7 +138,6 @@ def load_data(cfg, k: int):
     return train_ds, val_ds
 
 def build_dl(train_ds, val_ds, cfg):
-    # Restricts data loading to a subset of the dataset exclusive to the current process
     train_sampler = DistributedSampler(dataset=train_ds) if cfg.train.ddp else None
     val_sampler = DistributedSampler(dataset=val_ds) if cfg.train.ddp else None
 
@@ -137,8 +146,6 @@ def build_dl(train_ds, val_ds, cfg):
         batch_size=cfg.train.data.batch_size,
         num_workers=cfg.train.data.num_workers,
         prefetch_factor=cfg.train.data.prefetch_factor,
-        # persistent_workers=True,
-        # pin_memory=True,
         sampler=train_sampler
     )
 
@@ -147,8 +154,6 @@ def build_dl(train_ds, val_ds, cfg):
         batch_size=cfg.train.data.batch_size,
         num_workers=cfg.train.data.num_workers,
         prefetch_factor=cfg.train.data.prefetch_factor,
-        # persistent_workers=True,
-        # pin_memory=True,
         sampler=val_sampler,
         shuffle=False
     )
