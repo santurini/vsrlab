@@ -88,6 +88,7 @@ def run(cfg: omegaconf.DictConfig):
         train_loss, train_metrics = 0.0, {k: 0 for k in cfg.train.metric.metrics}
 
         for i, data in enumerate(train_dl):
+            print("Batch {} / {}".format(i, len(train_dl)))
             lr, hr = data[0].to(device), data[1].to(device)
 
             with torch.cuda.amp.autocast():
