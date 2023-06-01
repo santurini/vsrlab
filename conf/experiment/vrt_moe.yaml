@@ -4,7 +4,7 @@ defaults:
 
 train:
   model:
-    num_experts: 8
+    num_experts: 4
     num_gpus: 2
     top_k: 2
 

@@ -73,7 +73,7 @@ class TMSA(nn.Module):
             world_size=num_gpus,
             top_k=top_k,
             gate=gate,
-            # expert_dp_comm="world" if num_gpus > 1 else "none"
+            expert_dp_comm="dp" if num_gpus > 1 else "none"
         )
 
     def forward_part1(self, x, mask_matrix):

@@ -122,7 +122,7 @@ class Stage(nn.Module):
             world_size=num_gpus,
             top_k=top_k,
             gate=gate,
-            # expert_dp_comm="world" if num_gpus > 1 else "none"
+            expert_dp_comm="dp" if num_gpus > 1 else "none"
         )
         self.linear3 = nn.Linear(dim * (1 + 2), dim)
 

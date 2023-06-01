@@ -18,10 +18,7 @@ def build_model(cfg, device, ddp=False, restore_ckpt=None):
 
     if ddp:
         print(f"setting up distributed model")
-        ddp_model = DistributedGroupedDataParallel(
-            model,
-            need_sync=False
-        )
+        ddp_model = DistributedGroupedDataParallel(model)
         return ddp_model
 
     return model
