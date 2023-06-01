@@ -39,6 +39,8 @@ def evaluate(
         criterion_fn: torch.nn.Module,
         Gk: torch.nn.Module,
         cleaner: torch.nn.Module,
+        optimizer: torch.nn.Module,
+        scheduler: torch.nn.Module,
         prev_pyramid: torch.nn.Module = None,
         epoch: int = 0,
         k: int = -1,
@@ -149,9 +151,8 @@ def train_one_epoch(
     print("Starting Evaluation ...")
 
     evaluate(
-        cfg, val_dl, criterion_fn, Gk,
-        cleaner, prev_pyramid, epoch, k, logger,
-        device, rank, world_size
+        cfg, val_dl, criterion_fn, Gk, cleaner, optimizer, scheduler,
+        prev_pyramid, epoch, k, logger, device, rank, world_size
     )
 
     if rank == 0:
