@@ -189,7 +189,7 @@ def train_one_level(cfg,
     cleaner = build_cleaner(cfg, device)
 
     loss_fn = nn.L1Loss()
-    max_epochs = cfg.train.max_epochs * 4 if k == 0 else cfg.train.max_epochs
+    max_epochs = cfg.train.max_epochs[k]
 
     for epoch in range(max_epochs):
         train_one_epoch(

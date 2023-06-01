@@ -27,5 +27,5 @@ train:
   scheduler:
     eta_min: 1e-5
 
-  max_epochs: 50
+  max_epochs: [ 250, 100, 100, 100, 50 ]
   k: 5
