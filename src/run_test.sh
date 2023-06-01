@@ -2,7 +2,6 @@
 
 set -e -x
 
-python test_real.py +experiment=test
 python test.py +experiment=test cfg_dir=../../checkpoints/basic_gan
 python test.py +experiment=test cfg_dir=../../checkpoints/basic_cl_gan
 python test.py +experiment=test cfg_dir=../../checkpoints/basic_cl_gan2
