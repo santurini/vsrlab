@@ -70,7 +70,7 @@ def run(config: omegaconf.DictConfig):
 
                 outputs = []
                 windows = list(range(0, video_lr.size(1), config.window_size))
-                norm_factor = len(windows)
+                window_metrics, norm_factor = {k: 0 for k in config.metric.metrics}, len(windows)
                 for i in windows:
                     lr, hr = video_lr[:, i:i + config.window_size, ...].to(device, non_blocking=True), \
                         video_hr[:, i:i + config.window_size, ...].to(device, non_blocking=True)
@@ -78,7 +78,7 @@ def run(config: omegaconf.DictConfig):
                     sr, _ = model(lr)
                     outputs.append(sr)
 
-                    video_metrics = running_metrics(video_metrics, metric, sr, hr)
+                    window_metrics = running_metrics(window_metrics, metric, sr, hr)
 
                 outputs = torch.cat(outputs, dim=1)
 
@@ -87,12 +87,12 @@ def run(config: omegaconf.DictConfig):
                     enumerate(outputs[0]),
                 ))
 
-                video_metrics = {k: v / norm_factor for k, v in video_metrics.items()}
-                # video_metrics = running_metrics(video_metrics, metric, outputs, video_hr.to(device))
+                window_metrics = {k: v / norm_factor for k, v in window_metrics.items()}
+                # video_metrics = running_metrics(window_metrics, metric, outputs, video_hr.to(device))
 
                 dt = time.time() - dt
                 print(f"Inference Time --> {dt:2f}")
-                print(video_metrics)
+                print(window_metrics)
 
             video_pd.append(
                 {"cf": cf / len(video_paths), "bpp": bpp / len(video_paths), "fps": fps, "crf": crf} | {
