@@ -92,7 +92,7 @@ def run(config: omegaconf.DictConfig):
 
                 dt = time.time() - dt
                 print(f"Inference Time --> {dt:2f}")
-
+                print(video_metrics)
 
             video_pd.append(
                 {"cf": cf / len(video_paths), "bpp": bpp / len(video_paths), "fps": fps, "crf": crf} | {
