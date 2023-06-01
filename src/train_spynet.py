@@ -28,7 +28,7 @@ from optical_flow.models.spynet.utils import (
     load_data,
     build_dl,
     build_cleaner,
-    update_weights_amp,
+    update_weights,
     save_k_checkpoint
 )
 
@@ -141,7 +141,7 @@ def train_one_epoch(
             predictions = Gk(x, Vk_1, upsample_optical_flow=False) + Vk_1
             loss = criterion_fn(y, predictions)
 
-        update_weights_amp(loss, Gk, scheduler, optimizer, scaler)
+        update_weights(loss, Gk, scheduler, optimizer, scaler)
         train_loss += loss.detach().item()
 
     if rank == 0:

@@ -58,18 +58,12 @@ def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], local_rank, 
     current_train.train()
     return current_train, Gk
 
-def update_weights_amp(loss, model, scheduler, optimizer, scaler):
+def update_weights(loss, model, scheduler, optimizer, scaler):
     scaler.scale(loss).backward()
     scaler.unscale_(optimizer)
     clip_grad_norm_(model.parameters(), 1.0)
     scaler.step(optimizer)
     scaler.update()
-    scheduler.step()
-    optimizer.zero_grad()
-
-def update_weights(loss, scheduler, optimizer):
-    loss.backward()
-    optimizer.step()
     scheduler.step()
     optimizer.zero_grad()
 
