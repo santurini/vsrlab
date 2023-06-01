@@ -69,14 +69,16 @@ def run(config: omegaconf.DictConfig):
                 bpp += size_bits_comp / (C * H * W * F)
 
                 outputs = []
-                for i in range(0, video_lr.size(1), config.window_size):
+                windows = list(range(0, video_lr.size(1), config.window_size))
+                norm_factor = len(windows)
+                for i in windows:
                     lr, hr = video_lr[:, i:i + config.window_size, ...].to(device, non_blocking=True), \
                         video_hr[:, i:i + config.window_size, ...].to(device, non_blocking=True)
 
                     sr, _ = model(lr)
                     outputs.append(sr)
 
-                    video_metrics = running_metrics(video_metrics, metric, sr, hr)
+                    video_metrics = running_metrics(video_metrics, metric, sr, hr, norm_factor)
 
                 outputs = torch.cat(outputs, dim=1)
 
