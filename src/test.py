@@ -47,7 +47,7 @@ def run(config: omegaconf.DictConfig):
             video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
             output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
-            video_metrics, bpp, cf = {k: 0 for k in config.metric.metrics}, 0, 0
+            metrics, bpp, cf = {k: 0 for k in config.metric.metrics}, 0, 0
 
             for video_lr_path in video_paths:
                 model.eval()
@@ -70,7 +70,7 @@ def run(config: omegaconf.DictConfig):
 
                 outputs = []
                 windows = list(range(0, video_lr.size(1), config.window_size))
-                window_metrics, norm_factor = {k: 0 for k in config.metric.metrics}, len(windows)
+                video_metrics, norm_factor = {k: 0 for k in config.metric.metrics}, len(windows)
                 for i in windows:
                     lr, hr = video_lr[:, i:i + config.window_size, ...].to(device, non_blocking=True), \
                         video_hr[:, i:i + config.window_size, ...].to(device, non_blocking=True)
@@ -78,7 +78,7 @@ def run(config: omegaconf.DictConfig):
                     sr, _ = model(lr)
                     outputs.append(sr)
 
-                    window_metrics = running_metrics(window_metrics, metric, sr, hr)
+                    video_metrics = running_metrics(video_metrics, metric, sr, hr)
 
                 outputs = torch.cat(outputs, dim=1)
 
@@ -87,21 +87,24 @@ def run(config: omegaconf.DictConfig):
                     enumerate(outputs[0]),
                 ))
 
-                window_metrics = {k: v / norm_factor for k, v in window_metrics.items()}
-                # video_metrics = running_metrics(window_metrics, metric, outputs, video_hr.to(device))
+                video_metrics = {k: v / norm_factor for k, v in video_metrics.items()}
+                metrics = {k: (metrics[k] + video_metrics[k]) for k in set(metrics) & set(video_metrics)}
+                # running_metrics(window_metrics, metric, outputs, video_hr.to(device))
 
                 dt = time.time() - dt
                 print(f"Inference Time --> {dt:2f}")
-                print(window_metrics)
+                print(video_metrics)
+                print(metrics)
 
             video_pd.append(
-                {"cf": cf / len(video_paths), "bpp": bpp / len(video_paths), "fps": fps, "crf": crf} | {
-                    k: v / len(video_paths) * norm_factor for k, v in
-                    video_metrics.items()})
+                {"cf": cf / len(video_paths), "bpp": bpp / len(video_paths), "fps": fps, "crf": crf} |
+                {k: v / len(video_paths) for k, v in metrics.items()}
+            )
 
-    pd.DataFrame(video_pd).to_csv(os.path.join(output_folder, f'{os.path.basename(config.cfg_dir)}.csv'))
+    results = pd.DataFrame(video_pd)
+    results.to_csv(os.path.join(output_folder, f'{os.path.basename(config.cfg_dir)}.csv'))
 
-    return output_folder
+    return results
 
 @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default", version_base="1.3")
 def main(config: omegaconf.DictConfig):

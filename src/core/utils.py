@@ -238,7 +238,6 @@ def compute_metric(metric, sr, hr):
 
 def running_metrics(metrics_dict, metric, sr, hr):
     metric_out = compute_metric(metric, sr, hr)
-    print("Window metric:", metric_out)
     out = {k: (metrics_dict[k] + metric_out[k]) for k in set(metrics_dict) & set(metric_out)}
     return out
 
