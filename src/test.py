@@ -99,7 +99,7 @@ def run(config: omegaconf.DictConfig):
             )
 
     results = pd.DataFrame(video_pd)
-    results.to_csv(os.path.join(output_folder, f'{os.path.basename(config.cfg_dir)}.csv'))
+    results.to_csv(os.path.join(output_folder, f'{os.path.basename(config.cfg_dir)}.csv'), index=False)
 
     return results
 
