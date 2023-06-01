@@ -23,6 +23,7 @@ from optical_flow.models import spynet
 from optical_flow.models.spynet.utils import (
     clean_frames,
     load_data,
+    setup_train,
     build_dl,
     build_cleaner,
     update_weights,
