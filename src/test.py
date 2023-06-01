@@ -89,12 +89,9 @@ def run(config: omegaconf.DictConfig):
 
                 video_metrics = {k: v / norm_factor for k, v in video_metrics.items()}
                 metrics = {k: (metrics[k] + video_metrics[k]) for k in set(metrics) & set(video_metrics)}
-                # running_metrics(window_metrics, metric, outputs, video_hr.to(device))
 
                 dt = time.time() - dt
                 print(f"Inference Time --> {dt:2f}")
-                print(video_metrics)
-                print(metrics)
 
             video_pd.append(
                 {"cf": cf / len(video_paths), "bpp": bpp / len(video_paths), "fps": fps, "crf": crf} |
