@@ -35,7 +35,7 @@ def run(config: omegaconf.DictConfig):
     model = build_test_model(cfg.train.model, device, ckpt_path)
 
     print('build metrics and losses ...')
-    metric, video_pd = build_metric(config.metric), []
+    metric, video_pd = build_metric(config.metric).to(device), []
 
     # Loop over the dataset multiple times
     print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
@@ -83,7 +83,7 @@ def run(config: omegaconf.DictConfig):
                     enumerate(outputs[0]),
                 ))
 
-                video_metrics = running_metrics(video_metrics, metric, outputs.cpu(), video_hr)
+                video_metrics = running_metrics(video_metrics, metric, outputs, video_hr.to(device))
 
                 dt = time.time() - dt
                 print(f"Inference Time --> {dt:2f}")
