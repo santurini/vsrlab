@@ -74,7 +74,7 @@ def run(config: omegaconf.DictConfig):
                         video_hr[:, i:i + config.window_size, ...].to(device, non_blocking=True)
 
                     sr, _ = model(lr)
-                    outputs.append(sr)
+                    outputs.append(sr.to(device))
 
                 outputs = torch.cat(outputs, dim=1)
 
