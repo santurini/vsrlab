@@ -127,6 +127,7 @@ class SpyNet(nn.Module):
     def from_pretrained(cls: Type['SpyNet'], k, return_levels=[-1], path=None) -> 'SpyNet':
 
         def get_model(ckpt_path: str, levels) -> 'SpyNet':
+            print("resuming from --> {}".format(ckpt_path))
             checkpoint = torch.load(ckpt_path, map_location=lambda storage, loc: storage)  # ['model_state_dict']
 
             # checkpoint = {
