@@ -61,8 +61,8 @@ def restore_level(k, path):
 
 def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], local_rank, device):
     if cfg.train.restore is not None:
-        current_train = restore_spynet(k, cfg.train.restore)
-        Gk = restore_pyramid(cfg, k, cfg.train.restore)
+        current_train = restore_level(k, cfg.train.restore)
+        Gk = restore_pyramid(k, cfg.train.restore)
 
     else:
         current_train = spynet.BasicModule()
