@@ -55,7 +55,8 @@ def restore_level(k, path):
 
     print('restoring level from --> {}'.format(level_path))
     sdict = torch.load(level_path)['model_state_dict']
-    current_train = spynet.BasicModule().load_state_dict(sdict)
+    current_train = spynet.BasicModule()
+    current_train.load_state_dict(sdict)
 
     return current_train
 
