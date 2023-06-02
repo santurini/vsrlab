@@ -28,7 +28,7 @@ def setup_train(cfg, k, previous, optim_cfg, sched_cfg, device, local_rank):
     current_level, trained_pyramid = build_spynets(cfg, k, previous, local_rank, device)
     restore = None if cfg.train.finetune else cfg.train.restore
 
-    print('Restoring optimizer state?', restore)
+    print('restoring optimizer state -->', restore)
     optimizer, scheduler, start_epoch = build_optimizer(current_level, optim_cfg, sched_cfg, restore)
 
     return current_level, trained_pyramid, optimizer, scheduler, start_epoch
