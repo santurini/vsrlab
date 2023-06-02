@@ -115,11 +115,11 @@ class SpyNet(nn.Module):
             Vk = G((x1, x2), Vk_1, upsample_optical_flow=False)
             Vk_1 = Vk + Vk_1 if Vk_1 is not None else Vk
 
-            if len(self.return_levels) == 1:
-                return Vk_1
-
             if k in self.return_levels:
                 flow_list.insert(0, Vk_1)
+
+        if len(self.return_levels) == 1:
+            return flow_list[0]
 
         return flow_list
 

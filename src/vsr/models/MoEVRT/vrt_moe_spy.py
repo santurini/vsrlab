@@ -269,7 +269,7 @@ class TinyVRT(nn.Module):
         return [torch.stack(x_backward, 1), torch.stack(x_forward, 1)]
 
     def init_flow(self, k, pretrained, return_levels, train):
-        self.optical_flow = SpyNet.from_pretrained(k, return_levels, pretrained)
+        self.optical_flow = SpyNet.from_pretrained(k=k, return_levels=return_levels, path=pretrained)
 
         if not train:
             for p in self.optical_flow.parameters():
