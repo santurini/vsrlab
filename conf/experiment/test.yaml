@@ -4,7 +4,7 @@ lr_dir: /home/aghinassi/Desktop/compressed
 hr_dir: /home/aghinassi/Desktop/groundtruth
 out_dir: /home/aghinassi/hdd
 
-window_size: 24
+window_size: 16
 num_workers: 4
 
 metric:
