@@ -30,4 +30,4 @@ train:
   k: 5
   start_k: 0
 
-  restore: null #"/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/oowbreta"
+  restore: "/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/oowbreta"
