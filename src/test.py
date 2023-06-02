@@ -103,8 +103,8 @@ def run(config: omegaconf.DictConfig):
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                print('Loading Video --> {}'.format(video_name))
                 video_hr, video_lr = get_video(video_hr_path, pool), get_video(video_lr_path, pool)
+                print('Loaded Video --> {}'.format(video_name))
 
                 F = video_hr.size(1)
                 size_bits_orig = (Path(config.hr_dir) / f"fps={fps}_crf=5" / "video" / video_name).stat().st_size * 8
