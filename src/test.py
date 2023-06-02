@@ -43,7 +43,7 @@ def run(config: omegaconf.DictConfig):
 
     for fps in [6, 8, 10]:
         for crf in [30, 32, 34]:
-            print('Configuration: fps -> {} - crf -> {} '.format(fps, crf))
+            print('Configuration: fps -> {} - crf -> {}\n'.format(fps, crf))
             video_folder = os.path.join(config.lr_dir, f"fps={fps}_crf={crf}", "frames")
             output_folder = os.path.join(config.out_dir, os.path.basename(config.cfg_dir))
             video_paths = list(Path(video_folder).glob('*'))
@@ -93,7 +93,7 @@ def run(config: omegaconf.DictConfig):
                 metrics = {k: (metrics[k] + video_metrics[k]) for k in set(metrics) & set(video_metrics)}
 
                 dt = time.time() - dt
-                print(f"Inference Time --> {dt:2f}")
+                print(f"Inference Time --> {dt:2f}\n")
 
             video_pd.append(
                 {"cf": cf / len(video_paths), "bpp": bpp / len(video_paths), "fps": fps, "crf": crf} |
