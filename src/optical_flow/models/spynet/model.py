@@ -130,13 +130,13 @@ class SpyNet(nn.Module):
             print("resuming from --> {}".format(ckpt_path))
             checkpoint = torch.load(ckpt_path)['model_state_dict']
 
-            # checkpoint = {
-            #     k.replace('basic_module', 'units', 1).replace('basic_module', 'module'): v
-            #     for k, v in checkpoint.items()
-            # }
+            checkpoint = {
+                k.replace('basic_module', 'units', 1).replace('basic_module', 'module'): v
+                for k, v in checkpoint.items()
+            }
 
             instance = cls(k=levels, return_levels=return_levels)
-            instance.load_state_dict(checkpoint, strict=False)
+            instance.load_state_dict(checkpoint, strict=True)
 
             return instance
 
