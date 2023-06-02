@@ -30,5 +30,4 @@ train:
   k: 5
   start_k: 0
 
-  restore: null #"/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/oowbreta/checkpoint_0.tar"
-  finetune: False
+  restore: null #"/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/oowbreta"

@@ -33,22 +33,40 @@ def setup_train(cfg, k, previous, optim_cfg, sched_cfg, device, local_rank):
 
     return current_level, trained_pyramid, optimizer, scheduler, start_epoch
 
+def restore_pyramid(k, path):
+    if k == 0:
+        Gk = None
+    else:
+        Gk = spynet.SpyNet(k=k, return_levels=[-1])
+        for i in range(k):
+            sdict = torch.load(os.path.join(path, 'checkpoint_{}.tar'.format(k)))['model_state_dict']
+            Gk.units[i].load_state_dict(sdict)
+
+        Gk.to(device)
+        Gk.eval()
+
+    return Gk
+
+def restore_level(k, path):
+    sdict = torch.load(os.path.join(path, 'checkpoint_{}.tar'.format(k)))['model_state_dict']
+    current_train = spynet.BasicModule().load_state_dict(sdict)
+    return current_train
+
 def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], local_rank, device):
     if cfg.train.restore is not None:
-        assert not cfg.train.finetune, "Only one of restore and finetune option can be specified"
-        pretrained = spynet.SpyNet.from_pretrained(cfg.train.k, path=cfg.train.restore)
-        current_train = pretrained.units[k]
-
-    elif cfg.train.finetune:
-        assert not bool(cfg.train.restore), "Only one of restore and finetune option can be specified"
-        pretrained = spynet.SpyNet.from_pretrained(cfg.train.k, path=None)
-        current_train = pretrained.units[k]
+        current_train = restore_spynet(k, cfg.train.restore)
+        Gk = restore_pyramid(cfg, k, cfg.train.restore)
 
     else:
         current_train = spynet.BasicModule()
+        if k == 0:
+            Gk = None
+        else:
+            Gk = spynet.SpyNet(previous)
+            Gk.to(device)
+            Gk.eval()
 
     current_train.to(device)
-
     if cfg.train.ddp:
         print("Instantiating DDP Model")
         current_train = torch.nn.parallel.DistributedDataParallel(
@@ -56,13 +74,6 @@ def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], local_rank, 
             device_ids=[local_rank],
             output_device=local_rank
         )
-
-    if k == 0:
-        Gk = None
-    else:
-        Gk = spynet.SpyNet(previous)
-        Gk.to(device)
-        Gk.eval()
 
     current_train.train()
     return current_train, Gk
