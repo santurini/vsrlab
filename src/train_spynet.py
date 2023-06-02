@@ -245,7 +245,7 @@ def train(cfg):
 
     save_path = os.path.join(
         base_path,
-        "checkpoint.tar"
+        "checkpoint_last.tar"
     )
 
     if rank == 0:
