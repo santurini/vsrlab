@@ -128,7 +128,7 @@ class SpyNet(nn.Module):
 
         def get_model(ckpt_path: str, levels) -> 'SpyNet':
             print("resuming from --> {}".format(ckpt_path))
-            checkpoint = torch.load(ckpt_path)['model_state_dict']
+            checkpoint = torch.load(ckpt_path)  # ['model_state_dict']
 
             checkpoint = {
                 k.replace('basic_module', 'units', 1).replace('basic_module', 'module'): v
