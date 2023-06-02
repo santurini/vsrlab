@@ -9,12 +9,12 @@ train:
     top_k: 2
 
   data:
-    batch_size: 8
+    batch_size: 4
     datasets:
       train:
         seq: 8
 
-  ddp: False
+  ddp: True
   num_grad_acc: 4
 
   # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/whvbeoa/checkpoint.tar'
