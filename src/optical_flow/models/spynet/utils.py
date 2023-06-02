@@ -35,11 +35,14 @@ def setup_train(cfg, k, previous, optim_cfg, sched_cfg, device, local_rank):
 
 def restore_pyramid(k, path):
     if k == 0:
+        print('level 0 has no previous pyramid!')
         Gk = None
     else:
         Gk = spynet.SpyNet(k=k, return_levels=[-1])
         for i in range(k):
-            sdict = torch.load(os.path.join(path, 'checkpoint_{}.tar'.format(k)))['model_state_dict']
+            ckpt_path = os.path.join(path, 'checkpoint_{}.tar'.format(k))
+            print('restoring pyramid from --> {}'.format(ckpt_path))
+            sdict = torch.load(ckpt_path)['model_state_dict']
             Gk.units[i].load_state_dict(sdict)
 
         Gk.to(device)
@@ -48,8 +51,12 @@ def restore_pyramid(k, path):
     return Gk
 
 def restore_level(k, path):
-    sdict = torch.load(os.path.join(path, 'checkpoint_{}.tar'.format(k)))['model_state_dict']
+    level_path = os.path.join(path, 'checkpoint_{}.tar'.format(k))
+
+    print('restoring level from --> {}'.format(level_path))
+    sdict = torch.load(level_path)['model_state_dict']
     current_train = spynet.BasicModule().load_state_dict(sdict)
+
     return current_train
 
 def build_spynets(cfg, k: int, previous: Sequence[torch.nn.Module], local_rank, device):
