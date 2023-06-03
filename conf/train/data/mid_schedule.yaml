@@ -13,34 +13,40 @@ datasets:
     hr_augmentation:
       - _target_: kornia.augmentation.RandomCrop
         size: [ 256, 256 ]
-        pad_if_needed: True
-        same_on_batch: True
-        keepdim: True
+        pad_if_needed: true
+        same_on_batch: true
+        keepdim: true
 
       - _target_: kornia.augmentation.RandomHorizontalFlip
         p: 0.5
-        same_on_batch: True
-        keepdim: True
+        same_on_batch: true
+        keepdim: true
 
       - _target_: kornia.augmentation.RandomVerticalFlip
         p: 0.5
-        same_on_batch: True
-        keepdim: True
+        same_on_batch: true
+        keepdim: true
+
+      - _target_: kornia.augmentation.RandomSharpness
+        sharpness: 0.3
+        same_on_batch: true
+        keepdim: true
+        p: 1.0
 
     lr_augmentation:
       - _target_: core.augmentations.RandomJPEGCompression
-        quality: [ 50, 95 ]
+        quality: [ 50, 90 ]
 
       - _target_: kornia.augmentation.RandomGaussianNoise
         mean: 0
-        std: 0.03
-        same_on_batch: False
-        keepdim: True
-        p: 0.5
+        std: 0.02
+        same_on_batch: false
+        keepdim: true
+        p: 0.7
 
       - _target_: core.augmentations.RandomVideoCompression
-        codec: [ 'libx264', 'h264' ]
-        crf: [ 34, 40 ]
+        codec: [ 'libx264', 'h264', 'mpeg4' ]
+        crf: [ 30, 42 ]
         fps: [ 30 ]
 
       - _target_: kornia.augmentation.Resize
