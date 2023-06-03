@@ -13,24 +13,24 @@ datasets:
     hr_augmentation:
       - _target_: kornia.augmentation.RandomCrop
         size: [ 256, 256 ]
-        pad_if_needed: True
-        same_on_batch: True
-        keepdim: True
+        pad_if_needed: true
+        same_on_batch: true
+        keepdim: true
 
       - _target_: kornia.augmentation.RandomHorizontalFlip
         p: 0.5
-        same_on_batch: True
-        keepdim: True
+        same_on_batch: true
+        keepdim: true
 
       - _target_: kornia.augmentation.RandomVerticalFlip
         p: 0.5
-        same_on_batch: True
-        keepdim: True
+        same_on_batch: true
+        keepdim: true
 
       - _target_: kornia.augmentation.RandomSharpness
         sharpness: 0.3
-        same_on_batch: True
-        keepdim: True
+        same_on_batch: true
+        keepdim: true
         p: 1.0
 
     lr_augmentation:
@@ -39,16 +39,16 @@ datasets:
 
       - _target_: kornia.augmentation.RandomGaussianNoise
         mean: 0
-        std: 0.03
-        same_on_batch: False
-        keepdim: True
+        std: 0.02
+        same_on_batch: false
+        keepdim: true
         p: 0.5
 
       - _target_: kornia.augmentation.RandomGaussianBlur
         kernel_size: 5
         sigma: [ 0.5, 1.5 ]
-        same_on_batch: False
-        keepdim: True
+        same_on_batch: false
+        keepdim: true
         p: 0.5
 
       - _target_: core.augmentations.RandomJPEGCompression
