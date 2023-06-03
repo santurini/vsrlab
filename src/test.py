@@ -103,7 +103,7 @@ def run(config: omegaconf.DictConfig):
                 save_folder = os.path.join(output_folder, f"fps={fps}_crf={crf}", video_name)
                 Path(save_folder).mkdir(exist_ok=True, parents=True)
 
-                print("Test Video {} / {}".format(i, len(video_paths)))
+                print("Test Video {} / {}".format(i + 1, len(video_paths)))
                 video_hr, video_lr = get_video(video_hr_path, pool), get_video(video_lr_path, pool)
                 print('Loaded Video --> {}'.format(video_name))
 
