@@ -8,7 +8,6 @@ import hydra
 import omegaconf
 import pandas as pd
 import torch
-from kornia.geometry.transform import resize
 from torchvision.utils import save_image
 
 from core import PROJECT_ROOT
@@ -69,7 +68,7 @@ def run(config: omegaconf.DictConfig):
     device = torch.device("cuda:{}".format(local_rank))
 
     # Encapsulate the model on the GPU assigned to the current process
-    '''print('build model ...')
+    print('build model ...')
     if os.path.basename(config.cfg_dir) == "basic_og":
         cfg = os.path.join(config.cfg_dir, "realbasicvsr_x4.py")
         ckpt_path = os.path.join(config.cfg_dir, "RealBasicVSR_x4.pth")
@@ -77,7 +76,7 @@ def run(config: omegaconf.DictConfig):
     else:
         cfg = omegaconf.OmegaConf.load(os.path.join(config.cfg_dir, "config.yaml"))
         ckpt_path = os.path.join(config.cfg_dir, "last.ckpt")
-        model = build_test_model(cfg.train.model, device, ckpt_path)'''
+        model = build_test_model(cfg.train.model, device, ckpt_path)
 
     print('build metrics and losses ...')
     metric, video_pd = build_metric(config.metric).to(device), []
@@ -95,7 +94,7 @@ def run(config: omegaconf.DictConfig):
             metrics, bpp, cf = {k: 0 for k in config.metric.metrics}, 0, 0
 
             for i, video_lr_path in enumerate(video_paths):
-                # model.eval()
+                model.eval()
                 dt = time.time()
 
                 video_name = os.path.basename(video_lr_path)
@@ -122,8 +121,7 @@ def run(config: omegaconf.DictConfig):
                     lr, hr = video_lr[:, i:i + config.window_size, ...].to(device, non_blocking=True), \
                         video_hr[:, i:i + config.window_size, ...].to(device, non_blocking=True)
 
-                    # sr, _ = model(lr)
-                    sr = resize(lr, size=(H, W))
+                    sr, _ = model(lr)
                     outputs.append(sr)
 
                     video_metrics = running_metrics(video_metrics, metric, sr, hr)
