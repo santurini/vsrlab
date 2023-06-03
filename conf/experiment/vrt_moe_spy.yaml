@@ -17,4 +17,4 @@ train:
   ddp: True
   num_grad_acc: 4
 
-  # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/whvbeoa/checkpoint.tar'
+  # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/hugelaas/checkpoint.tar'
