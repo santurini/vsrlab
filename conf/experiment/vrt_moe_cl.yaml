@@ -11,16 +11,12 @@ train:
     window_size: [ 8, 8, 8 ]
     img_size: [ 8, 64, 64 ]
 
-  optimizer:
-    lr: 1e-4
-    betas: [ 0.9, 0.99 ]
-
   scheduler:
     T_max: 9e5
     eta_min: 1e-6
 
   data:
-    batch_size: 4
+    batch_size: 8
     datasets:
       train:
         seq: 8
