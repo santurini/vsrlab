@@ -17,4 +17,4 @@ set -e -x
 python test.py +experiment=test cfg_dir=../../checkpoints/moe_8e_easy
 python test.py +experiment=test cfg_dir=../../checkpoints/moe_8e_invcl
 
-# TODO: vrt_cl, moe_cl, moe_8e_cl
+# TODO: vrt_cl, moe_cl, moe_8e_cl, moe_spynet2

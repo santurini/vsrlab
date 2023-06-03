@@ -105,7 +105,7 @@ def run(config: omegaconf.DictConfig):
 
                 print("Test Video {} / {} --> Loading".format(i, len(video_paths)))
                 video_hr, video_lr = get_video(video_hr_path, pool), get_video(video_lr_path, pool)
-                print('Loaded Video {}/{} --> {}'.format(video_name))
+                print('Loaded Video --> {}'.format(video_name))
 
                 F = video_hr.size(1)
                 size_bits_orig = (Path(config.hr_dir) / f"fps={fps}_crf=5" / "video" / video_name).stat().st_size * 8
