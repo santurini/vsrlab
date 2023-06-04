@@ -112,6 +112,8 @@ def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None, restore_opt=
             print("restoring optimizer state")
             optimizer.load_state_dict(state_dict['optimizer_state_dict'])
             scheduler.load_state_dict(state_dict['scheduler_state_dict'])
+        else:
+            print("optimizer state not resumed")
 
     return optimizer, scheduler, start_epoch
 

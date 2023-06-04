@@ -3,8 +3,7 @@ from typing import Any, List
 import wandb
 from kornia.geometry.transform import resize
 from omegaconf import OmegaConf
-from optical_flow.flow_viz import flow_tensor_to_image
-from torchvision.utils import make_grid
+from torchvision.utils import make_grid, flow_to_image
 
 class WandbLogger(object):
     def __init__(
@@ -52,8 +51,8 @@ class WandbLogger(object):
 
     def log_flow(self, stage, epoch, cleaned, flow, gt_flow):
         cleaned = cleaned[0].clamp(0, 1).detach().cpu()
-        flow_viz = flow_tensor_to_image(flow[0]).detach().cpu()
-        gt_flow = flow_tensor_to_image(gt_flow[0]).detach().cpu()
+        flow_viz = flow_to_image(flow[0]).detach().cpu()
+        gt_flow = flow_to_image(gt_flow[0]).detach().cpu()
         grid = make_grid([cleaned, flow_viz, gt_flow], nrow=3, ncol=1)
         self.run.log({f'Flow {stage}': [wandb.Image(grid, caption=f'Epoch {epoch}')]}, step=epoch)
 
