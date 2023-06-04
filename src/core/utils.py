@@ -158,6 +158,9 @@ def build_test_model(cfg, device, restore_ckpt=None):
     return model
 
 def setup_train(cfg, model_cfg, optim_cfg, sched_cfg, device, local_rank):
+    if cfg.train.restore is None:
+        assert not cfg.train.restore_opt, "resume_opt can be specified only when restoring a ckpt, otherwise has to be False"
+
     model = build_model(model_cfg, device, local_rank, cfg.train.ddp, cfg.train.restore)
     restore = None if cfg.train.finetune else cfg.train.restore
 
