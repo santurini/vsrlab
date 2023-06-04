@@ -12,7 +12,7 @@ train:
     img_size: [ 8, 64, 64 ]
     depths: [ 4, 4, 4, 4, 4, 8, 8 ]
     embed_dims: [ 64, 64, 64, 64, 64, 64, 64 ]
-    num_heads: [ 4, 4, 4, 4, 4, 8, 8 ]
+    num_heads: [ 6, 6, 6, 6, 6, 8, 8 ]
 
   scheduler:
     T_max: 9e5
