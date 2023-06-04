@@ -10,7 +10,7 @@ train:
     top_k: 2
     window_size: [ 8, 8, 8 ]
     img_size: [ 8, 64, 64 ]
-    depths: [ 4, 4, 4, 4, 4, 4, 4 ]
+    depths: [ 4, 4, 4, 4, 4, 6, 6 ]
     embed_dims: [ 32, 32, 32, 32, 32, 64, 64 ]
     num_heads: [ 4, 4, 4, 4, 4, 8, 8 ]
 
