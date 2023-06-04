@@ -6,7 +6,7 @@ defaults:
 train:
   ddp: true
   optimizer:
-    lr: 1e-4
+    lr: 1e-4 # 6.7e-5, 3.4e-5
     betas: [ 0.9, 0.99 ]
 
   scheduler:
@@ -19,5 +19,5 @@ train:
         seq: 6
 
   num_grad_acc: 4
-  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/crakent/checkpoint.tar'
+  # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/crakent/checkpoint.tar'
   restore_opt: false

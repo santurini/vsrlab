@@ -108,10 +108,10 @@ def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None, restore_opt=
         start_epoch = state_dict["epoch"] + 1
         print("resuming from epoch -->", start_epoch)
 
-    if restore_opt:
-        print("restoring optimizer state")
-        optimizer.load_state_dict(state_dict['optimizer_state_dict'])
-        scheduler.load_state_dict(state_dict['scheduler_state_dict'])
+        if restore_opt:
+            print("restoring optimizer state")
+            optimizer.load_state_dict(state_dict['optimizer_state_dict'])
+            scheduler.load_state_dict(state_dict['scheduler_state_dict'])
 
     return optimizer, scheduler, start_epoch
 
@@ -164,7 +164,6 @@ def setup_train(cfg, model_cfg, optim_cfg, sched_cfg, device, local_rank):
     model = build_model(model_cfg, device, local_rank, cfg.train.ddp, cfg.train.restore)
     restore = None if cfg.train.finetune else cfg.train.restore
 
-    print('restoring optimizer state -->', restore)
     optimizer, scheduler, start_epoch = build_optimizer(model, optim_cfg, sched_cfg, restore, cfg.train.restore_opt)
 
     return model, optimizer, scheduler, start_epoch
