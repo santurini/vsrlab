@@ -89,7 +89,7 @@ def save_checkpoint(cfg, model, optimizer, scheduler, epoch, logger, ddp=True):
 
     logger.save(save_path, base_path)
 
-def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None):
+def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None, restore_opt=True):
     start_epoch = 0
     optimizer = hydra.utils.instantiate(optim_cfg,
                                         model.parameters(),
@@ -104,13 +104,14 @@ def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None):
     )
 
     if restore_ckpt is not None:
-        print("restoring optimizer state ...")
         state_dict = torch.load(restore_ckpt)
         start_epoch = state_dict["epoch"] + 1
+        print("resuming from epoch -->", start_epoch)
+
+    if restore_opt:
+        print("restoring optimizer state")
         optimizer.load_state_dict(state_dict['optimizer_state_dict'])
         scheduler.load_state_dict(state_dict['scheduler_state_dict'])
-
-
 
     return optimizer, scheduler, start_epoch
 
@@ -150,7 +151,7 @@ def build_test_model(cfg, device, restore_ckpt=None):
     model = model.to(device)
 
     if restore_ckpt is not None:
-        print("restoring model state ...")
+        print("restoring model state -->", restore_ckpt)
         state_dict = torch.load(restore_ckpt)
         model.load_state_dict(state_dict)
 
@@ -160,8 +161,8 @@ def setup_train(cfg, model_cfg, optim_cfg, sched_cfg, device, local_rank):
     model = build_model(model_cfg, device, local_rank, cfg.train.ddp, cfg.train.restore)
     restore = None if cfg.train.finetune else cfg.train.restore
 
-    print('Restoring optimizer state?', restore)
-    optimizer, scheduler, start_epoch = build_optimizer(model, optim_cfg, sched_cfg, restore)
+    print('restoring optimizer state -->', restore)
+    optimizer, scheduler, start_epoch = build_optimizer(model, optim_cfg, sched_cfg, restore, cfg.train.restore_opt)
 
     return model, optimizer, scheduler, start_epoch
 

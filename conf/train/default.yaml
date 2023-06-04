@@ -20,5 +20,6 @@ max_epochs: 500000
 gradient_clip_val: 1
 num_grad_acc: 1
 
-finetune: False
+finetune: false
 restore: null
+restore_opt: false
