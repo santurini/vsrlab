@@ -128,7 +128,7 @@ def run(config: omegaconf.DictConfig):
                     lr, hr = video_lr[:, i:i + config.window_size, ...].to(device, non_blocking=True), \
                         video_hr[:, i:i + config.window_size, ...].to(device, non_blocking=True)
 
-                    sr, _ = model(lr)
+                    sr, _ = forward(lr)
                     outputs.append(sr)
 
                     video_metrics = running_metrics(video_metrics, metric, sr, hr)
