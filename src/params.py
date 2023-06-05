@@ -91,20 +91,16 @@ def run():
 
         for i, video_lr_path in enumerate(video_paths):
             model.eval()
-
             video_name = osp.basename(video_lr_path)
-            video_hr_path = osp.join('/home/aghinassi/Desktop/groundtruth', f"fps={FPS}_crf=5", "frames", video_name)
 
             print("Test Video {} / {}".format(i + 1, len(video_paths)))
-            video_hr, video_lr = get_video(video_hr_path, pool), get_video(video_lr_path, pool)
+            video_lr = get_video(video_lr_path, pool)
 
             windows = list(range(0, video_lr.size(1), WINDOW_SIZE))
 
             dt = time.time()
             for i in windows:
-                lr, hr = video_lr[:, i:i + WINDOW_SIZE, ...].to(device, non_blocking=True), \
-                    video_hr[:, i:i + WINDOW_SIZE, ...].to(device, non_blocking=True)
-
+                lr = video_lr[:, i:i + WINDOW_SIZE, ...].to(device, non_blocking=True)
                 _ = model(lr)
 
             dt = time.time() - dt
