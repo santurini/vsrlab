@@ -13,6 +13,7 @@ from torchvision.utils import save_image
 from core import PROJECT_ROOT
 from core.utils import (
     build_metric,
+    build_test_model,
     get_video,
     running_metrics
 )
