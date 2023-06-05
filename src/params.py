@@ -78,6 +78,10 @@ def run():
             ckpt_path = osp.join(cfg_dir, "last.ckpt")
             model = build_test_model(cfg.train.model, device, ckpt_path)
 
+        if osp.exists(f'/home/aghinassi/Desktop/time/{osp.basename(cfg_dir)}.csv'):
+            print("Skipping model")
+            continue
+
         results, tot_time = [], 0
 
         # Loop over the dataset multiple times
