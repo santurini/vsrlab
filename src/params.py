@@ -4,6 +4,7 @@ import warnings
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import mmcv
 import omegaconf
 import pandas as pd
 import torch
