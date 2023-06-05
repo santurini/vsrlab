@@ -8,6 +8,9 @@ import mmcv
 import omegaconf
 import pandas as pd
 import torch
+from mmcv import build_from_cfg
+from mmcv.runner import load_checkpoint
+from mmedit.models.registry import MODELS
 
 from core.utils import (
     build_test_model,
