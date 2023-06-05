@@ -9,6 +9,7 @@ import pandas as pd
 import torch
 
 from core.utils import (
+    build_test_model,
     get_video
 )
 
