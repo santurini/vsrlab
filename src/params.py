@@ -97,7 +97,6 @@ def run():
 
             print("Test Video {} / {}".format(i + 1, len(video_paths)))
             video_hr, video_lr = get_video(video_hr_path, pool), get_video(video_lr_path, pool)
-            print('Loaded Video --> {}'.format(video_name))
 
             windows = list(range(0, video_lr.size(1), WINDOW_SIZE))
 
@@ -115,6 +114,8 @@ def run():
         results.append(
             {"model": osp.basename(cfg_dir), "avg_time": tot_time / len(video_paths), "params": get_params(model)}
         )
+        print("Average Inference Time --> {}".format(tot_time / len(video_paths)))
+        print("Number of Parameters --> {}".format(get_params(model)))
 
     results = pd.DataFrame(results)
     results.to_csv('/home/aghinassi/Desktop/time.csv', index=False)
