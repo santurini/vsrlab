@@ -101,8 +101,7 @@ def run():
             dt = time.time()
             for i in windows:
                 lr = video_lr[:, i:i + WINDOW_SIZE, ...].to(device, non_blocking=True)
-                if i + 1 == 19:
-                    print(lr.size())
+                print(lr.size())
                 _ = model(lr)
 
             dt = time.time() - dt
