@@ -6,9 +6,56 @@ import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange
 from fmoe.gates.gshard_gate import GShardGate
+from fmoe.layers import FMoE
+from fmoe.linear import FMoELinear
 from fmoe.transformer import FMoETransformerMLP
 from vsr.models.VRT.modules.stochastic_depth import DropPath
 from vsr.models.VRT.modules.window_attention import *
+
+class _Expert(nn.Module):
+    def __init__(self, num_expert, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.,
+                 rank=0):
+        super().__init__()
+        out_features = out_features or in_features
+        hidden_features = hidden_features or in_features
+
+        self.fc11 = FMoELinear(num_expert, in_features, hidden_features, bias=True, rank=rank)
+        self.fc12 = FMoELinear(num_expert, in_features, hidden_features, bias=True, rank=rank)
+        self.act = act_layer()
+        self.fc2 = FMoELinear(num_expert, hidden_features, out_features, bias=True, rank=rank)
+        self.drop = nn.Dropout(drop)
+
+    def forward(self, x, fwd_expert_count):
+        x = self.act(self.fc11(x, fwd_expert_count)) * self.fc12(x, fwd_expert_count)
+        x = self.drop(x)
+        x = self.fc2(x, fwd_expert_count)
+        return x
+
+class LinearMoE(FMoE):
+    def __init__(
+            self,
+            num_expert=32,
+            in_features=1024,
+            hidden_features=2048,
+            out_features=1024,
+            act_layer=nn.GELU,
+            drop=0.,
+            expert_dp_comm="none",
+            expert_rank=0,
+            **kwargs
+    ):
+        def one_expert(d_model):
+            return _Expert(1, d_model, hidden_features, out_features, act_layer, drop, rank=expert_rank)
+
+        expert = one_expert
+        super().__init__(num_expert=num_expert, d_model=in_features, expert=expert, **kwargs)
+        self.mark_parallel_comm(expert_dp_comm)
+
+    def forward(self, inp: torch.Tensor):
+        original_shape = inp.shape
+        inp = inp.reshape(-1, self.d_model)
+        output = super().forward(inp)
+        return output.reshape(original_shape)
 
 class TMSA(nn.Module):
     """ Temporal Mutual Self Attention (TMSA).

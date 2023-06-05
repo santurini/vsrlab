@@ -70,8 +70,7 @@ def run():
     rank, local_rank, world_size = (0, 0, 1)
     device = torch.device("cuda:{}".format(local_rank))
 
-    for cfg_dir in ['/home/aghinassi/Desktop/checkpoints/basic_og']:
-        # [x for x in Path('/home/aghinassi/Desktop/checkpoints').glob('*') if x.is_dir()]:
+    for cfg_dir in [x for x in Path('/home/aghinassi/Desktop/checkpoints').glob('*') if x.is_dir()]:
 
         # Encapsulate the model on the GPU assigned to the current process
         if osp.basename(cfg_dir) == "basic_og":
