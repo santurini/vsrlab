@@ -78,10 +78,16 @@ def run():
             cfg = osp.join(cfg_dir, "realbasicvsr_x4.py")
             ckpt_path = osp.join(cfg_dir, "RealBasicVSR_x4.pth")
             model = init_model(cfg, ckpt_path).to(device)
+
+            def forward(x):
+                return model(x, test_mode=True)["outputs"], None
         else:
             cfg = omegaconf.OmegaConf.load(osp.join(cfg_dir, "config.yaml"))
             ckpt_path = osp.join(cfg_dir, "last.ckpt")
             model = build_test_model(cfg.train.model, device, ckpt_path)
+
+            def forward(x):
+                return model(x)
 
         if osp.exists(f'/home/aghinassi/Desktop/time/{osp.basename(cfg_dir)}.csv'):
             print("Skipping model")
@@ -109,8 +115,7 @@ def run():
             dt = time.time()
             for i in windows:
                 lr = video_lr[:, i:i + WINDOW_SIZE, ...].to(device, non_blocking=True)
-                # _ = model(lr)
-                _ = model(lr, test_mode=True)
+                _ = forward(lr)
 
             dt = time.time() - dt
             print(f"Inference Time --> {dt:2f}\n")

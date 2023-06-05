@@ -74,10 +74,16 @@ def run(config: omegaconf.DictConfig):
         cfg = os.path.join(config.cfg_dir, "realbasicvsr_x4.py")
         ckpt_path = os.path.join(config.cfg_dir, "RealBasicVSR_x4.pth")
         model = init_model(cfg, ckpt_path).to(device)
+
+        def forward(x):
+            return model(x, test_mode=True)["outputs"], None
     else:
         cfg = omegaconf.OmegaConf.load(os.path.join(config.cfg_dir, "config.yaml"))
         ckpt_path = os.path.join(config.cfg_dir, "last.ckpt")
         model = build_test_model(cfg.train.model, device, ckpt_path)
+
+        def forward(x):
+            return model(x)
 
     print('build metrics and losses ...')
     metric, video_pd = build_metric(config.metric).to(device), []
