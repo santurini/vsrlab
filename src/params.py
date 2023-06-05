@@ -82,7 +82,7 @@ def run():
 
         # Loop over the dataset multiple times
         print("Global Rank {} - Local Rank {} - Start Testing ...".format(rank, local_rank))
-        pool = ThreadPoolExecutor(8)
+        pool = ThreadPoolExecutor(4)
 
         print('Testing Model --> {}'.format(osp.basename(cfg_dir)))
         print('Configuration: fps --> {} - crf -> {}\n'.format(FPS, CRF))
