@@ -4,17 +4,12 @@ defaults:
   - override /train/data: easy_schedule
 
 train:
-  ddp: false
+  ddp: true
 
   model:
     num_experts: 4 # TODO: 8 experts
     num_gpus: 1
     top_k: 2
-    window_size: [ 8, 8, 8 ]
-    img_size: [ 8, 64, 64 ]
-    depths: [ 4, 4, 4, 4, 4, 8, 8 ]
-    embed_dims: [ 64, 64, 64, 64, 64, 128, 128 ]
-    num_heads: [ 4, 4, 4, 4, 4, 8, 8 ]
 
   optimizer:
     lr: 1e-4 # 6.7e-5, 3.4e-5
@@ -25,11 +20,11 @@ train:
     eta_min: 1e-6
 
   data:
-    batch_size: 8
+    batch_size: 4
     datasets:
       train:
-        seq: 8
+        seq: 6
 
   num_grad_acc: 4
-  # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/oowbgrewrg/checkpoint.tar'
+  # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/sgaman/checkpoint.tar'
   restore_opt: false
