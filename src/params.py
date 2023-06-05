@@ -110,7 +110,7 @@ def run():
             for i in windows:
                 lr = video_lr[:, i:i + WINDOW_SIZE, ...].to(device, non_blocking=True)
                 # _ = model(lr)
-                _ = model(inputs, test_mode=True)
+                _ = model(lr, test_mode=True)
 
             dt = time.time() - dt
             print(f"Inference Time --> {dt:2f}\n")
