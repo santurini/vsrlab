@@ -117,8 +117,8 @@ def run():
         print("Average Inference Time --> {}".format(tot_time / len(video_paths)))
         print("Number of Parameters --> {}".format(get_params(model)))
 
-    results = pd.DataFrame(results)
-    results.to_csv('/home/aghinassi/Desktop/time.csv', index=False)
+        results = pd.DataFrame(results)
+        results.to_csv(f'/home/aghinassi/Desktop/time/{osp.basename(cfg_dir)}.csv', index=False)
 
     return results
 
