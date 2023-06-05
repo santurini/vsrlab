@@ -69,7 +69,7 @@ def run():
     for cfg_dir in [x for x in Path('/home/aghinassi/Desktop/checkpoints').glob('*') if x.is_dir()]:
 
         # Encapsulate the model on the GPU assigned to the current process
-        print('build model ...')
+        print('testing model --> {}'.format(osp.basename(cfg_dir)))
         if osp.basename(cfg_dir) == "basic_og":
             cfg = osp.join(cfg_dir, "realbasicvsr_x4.py")
             ckpt_path = osp.join(cfg_dir, "RealBasicVSR_x4.pth")
@@ -106,7 +106,8 @@ def run():
                 lr, hr = video_lr[:, i:i + WINDOW_SIZE, ...].to(device, non_blocking=True), \
                     video_hr[:, i:i + WINDOW_SIZE, ...].to(device, non_blocking=True)
 
-                _ = model(lr)
+                sr, _ = model(lr)
+                print(sr.size())
 
             dt = time.time() - dt
             print(f"Inference Time --> {dt:2f}\n")
