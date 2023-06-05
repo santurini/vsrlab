@@ -15,7 +15,7 @@ from core.utils import (
 
 warnings.filterwarnings('ignore')
 
-C, H, W, WINDOW_SIZE, FPS, CRF = 3, 480, 640, 32, 6, 30
+C, H, W, WINDOW_SIZE, FPS, CRF = 3, 480, 640, 24, 6, 30
 
 def get_params(model):
     return sum(p.numel() for p in model.parameters())
