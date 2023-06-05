@@ -1,13 +1,13 @@
 # @package _global_
 defaults:
   - override /train/model: baby_vrt
-  - override /train/data: mid_schedule
+  - override /train/data: hard_schedule
 
 train:
   ddp: true
 
   optimizer:
-    lr: 6.7e-5 # 1e-4, 3.4e-5
+    lr: 3.4e-5 # 1e-4, 6.7e-5
     betas: [ 0.9, 0.99 ]
 
   scheduler:
