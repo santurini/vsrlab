@@ -15,7 +15,7 @@ from core.utils import (
 
 warnings.filterwarnings('ignore')
 
-C, H, W, WINDOW_SIZE, FPS, CRF = 3, 480, 640, 24, 6, 30
+C, H, W, WINDOW_SIZE, FPS, CRF = 3, 480, 640, 16, 6, 30
 
 def get_params(model):
     return sum(p.numel() for p in model.parameters())
@@ -66,7 +66,7 @@ def run():
     rank, local_rank, world_size = (0, 0, 1)
     device = torch.device("cuda:{}".format(local_rank))
 
-    for cfg_dir in [x for x in Path('/home/aghinassi/Desktop/checkpoints').glob('*') if x.is_dir()]:
+    for cfg_dir in '/home/aghinassi/Desktop/checkpoints/moe_8e_easy':  # [x for x in Path('/home/aghinassi/Desktop/checkpoints').glob('*') if x.is_dir()]:
 
         # Encapsulate the model on the GPU assigned to the current process
         if osp.basename(cfg_dir) == "basic_og":
@@ -91,7 +91,6 @@ def run():
 
         for i, video_lr_path in enumerate(video_paths):
             model.eval()
-            video_name = osp.basename(video_lr_path)
 
             print("Test Video {} / {}".format(i + 1, len(video_paths)))
             video_lr = get_video(video_lr_path, pool)
@@ -101,6 +100,8 @@ def run():
             dt = time.time()
             for i in windows:
                 lr = video_lr[:, i:i + WINDOW_SIZE, ...].to(device, non_blocking=True)
+                if i + 1 == 19:
+                    print(lr.size())
                 _ = model(lr)
 
             dt = time.time() - dt
