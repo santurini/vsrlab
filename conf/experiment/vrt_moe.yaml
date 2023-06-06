@@ -29,7 +29,7 @@ train:
       train:
         seq: 6
       val:
-        _target_: vsr.dataset.ValDataset
+        _target_: vsr.dataset.ValDatasetVSR
         path_hr: "/home/aghinassi/Desktop/groundtruth/fps=6_crf=5/frames"
         path_lr: "/home/aghinassi/Desktop/compressed/fps=6_crf=30/frames"
         seq: ${train.data.datasets.train.seq}
