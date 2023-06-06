@@ -4,8 +4,7 @@ import torch
 import torch.nn as nn
 from einops.layers.torch import Rearrange
 from fmoe.gates.swipe_gate import SwipeGate
-from fmoe.transformer import FMoETransformerMLP
-from vsr.models.MoEVRT.tmsa import TMSAG
+from vsr.models.MoEVRT.tmsa import LinearMoE, TMSAG
 from vsr.models.VRT.modules.deform_conv import DCNv2PackFlowGuided
 from vsr.models.VRT.modules.spynet import flow_warp
 
@@ -113,7 +112,20 @@ class Stage(nn.Module):
         self.pa_deform = DCNv2PackFlowGuided(dim, dim, 3, padding=1, deformable_groups=deformable_groups,
                                              max_residue_magnitude=max_residue_magnitude, pa_frames=pa_frames)
 
-        self.pa_fuse = FMoETransformerMLP(
+        self.pa_fuse = LinearMoE(
+            num_expert=num_experts,
+            in_features=dim * (1 + 2),
+            hidden_features=int(dim * mlp_ratio),
+            out_features=dim,
+            act_layer=nn.GELU,
+            expert_rank=os.environ.get("OMPI_COMM_WORLD_RANK", 0),
+            world_size=num_gpus,
+            top_k=top_k,
+            gate=gate,
+            expert_dp_comm="dp" if num_gpus > 1 else "none"
+        )
+
+        '''self.pa_fuse = FMoETransformerMLP(
             num_expert=num_experts,
             d_model=dim * (1 + 2),
             d_hidden=dim * (1 + 2),
@@ -124,7 +136,7 @@ class Stage(nn.Module):
             gate=gate,
             expert_dp_comm="dp" if num_gpus > 1 else "none"
         )
-        self.linear3 = nn.Linear(dim * (1 + 2), dim)
+        self.linear3 = nn.Linear(dim * (1 + 2), dim)'''
 
     def forward(self, x, flows_backward, flows_forward):
         x = self.reshape(x)
@@ -132,8 +144,8 @@ class Stage(nn.Module):
         x = self.linear2(self.residual_group2(x).transpose(1, 4)).transpose(1, 4) + x
         x = x.transpose(1, 2)
         x_backward, x_forward = self.get_aligned_features(x, flows_backward, flows_forward)
-        x = self.pa_fuse(torch.cat([x, x_backward, x_forward], 2).permute(0, 1, 3, 4, 2))
-        x = self.linear3(x).permute(0, 4, 1, 2, 3)
+        x = self.pa_fuse(torch.cat([x, x_backward, x_forward], 2).permute(0, 1, 3, 4, 2)).permute(0, 4, 1, 2, 3)
+        # x = self.linear3(x).permute(0, 4, 1, 2, 3)
         return x
 
     def get_aligned_features(self, x, flows_backward, flows_forward):
