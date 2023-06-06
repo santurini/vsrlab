@@ -102,7 +102,7 @@ class ValDataset(Dataset):
         self.seq = seq
 
     def __len__(self) -> int:
-        return len(self.path)
+        return len(self.path_hr)
 
     def __getitem__(self, index: int):
         hr_video = list(sorted(x for x in self.path_hr[index].glob('*') if x.is_file()))
