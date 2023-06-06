@@ -91,7 +91,8 @@ class ValDataset(Dataset):
                  path_lr: str,
                  seq: int,
                  hr_augmentation: ListConfig = None,
-                 lr_augmentation: ListConfig = None
+                 lr_augmentation: ListConfig = None,
+                 **kwargs
                  ):
         super().__init__()
         self.path_hr = list(sorted(Path(path_hr).glob('*')))
