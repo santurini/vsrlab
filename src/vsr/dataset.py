@@ -84,12 +84,13 @@ class ValDatasetVSR(Dataset):
         return len(self.path_hr)
 
     def __getitem__(self, index: int):
-        rnd = randint(0, len(hr_video) - self.seq)
         hr_video = list(sorted(x for x in self.path_hr[index].glob('*') if x.is_file()))
+        lr_video = list(sorted(x for x in self.path_lr[index].glob('*') if x.is_file()))
+
+        rnd = randint(0, len(hr_video) - self.seq)
         hr_video = self.get_frames(hr_video, rnd)
         hr_video = self.hr_augmentation(hr_video)
 
-        lr_video = list(sorted(x for x in self.path_lr[index].glob('*') if x.is_file()))
         lr_video = self.get_frames(lr_video, rnd)
         lr_video = self.lr_augmentation(lr_video)
 
