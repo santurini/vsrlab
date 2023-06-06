@@ -28,6 +28,17 @@ train:
     datasets:
       train:
         seq: 6
+      val:
+        _target_: vsr.dataset.ValDataset
+        path_hr: "/home/aghinassi/Desktop/groundtruth/fps=6_crf=5/frames"
+        path_lr: "/home/aghinassi/Desktop/compressed/fps=6_crf=30/frames"
+        seq: ${train.data.datasets.train.seq}
+        hr_augmentation:
+          - _target_: torchvision.transforms.CenterCrop
+            size: 256
+        lr_augmentation:
+          - _target_: torchvision.transforms.CenterCrop
+            size: 64
 
   num_grad_acc: 4
   # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/supamod/checkpoint.tar'
