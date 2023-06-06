@@ -64,33 +64,6 @@ class DatasetVSR(Dataset):
         video = [self.load_img(i) for i in video[rnd:rnd + self.seq]]
         return torch.stack(video)
 
-class DatasetVSR(Dataset):
-    def __init__(self,
-                 seq: int,
-                 *args,
-                 **kwargs):
-        super().__init__(*args, **kwargs)
-        self.seq = seq
-
-    def __getitem__(self, index: int):
-        hr_video = list(sorted(x for x in self.path[index].glob('*') if x.is_file()))
-        hr_video = self.get_frames(hr_video, randint(0, len(hr_video) - self.seq))
-
-        if self.hr_augmentation:
-            hr_video = self.hr_augmentation(hr_video)
-
-        if self.lr_augmentation:
-            lr_video = self.lr_augmentation(hr_video)
-        else:
-            h, w = hr_video.shape[-2:]
-            lr_video = resize(hr_video, (h // self.scale, w // self.scale))
-
-        return lr_video, hr_video
-
-    def get_frames(self, video, rnd):
-        video = [self.load_img(i) for i in video[rnd:rnd + self.seq]]
-        return torch.stack(video)
-
 class ValDatasetVSR(Dataset):
     def __init__(self,
                  path_hr: str,
