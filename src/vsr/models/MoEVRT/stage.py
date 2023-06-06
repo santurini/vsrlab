@@ -115,7 +115,7 @@ class Stage(nn.Module):
         self.pa_fuse = LinearMoE(
             num_expert=num_experts,
             in_features=dim * (1 + 2),
-            hidden_features=int(dim * mlp_ratio),
+            hidden_features=dim * (1 + 2),
             out_features=dim,
             act_layer=nn.GELU,
             expert_rank=os.environ.get("OMPI_COMM_WORLD_RANK", 0),
