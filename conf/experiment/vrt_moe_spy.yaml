@@ -8,6 +8,8 @@ train:
     num_gpus: 1
     top_k: 2
     depths: [ 4, 4, 4, 4, 4, 6, 6 ]
+    embed_dims: [ 32, 32, 32, 32, 32, 64, 64 ]
+    num_heads: [ 4, 4, 4, 4, 4, 8, 8 ]
 
   data:
     batch_size: 4
