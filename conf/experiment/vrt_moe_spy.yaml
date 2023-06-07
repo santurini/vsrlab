@@ -12,9 +12,21 @@ train:
     batch_size: 4
     datasets:
       train:
-        seq: 8
+        seq: 6
+      val:
+        _target_: vsr.dataset.ValDatasetVSR
+        path_hr: "/home/aghinassi/Desktop/groundtruth/fps=6_crf=5/frames"
+        path_lr: "/home/aghinassi/Desktop/compressed/fps=6_crf=30/frames"
+        seq: ${train.data.datasets.train.seq}
+        hr_augmentation:
+          - _target_: torchvision.transforms.CenterCrop
+            size: 256
+        lr_augmentation:
+          - _target_: torchvision.transforms.CenterCrop
+            size: 64
 
   ddp: True
   num_grad_acc: 4
 
   # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/hugelaas/checkpoint.tar'
+  # restore_opt: true
