@@ -6,14 +6,12 @@ train:
   ddp: true
 
   model:
-    num_experts: 4 # TODO: 8 experts
+    num_experts: 4
     num_gpus: 1
     top_k: 2
-    # window_size: [ 8, 8, 8 ]
-    # img_size: [ 8, 64, 64 ]
     # depths: [ 4, 4, 4, 4, 4, 8, 8 ]
-    # embed_dims: [ 32, 32, 32, 64, 64, 128, 128 ]
-    # num_heads: [ 4, 4, 4, 4, 4, 8, 8 ]
+    # embed_dims: [ 32, 32, 32, 32, 32, 64, 64 ]
+    # um_heads: [ 4, 4, 4, 4, 4, 8, 8 ]
 
   optimizer:
     lr: 1e-4
@@ -28,17 +26,6 @@ train:
     datasets:
       train:
         seq: 6
-      val:
-        _target_: vsr.dataset.ValDatasetVSR
-        path_hr: "/home/aghinassi/Desktop/groundtruth/fps=6_crf=5/frames"
-        path_lr: "/home/aghinassi/Desktop/compressed/fps=6_crf=30/frames"
-        seq: ${train.data.datasets.train.seq}
-        hr_augmentation:
-          - _target_: torchvision.transforms.CenterCrop
-            size: 256
-        lr_augmentation:
-          - _target_: torchvision.transforms.CenterCrop
-            size: 64
 
   num_grad_acc: 4
   # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/segmana/checkpoint.tar'

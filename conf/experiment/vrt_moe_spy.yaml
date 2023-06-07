@@ -1,7 +1,6 @@
 # @package _global_
 defaults:
   - override /train/model: baby_vrt_moe_spy
-  #- override /train/data: easy_schedule
 
 train:
   model:
@@ -20,19 +19,8 @@ train:
     datasets:
       train:
         seq: 6
-      val:
-        _target_: vsr.dataset.ValDatasetVSR
-        path_hr: "/home/aghinassi/Desktop/groundtruth/fps=6_crf=5/frames"
-        path_lr: "/home/aghinassi/Desktop/compressed/fps=6_crf=30/frames"
-        seq: ${train.data.datasets.train.seq}
-        hr_augmentation:
-          - _target_: torchvision.transforms.CenterCrop
-            size: 256
-        lr_augmentation:
-          - _target_: torchvision.transforms.CenterCrop
-            size: 64
 
-  ddp: True
+  ddp: true
   num_grad_acc: 4
 
   #restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/esugmana/checkpoint.tar'

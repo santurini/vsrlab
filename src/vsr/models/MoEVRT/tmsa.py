@@ -8,7 +8,7 @@ from einops import rearrange
 from fmoe.gates.gshard_gate import GShardGate
 from fmoe.layers import FMoE
 from fmoe.linear import FMoELinear
-from fmoe.transformer import FMoETransformerMLP
+# from fmoe.transformer import FMoETransformerMLP
 from vsr.models.VRT.modules.stochastic_depth import DropPath
 from vsr.models.VRT.modules.window_attention import *
 
@@ -111,7 +111,7 @@ class TMSA(nn.Module):
                                     qkv_bias=qkv_bias, qk_scale=qk_scale, mut_attn=mut_attn)
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
         self.norm2 = norm_layer(dim)
-        '''self.mlp = LinearMoE(
+        self.mlp = LinearMoE(
             num_expert=num_experts,
             in_features=dim,
             hidden_features=int(dim * mlp_ratio),
@@ -121,9 +121,9 @@ class TMSA(nn.Module):
             top_k=top_k,
             gate=gate,
             expert_dp_comm="dp" if num_gpus > 1 else "none"
-        )'''
+        )
 
-        self.mlp = FMoETransformerMLP(
+        '''self.mlp = FMoETransformerMLP(
             num_expert=num_experts,
             d_model=dim,
             d_hidden=int(dim * mlp_ratio),
@@ -133,7 +133,7 @@ class TMSA(nn.Module):
             top_k=top_k,
             gate=gate,
             expert_dp_comm="dp" if num_gpus > 1 else "none"
-        )
+        )'''
 
     def forward_part1(self, x, mask_matrix):
         B, D, H, W, C = x.shape
