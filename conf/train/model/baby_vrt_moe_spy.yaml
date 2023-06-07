@@ -3,8 +3,8 @@ upscale: ${train.data.datasets.train.scale}
 in_chans: 3
 out_chans: 3
 refine_ch: 64
-refine_blocks: 3
-refine_steps: 5
+refine_blocks: 5
+refine_steps: 3
 img_size: [ 6, 64, 64 ]
 window_size: [ 6, 8, 8 ]
 depths: [ 4, 4, 4, 4, 4, 4, 4 ]
@@ -16,7 +16,7 @@ num_gpus: 1
 top_k: 2
 mul_attn_ratio: 0.75
 mlp_ratio: 2.
-qkv_bias: True
+qkv_bias: true
 qk_scale: null
 drop_path_rate: 0.2
 k: 5
