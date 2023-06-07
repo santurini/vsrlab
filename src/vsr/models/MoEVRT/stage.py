@@ -10,6 +10,7 @@ from vsr.models.VRT.modules.deform_conv import DCNv2PackFlowGuided
 from vsr.models.VRT.modules.spynet import flow_warp
 
 # from vsr.models.VRT.modules.window_attention import Mlp_GEGLU
+# from vsr.models.MoEVRT.tmsa import LinearMoE
 
 class Stage(nn.Module):
     """Residual Temporal Mutual Self Attention Group and Parallel Warping.
