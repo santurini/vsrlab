@@ -3,5 +3,5 @@ cfg_dir: /home/aghinassi/Desktop/checkpoints/moe
 lr_dir: /home/aghinassi/Desktop/msu
 out_dir: /home/aghinassi/Desktop/submission
 
-window_size: 32
+window_size: 16
 num_workers: 4
