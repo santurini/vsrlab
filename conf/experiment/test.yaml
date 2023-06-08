@@ -1,5 +1,5 @@
 # @package _global_
-cfg_dir: /home/aghinassi/Desktop/checkpoints/moe_vrt_cl
+cfg_dir: /home/aghinassi/Desktop/checkpoints/moe_vrt
 lr_dir: /home/aghinassi/Desktop/compressed
 hr_dir: /home/aghinassi/Desktop/groundtruth
 out_dir: /home/aghinassi/Desktop

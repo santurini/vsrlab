@@ -1,0 +1,7 @@
+# @package _global_
+cfg_dir: /home/aghinassi/Desktop/checkpoints/moe_vrt
+lr_dir: /home/aghinassi/Desktop/msu
+out_dir: /home/aghinassi/Desktop/submission
+
+window_size: 32
+num_workers: 4
