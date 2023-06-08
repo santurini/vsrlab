@@ -34,13 +34,14 @@ def run(config: omegaconf.DictConfig):
     video_paths = list(Path(config.lr_dir).glob('*'))
 
     for i, video in enumerate(video_paths):
-        output_folder = os.path.join(config.out_dir, os.path.basename(video))
+        video_name = os.path.basename(video)
+        output_folder = os.path.join(config.out_dir, os.path.basename(video_name))
 
         model.eval()
         dt = time.time()
 
         print("Test Video {} / {}".format(i + 1, len(video_paths)))
-        video_lr = get_video(video_lr_path, pool)
+        video_lr = get_video(video, pool)
         print('Loaded Video --> {}'.format(video_name))
 
         outputs = []
