@@ -7,6 +7,7 @@ from pathlib import Path
 import hydra
 import omegaconf
 import torch
+from kornia.geometry.transform import resize
 from torchvision.utils import save_image
 
 from core import PROJECT_ROOT
@@ -41,7 +42,7 @@ def run(config: omegaconf.DictConfig):
         dt = time.time()
 
         print("Test Video {} / {}".format(i + 1, len(video_paths)))
-        video_lr = get_video(video, pool)
+        video_lr = resize(get_video(video, pool), size=(288, 480))
         print('Loaded Video --> {}'.format(video_name))
 
         outputs = []
