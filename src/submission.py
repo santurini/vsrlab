@@ -37,6 +37,7 @@ def run(config: omegaconf.DictConfig):
     for i, video in enumerate(video_paths):
         video_name = os.path.basename(video)
         output_folder = os.path.join(config.out_dir, os.path.basename(video_name))
+        Path(output_folder).mkdir(parents=True, exist_ok=True)
 
         model.eval()
         dt = time.time()
