@@ -4,7 +4,6 @@ import warnings
 import hydra
 import omegaconf
 import torch
-import torch.distributed as dist
 import wandb
 from einops import rearrange
 
@@ -23,37 +22,13 @@ from core.utils import (
     build_loaders,
     build_logger,
     build_metric,
-    save_checkpoint,
     save_config,
     update_weights,
     cleanup
 )
+from train import evaluate
 
 warnings.filterwarnings('ignore')
-
-@torch.no_grad()
-def evaluate(rank, world_size, epoch, model, optimizer, scheduler, logger, device, val_dl, loss_fn, metric, cfg):
-    model.eval()
-    val_loss, val_metrics = 0, {k: 0 for k in cfg.train.metric.metrics}
-
-    for i, data in enumerate(val_dl):
-        lr, hr = data[0].to(device), data[1].to(device)
-
-        with torch.cuda.amp.autocast():
-            sr, lq = model(lr)
-            loss = compute_loss(loss_fn, sr, hr)
-
-        if cfg.train.ddp:
-            dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
-
-        val_loss += loss.detach().item() / world_size
-        val_metrics = running_metrics(val_metrics, metric, sr, hr)
-
-    if rank == 0:
-        logger.log_dict({"Loss": val_loss / len(val_dl)}, epoch, "Val")
-        logger.log_dict({k: v / len(val_dl) for k, v in val_metrics.items()}, epoch, "Val")
-        logger.log_images("Val", epoch, lr, sr, hr, lq)
-        save_checkpoint(cfg, model, optimizer, scheduler, epoch, logger, cfg.train.ddp)
 
 def generator_step(model, discriminator, loss_fn, perceptual_loss, adversarial_loss, lr, hr):
     b, t, c, h, w = hr.shape

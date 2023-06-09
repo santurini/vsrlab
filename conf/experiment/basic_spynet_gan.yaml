@@ -4,9 +4,14 @@ defaults:
   - override /train: gan
 
 train:
-  ddp: True
+  data:
+    batch_size: 4
+
+  ddp: true
   num_grad_acc: 4
-  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/opohfdd/checkpoint/last.ckpt'
+
+  # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/opohfdd/checkpoint/last.ckpt'
+  # restore_opt: true
 
 
 

@@ -5,5 +5,5 @@ upscale: ${train.data.datasets.train.scale}
 is_mirror: False
 res_blocks: 5
 k: 5
-pretrained_flow: "/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/kjhsdvqqqqq/checkpoint/4.ckpt"
+pretrained_flow: "/home/aghinassi/Desktop/checkpoints/spynet.ckpt"
 train_flow: False

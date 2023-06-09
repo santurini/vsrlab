@@ -28,10 +28,11 @@ adversarial_loss:
 
 seed_index: null
 
-ddp: False
+ddp: false
 max_epochs: 5000000
 gradient_clip_val: 1
 num_grad_acc: 1
 
 restore: null
-finetune: True
+finetune: true
+restore_opt: false
