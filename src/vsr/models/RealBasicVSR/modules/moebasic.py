@@ -82,6 +82,7 @@ class BasicVSR(nn.Module):
         flows_backward = flow_backward.view(n, t - 1, 2, h, w)
 
         outputs = []  # backward-propagation
+        feat_prop = features[:, t - 1, ...]
         for i in range(t - 1, -1, -1):
             if i < t - 1:
                 x_i = features[:, i, ...]
