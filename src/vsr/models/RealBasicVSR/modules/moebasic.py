@@ -110,6 +110,7 @@ class BasicVSR(nn.Module):
             feat_prop = torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1)
             print('pre_forward;', feat_prop.size())
             feat_prop = self.forward_resblocks(feat_prop)
+            print('after_forward;', feat_prop.size())
             out = torch.cat([outputs[i], feat_prop], dim=1)
             out = self.point_conv(out)
             out = self.upsample(out)
