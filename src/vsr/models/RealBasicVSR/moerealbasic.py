@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 from core.modules.conv import ResidualBlock
 from vsr.models.RealBasicVSR.modules.moebasic import BasicVSR
@@ -11,24 +10,21 @@ class RealBasicVSR(nn.Module):
         self.threshold = threshold
 
     def forward(self, lr):
-        n, t, c, h, w = lr.size()
-        lr = lr.reshape(-1, c, h, w)
-        for _ in range(3):  # at most 3 cleaning, determined empirically
-            residues = self.cleaner(lr)
-            lr += residues
-            if torch.mean(torch.abs(residues)) < self.threshold:
-                break
-        lr = lr.reshape(n, t, c, h, w)
+        lr = self.cleaner(lr)
         sr = self.basicvsr(lr)
-
         return sr, lr
 
 class IterativeRefinement(nn.Module):
-    def __init__(self, mid_ch, blocks):
+    def __init__(self, mid_ch, blocks, steps=3):
         super().__init__()
+        self.steps = steps
         self.resblock = ResidualBlock(3, mid_ch, blocks)
         self.conv = nn.Conv2d(mid_ch, 3, 3, 1, 1, bias=True)
 
     def forward(self, x):
-        x = self.resblock(x)
-        return self.conv(x)
+        n, t, c, h, w = x.size()
+        x = x.view(-1, c, h, w)
+        for _ in range(self.steps):  # at most 3 cleaning, determined empirically
+            residues = self.conv(self.resblock(x))
+            x += residues
+        return x.view(n, t, c, h, w)

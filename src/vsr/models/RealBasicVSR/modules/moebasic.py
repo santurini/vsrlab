@@ -39,7 +39,7 @@ class MoEMLP(FMoE):
             **kwargs
     ):
         def one_expert(d_model):
-            return _Expert(1, d_model, d_hidden, activation, rank=0)
+            return _Expert(1, d_model, d_hidden, activation, rank=expert_rank)
 
         expert = one_expert
         super().__init__(num_expert=num_expert, d_model=d_model, expert=expert, **kwargs)
