@@ -95,15 +95,19 @@ class BasicVSR(nn.Module):
         outputs = outputs[::-1]  # forward-propagation
         feat_prop = features[:, 0, ...]
         for i in range(0, t):
+            print('i;', i)
             if i > 0:
                 x_i = features[:, i - 1, ...]
                 x_next = features[:, i, ...]
                 flow = flows_forward[:, i - 1, :, :, :]
                 feat_prop = flow_warp(feat_prop, flow.permute(0, 2, 3, 1))
                 feat_prop = self.pa_deform(x_i, [feat_prop], x_next, [flow])
+                print('pa_deform;', feat_prop.size())
                 feat_prop = self.pa_fuse(torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1))
 
+            print('feat_prop;', feat_prop.size())
             feat_prop = torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1)
+            print('pre_forward;', feat_prop.size())
             feat_prop = self.forward_resblocks(feat_prop)
             out = torch.cat([outputs[i], feat_prop], dim=1)
             out = self.point_conv(out)
