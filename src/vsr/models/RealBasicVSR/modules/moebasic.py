@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 from core.modules.conv import ResidualBlock
 from core.modules.upsampling import PixelShufflePack
+from einops.layers.torch import Rearrange
 from fmoe.gates.gshard_gate import GShardGate
 from vsr.models.MoEVRT.tmsa_v2 import LinearMoE
 from vsr.models.RealBasicVSR.modules.spynet import Spynet, flow_warp
@@ -28,7 +29,11 @@ class BasicVSR(nn.Module):
     ):
         super().__init__()
         self.mid_channels = mid_channels
-        self.conv_first = nn.Conv3d(3, mid_channels, kernel_size=(1, 3, 3), padding=(0, 1, 1))
+        self.conv_first = nn.Sequential([
+            Rearrange('b t c h w -> b c t h w'),
+            nn.Conv3d(3, mid_channels, kernel_size=(1, 3, 3), padding=(0, 1, 1)),
+            Rearrange('b c t h w -> b t c h w')
+        ])
         self.backward_resblocks = ResidualBlock(mid_channels + 3, mid_channels, res_blocks)
         self.forward_resblocks = ResidualBlock(mid_channels + 3, mid_channels, res_blocks)
         self.point_conv = nn.Sequential(nn.Conv2d(mid_channels * 2, mid_channels, 1, 1), nn.LeakyReLU(0.1))
