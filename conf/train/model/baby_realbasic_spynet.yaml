@@ -6,4 +6,4 @@ is_mirror: False
 res_blocks: 5
 k: 5
 pretrained_flow: "/home/aghinassi/Desktop/checkpoints/spynet.ckpt"
-train_flow: False
+train_flow: true

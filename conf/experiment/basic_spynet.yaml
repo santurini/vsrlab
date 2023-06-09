@@ -4,7 +4,7 @@ defaults:
 
 train:
   data:
-    batch_size: 32
+    batch_size: 16
 
   optimizer:
     _target_: torch.optim.Adam
