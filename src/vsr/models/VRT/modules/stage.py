@@ -109,17 +109,13 @@ class Stage(nn.Module):
     def get_aligned_features(self, x, flows_backward, flows_forward):
         '''Parallel feature warping for 2 frames.'''
         # backward
-        print('x size:', x.size())
-        n = x.size(1)
+
+        n = x.size(1)  # b t c h w
         x_backward = [torch.zeros_like(x[:, -1, ...])]
         for i in range(n - 1, 0, -1):
-            x_i = x[:, i, ...]
-            print('x_i size:', x_i.size())
-            flow = flows_backward[0][:, i - 1, ...]
-            print('flow size:', flow.size())
-            x_i_warped = flow_warp(x_i, flow.permute(0, 2, 3, 1), 'bilinear')  # frame i+1 aligned towards i
-            print('x_i_warped size:', x_i_warped.size())
-            print('x_i-1 size:', x[:, i - 1, ...].shape)
+            x_i = x[:, i, ...]  # b c h w
+            flow = flows_backward[0][:, i - 1, ...]  # b 2 h w
+            x_i_warped = flow_warp(x_i, flow.permute(0, 2, 3, 1), 'bilinear')  # b c h w
             x_backward.insert(0, self.pa_deform(x_i, [x_i_warped], x[:, i - 1, ...], [flow]))
 
         # forward
