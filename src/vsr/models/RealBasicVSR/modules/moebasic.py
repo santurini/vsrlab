@@ -7,11 +7,49 @@ from core.modules.conv import ResidualBlock
 from core.modules.upsampling import PixelShufflePack
 from einops.layers.torch import Rearrange
 from fmoe.gates.gshard_gate import GShardGate
-from vsr.models.MoEVRT.tmsa_v2 import LinearMoE
+from fmoe.layers import FMoE
+from fmoe.linear import FMoELinear
 from vsr.models.RealBasicVSR.modules.spynet import Spynet, flow_warp
 from vsr.models.VRT.modules.deform_conv import DCNv2PackFlowGuided
 
 pylogger = logging.getLogger(__name__)
+
+class _Expert(nn.Module):
+    def __init__(self, num_expert, d_model, d_hidden, activation, rank=0):
+        super().__init__()
+        self.fc1 = FMoELinear(num_expert, d_model, d_hidden, bias=True, rank=rank)
+        self.fc2 = FMoELinear(num_expert, d_hidden, d_model, bias=True, rank=rank)
+        self.activation = activation
+
+    def forward(self, inp, fwd_expert_count):
+        x = self.htoh4(inp, fwd_expert_count)
+        x = self.activation(x)
+        x = self.h4toh(x, fwd_expert_count)
+        return x
+
+class MoEMLP(FMoE):
+    def __init__(
+            self,
+            num_expert=32,
+            d_model=1024,
+            d_hidden=4096,
+            activation=torch.nn.GELU(),
+            expert_dp_comm="none",
+            expert_rank=0,
+            **kwargs
+    ):
+        def one_expert(d_model):
+            return _Expert(1, d_model, d_hidden, activation, rank=0)
+
+        expert = one_expert
+        super().__init__(num_expert=num_expert, d_model=d_model, expert=expert, **kwargs)
+        self.mark_parallel_comm(expert_dp_comm)
+
+    def forward(self, inp: torch.Tensor):
+        original_shape = inp.shape
+        inp = inp.reshape(-1, self.d_model)
+        output = super().forward(inp)
+        return output.reshape(original_shape)
 
 class BasicVSR(nn.Module):
     def __init__(
@@ -47,11 +85,10 @@ class BasicVSR(nn.Module):
         self.pa_deform = DCNv2PackFlowGuided(mid_channels, mid_channels, 3, padding=1,
                                              deformable_groups=deformable_groups,
                                              max_residue_magnitude=10, pa_frames=2)
-        self.pa_fuse = LinearMoE(
+        self.pa_fuse = MoEMLP(
             num_expert=num_experts,
-            in_features=mid_channels + 3,
-            hidden_features=mid_channels + 3,
-            act_layer=nn.GELU,
+            d_model=mid_channels + 3,
+            d_hidden=mid_channels * 2,
             expert_rank=os.environ.get("OMPI_COMM_WORLD_RANK", 0),
             world_size=num_gpus,
             top_k=top_k,
