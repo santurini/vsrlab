@@ -5,7 +5,7 @@ import torch.nn as nn
 from core.modules.conv import ResidualBlock
 from core.modules.upsampling import PixelShufflePack
 from fmoe.gates.gshard_gate import GShardGate
-from vsr.models.MoEVRT.tmsa import LinearMoE
+from vsr.models.MoEVRT.tmsa_v2 import LinearMoE
 from vsr.models.RealBasicVSR.modules.spynet import Spynet, flow_warp
 from vsr.models.VRT.modules.deform_conv import DCNv2PackFlowGuided
 
