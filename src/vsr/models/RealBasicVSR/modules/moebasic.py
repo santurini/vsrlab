@@ -60,7 +60,7 @@ class BasicVSR(nn.Module):
         )
 
         if not train_flow:
-            pylogger.info('Setting Optical Flow weights to no_grad')
+            print('setting optical flow weights to no_grad')
             for param in self.spynet.parameters():
                 param.requires_grad = False
 
@@ -87,12 +87,12 @@ class BasicVSR(nn.Module):
             if i < t - 1:
                 x_i = features[:, i, ...]
                 x_prev = features[:, i + 1, ...]
-                flow = flows_backward[:, i, :, :, :]
+                flow = flows_backward[:, i, ...]
                 feat_prop = flow_warp(x_i, flow.permute(0, 2, 3, 1))
                 feat_prop = self.pa_deform(x_i, [feat_prop], x_prev, [flow])
-                feat_prop = self.pa_fuse(torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1))
+                feat_prop = self.pa_fuse(torch.cat([lrs[:, i, ...], feat_prop], dim=1))
             else:
-                feat_prop = torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1)
+                feat_prop = torch.cat([lrs[:, i, ...], feat_prop], dim=1)
 
             feat_prop = self.backward_resblocks(feat_prop)
             outputs.append(feat_prop)
@@ -103,19 +103,19 @@ class BasicVSR(nn.Module):
             if i > 0:
                 x_i = features[:, i - 1, ...]
                 x_next = features[:, i, ...]
-                flow = flows_forward[:, i - 1, :, :, :]
+                flow = flows_forward[:, i - 1, ...]
                 feat_prop = flow_warp(feat_prop, flow.permute(0, 2, 3, 1))
                 feat_prop = self.pa_deform(x_i, [feat_prop], x_next, [flow])
-                feat_prop = self.pa_fuse(torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1))
+                feat_prop = self.pa_fuse(torch.cat([lrs[:, i, ...], feat_prop], dim=1))
             else:
-                feat_prop = torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1)
+                feat_prop = torch.cat([lrs[:, i, ...], feat_prop], dim=1)
 
             feat_prop = self.forward_resblocks(feat_prop)
             out = torch.cat([outputs[i], feat_prop], dim=1)
             out = self.point_conv(out)
             out = self.upsample(out)
             out = self.conv_last(out)
-            outputs[i] = out + self.upscale(lrs[:, i, :, :, :])
+            outputs[i] = out + self.upscale(lrs[:, i, ...])
 
         return torch.stack(outputs, dim=1)
 
