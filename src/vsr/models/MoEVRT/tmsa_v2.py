@@ -51,10 +51,10 @@ class LinearMoE(FMoE):
         self.mark_parallel_comm(expert_dp_comm)
 
     def forward(self, inp: torch.Tensor):
-        b, t, h, w, _ = inp.shape
+        orig_shape = inp.shape
         inp = inp.reshape(-1, self.d_model)
         output = super().forward(inp)
-        return output.reshape(b, t, h, w, -1)
+        return output.reshape(orig_shape)
 
 class TMSA(nn.Module):
     """ Temporal Mutual Self Attention (TMSA).
