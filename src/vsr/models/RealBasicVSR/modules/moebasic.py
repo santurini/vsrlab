@@ -49,8 +49,8 @@ class BasicVSR(nn.Module):
                                              max_residue_magnitude=10, pa_frames=2)
         self.pa_fuse = LinearMoE(
             num_expert=num_experts,
-            in_features=mid_channels,
-            hidden_features=mid_channels,
+            in_features=mid_channels + 3,
+            hidden_features=mid_channels + 3,
             act_layer=nn.GELU,
             expert_rank=os.environ.get("OMPI_COMM_WORLD_RANK", 0),
             world_size=num_gpus,
@@ -93,24 +93,19 @@ class BasicVSR(nn.Module):
             outputs.append(feat_prop)
 
         outputs = outputs[::-1]  # forward-propagation
-        feat_prop = features[:, 0, ...]
+        feat_prop = features[:, 0, ...]  # 64
         for i in range(0, t):
-            print('i;', i)
             if i > 0:
                 x_i = features[:, i - 1, ...]
                 x_next = features[:, i, ...]
                 flow = flows_forward[:, i - 1, :, :, :]
                 feat_prop = flow_warp(feat_prop, flow.permute(0, 2, 3, 1))
-                print('pre pa_deform;', feat_prop.size())
                 feat_prop = self.pa_deform(x_i, [feat_prop], x_next, [flow])
-                print('pa_deform;', feat_prop.size())
                 feat_prop = self.pa_fuse(torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1))
+            else:
+                feat_prop = torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1)
 
-            print('feat_prop;', feat_prop.size())
-            feat_prop = torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1)
-            print('pre_forward;', feat_prop.size())
             feat_prop = self.forward_resblocks(feat_prop)
-            print('after_forward;', feat_prop.size())
             out = torch.cat([outputs[i], feat_prop], dim=1)
             out = self.point_conv(out)
             out = self.upsample(out)
