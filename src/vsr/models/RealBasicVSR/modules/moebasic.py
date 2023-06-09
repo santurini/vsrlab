@@ -17,14 +17,14 @@ pylogger = logging.getLogger(__name__)
 class _Expert(nn.Module):
     def __init__(self, num_expert, d_model, d_hidden, activation, rank=0):
         super().__init__()
-        self.fc1 = FMoELinear(num_expert, d_model, d_hidden, bias=True, rank=rank)
-        self.fc2 = FMoELinear(num_expert, d_hidden, d_model, bias=True, rank=rank)
+        self.itoh = FMoELinear(num_expert, d_model, d_hidden, bias=True, rank=rank)
+        self.htoi = FMoELinear(num_expert, d_hidden, d_model, bias=True, rank=rank)
         self.activation = activation
 
     def forward(self, inp, fwd_expert_count):
-        x = self.htoh4(inp, fwd_expert_count)
+        x = self.itoh(inp, fwd_expert_count)
         x = self.activation(x)
-        x = self.h4toh(x, fwd_expert_count)
+        x = self.htoi(x, fwd_expert_count)
         return x
 
 class MoEMLP(FMoE):
