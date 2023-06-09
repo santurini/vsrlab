@@ -101,6 +101,7 @@ class BasicVSR(nn.Module):
                 x_next = features[:, i, ...]
                 flow = flows_forward[:, i - 1, :, :, :]
                 feat_prop = flow_warp(feat_prop, flow.permute(0, 2, 3, 1))
+                print('pre pa_deform;', feat_prop.size())
                 feat_prop = self.pa_deform(x_i, [feat_prop], x_next, [flow])
                 print('pa_deform;', feat_prop.size())
                 feat_prop = self.pa_fuse(torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1))
