@@ -28,7 +28,7 @@ class BasicVSR(nn.Module):
         self.register_buffer('std', torch.Tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
 
         if not train_flow:
-            pylogger.info('Setting Optical Flow weights to no_grad')
+            print('setting optical flow weights to no_grad')
             for param in self.spynet.parameters():
                 param.requires_grad = False
 
