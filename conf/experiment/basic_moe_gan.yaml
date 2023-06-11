@@ -4,6 +4,9 @@ defaults:
   - override /train: gan
 
 train:
+  data:
+    batch_size: 8
+
   optimizer:
     generator:
       _target_: torch.optim.Adam
