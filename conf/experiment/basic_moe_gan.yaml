@@ -31,7 +31,7 @@ train:
 
   ddp: true
   num_grad_acc: 4
-  freeze_epochs: 50
+  freeze_epochs: 25
 
   restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/supagass/checkpoint.tar'
   restore_opt: true

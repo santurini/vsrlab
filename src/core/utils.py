@@ -169,6 +169,7 @@ def setup_train(cfg, model_cfg, optim_cfg, sched_cfg, device, local_rank):
                                                         cfg.train.restore_opt)
 
     if cfg.train.finetune:
+        print('finetuning mode')
         start_epoch = 0
 
     return model, optimizer, scheduler, start_epoch
