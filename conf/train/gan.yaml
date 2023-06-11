@@ -29,6 +29,7 @@ adversarial_loss:
 seed_index: null
 
 ddp: false
+freeze_epochs: -1
 max_epochs: 5000000
 gradient_clip_val: 1
 num_grad_acc: 1

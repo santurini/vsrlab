@@ -109,8 +109,9 @@ def run(cfg: omegaconf.DictConfig):
             sr, loss_g, perceptual_g, adversarial_g = generator_step(model, discriminator, loss_fn,
                                                                      perceptual_loss, adversarial_loss, lr, hr)
 
-            update_weights(model, loss_g, scaler, scheduler_g,
-                           optimizer_g, num_grad_acc, gradient_clip_val, i)
+            if epoch > cfg.train.freeze_epochs:
+                update_weights(model, loss_g, scaler, scheduler_g,
+                               optimizer_g, num_grad_acc, gradient_clip_val, i)
 
             loss_d = discriminator_step(discriminator, adversarial_loss, sr, hr)
 
