@@ -89,7 +89,7 @@ def save_checkpoint(cfg, model, optimizer, scheduler, epoch, logger, ddp=True):
 
     logger.save(save_path, base_path)
 
-def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None, restore_opt=True):
+def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None, restore_opt=True, finetune=False):
     start_epoch = 0
     optimizer = hydra.utils.instantiate(optim_cfg,
                                         model.parameters(),
@@ -106,6 +106,11 @@ def build_optimizer(model, optim_cfg, sched_cfg, restore_ckpt=None, restore_opt=
     if restore_ckpt is not None:
         state_dict = torch.load(restore_ckpt)
         start_epoch = state_dict["epoch"] + 1
+
+        if finetune:
+            print('finetuning mode')
+            start_epoch = 0
+
         print("resuming from epoch -->", start_epoch)
 
         if restore_opt:
@@ -166,11 +171,7 @@ def setup_train(cfg, model_cfg, optim_cfg, sched_cfg, device, local_rank):
     model = build_model(model_cfg, device, local_rank, cfg.train.ddp, cfg.train.restore)
 
     optimizer, scheduler, start_epoch = build_optimizer(model, optim_cfg, sched_cfg, cfg.train.restore,
-                                                        cfg.train.restore_opt)
-
-    if cfg.train.finetune:
-        print('finetuning mode')
-        start_epoch = 0
+                                                        cfg.train.restore_opt, cfg.train.finetune)
 
     return model, optimizer, scheduler, start_epoch
 
