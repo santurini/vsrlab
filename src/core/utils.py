@@ -164,9 +164,12 @@ def setup_train(cfg, model_cfg, optim_cfg, sched_cfg, device, local_rank):
         assert not cfg.train.restore_opt, "resume_opt can be specified only when restoring a ckpt, otherwise has to be False"
 
     model = build_model(model_cfg, device, local_rank, cfg.train.ddp, cfg.train.restore)
-    restore = None if cfg.train.finetune else cfg.train.restore
 
-    optimizer, scheduler, start_epoch = build_optimizer(model, optim_cfg, sched_cfg, restore, cfg.train.restore_opt)
+    optimizer, scheduler, start_epoch = build_optimizer(model, optim_cfg, sched_cfg, cfg.train.restore,
+                                                        cfg.train.restore_opt)
+
+    if cfg.train.finetune:
+        start_epoch = 0
 
     return model, optimizer, scheduler, start_epoch
 

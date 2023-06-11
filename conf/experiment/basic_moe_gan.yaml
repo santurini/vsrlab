@@ -1,0 +1,41 @@
+# @package _global_
+defaults:
+  - override /train: gan
+
+train:
+  optimizer:
+    generator:
+      _target_: torch.optim.Adam
+      lr: 1e-4
+
+    discriminator:
+      _target_: torch.optim.Adam
+      lr: 1e-5
+
+  scheduler:
+    generator:
+      _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+      eta_min: 1e-4
+      verbose: False
+
+    discriminator:
+      _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+      eta_min: 1e-5
+      verbose: False
+
+  perceptual_loss:
+    weight: 1e-2
+
+  adversarial_loss:
+    weight: 2e-5
+
+  ddp: true
+  num_grad_acc: 4
+
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/supagass/checkpoint.tar'
+  restore_opt: true
+  finetune: true
+
+
+
+
