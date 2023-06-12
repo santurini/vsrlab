@@ -3,11 +3,10 @@ from core.modules.conv import ResidualBlock
 from vsr.models.RealBasicVSR.modules.moebasic import BasicVSR
 
 class RealBasicVSR(nn.Module):
-    def __init__(self, cleaning_blocks=20, threshold=1., *args, **kwargs):
+    def __init__(self, cleaning_blocks=20, *args, **kwargs):
         super().__init__()
         self.cleaner = IterativeRefinement(kwargs["mid_channels"], cleaning_blocks)
         self.basicvsr = BasicVSR(*args, **kwargs)
-        self.threshold = threshold
 
     def forward(self, lr):
         lr = self.cleaner(lr)
