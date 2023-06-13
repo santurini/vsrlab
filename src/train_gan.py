@@ -31,7 +31,7 @@ from train import evaluate
 warnings.filterwarnings('ignore')
 
 def dummy_loss(x, y):
-    return torch.tensor(0, requires_grad=True)
+    return torch.tensor(0, dtype=torch.float32, requires_grad=True)
 
 def generator_step(model, discriminator, loss_fn, perceptual_loss, adversarial_loss, lr, hr):
     b, t, c, h, w = hr.shape
