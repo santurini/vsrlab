@@ -51,7 +51,7 @@ class BasicVSR(nn.Module):
         feat_prop = lrs.new_zeros(n, self.mid_channels, h, w)
         for i in range(t - 1, -1, -1):
             # no warping required for the last timestep
-            if i < int(t - 1):
+            if i < t - 1:
                 # (b c h w)
                 flow = flows_backward[:, i, :, :, :]
                 # propagated frame
