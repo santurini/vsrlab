@@ -30,6 +30,9 @@ from train import evaluate
 
 warnings.filterwarnings('ignore')
 
+def dummy_loss(x, y):
+    return 0
+
 def generator_step(model, discriminator, loss_fn, perceptual_loss, adversarial_loss, lr, hr):
     b, t, c, h, w = hr.shape
 
@@ -93,7 +96,8 @@ def run(cfg: omegaconf.DictConfig):
     if rank == 0: print('build metrics and losses ...')
     loss_fn = CharbonnierLoss()
     adversarial_loss = hydra.utils.instantiate(cfg.train.adversarial_loss, _recursive_=False)
-    perceptual_loss = hydra.utils.instantiate(cfg.train.perceptual_loss, _recursive_=False).to(device)
+    perceptual_loss = dummy_loss if cfg.train.perceptual_loss is None else hydra.utils.instantiate(
+        cfg.train.perceptual_loss, _recursive_=False).to(device)
     metric = build_metric(cfg.train.metric).to(device)
 
     # Loop over the dataset multiple times
