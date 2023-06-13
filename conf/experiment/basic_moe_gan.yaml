@@ -5,7 +5,7 @@ defaults:
 
 train:
   data:
-    batch_size: 8
+    batch_size: 4
 
   optimizer:
     generator:
