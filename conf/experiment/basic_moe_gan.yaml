@@ -5,7 +5,7 @@ defaults:
 
 train:
   data:
-    batch_size: 4
+    batch_size: 8
 
   optimizer:
     generator:
@@ -36,7 +36,7 @@ train:
   discriminator:
     _target_: vsr.models.RealBasicVSR.modules.unet-discriminator.UNetDiscriminator
     in_ch: 3
-    mid_ch: 64
+    mid_ch: 32
 
   ddp: true
   num_grad_acc: 4
