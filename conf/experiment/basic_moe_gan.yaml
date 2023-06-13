@@ -36,7 +36,7 @@ train:
   discriminator:
     _target_: vsr.models.RealBasicVSR.modules.unet-discriminator.UNetDiscriminator
     in_ch: 3
-    mid_ch: 32
+    mid_ch: 64
 
   ddp: true
   num_grad_acc: 4
