@@ -7,7 +7,6 @@ class RealBasicVSR(nn.Module):
         super().__init__()
         self.cleaner = IterativeRefinement(kwargs["mid_channels"], cleaning_blocks)
         self.basicvsr = BasicVSR(*args, **kwargs)
-        self.threshold = threshold
 
     def forward(self, lr):
         lr = self.cleaner(lr)
