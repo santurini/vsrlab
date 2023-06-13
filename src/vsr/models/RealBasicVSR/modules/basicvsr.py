@@ -51,7 +51,7 @@ class BasicVSR(nn.Module):
         feat_prop = lrs.new_zeros(n, self.mid_channels, h, w)
         for i in range(t - 1, -1, -1):
             # no warping required for the last timestep
-            if i < t - 1:
+            if i < int(t - 1):
                 # (b c h w)
                 flow = flows_backward[:, i, :, :, :]
                 # propagated frame
@@ -68,11 +68,8 @@ class BasicVSR(nn.Module):
         for i in range(0, t):
             # no warping required for the first timestep
             if i > 0:
-                if self.is_mirror:
-                    flow = flows_backward[:, -i, :, :, :]
-                else:
-                    # flow at previous frame (?)
-                    flow = flows_forward[:, i - 1, :, :, :]
+                # flow at previous frame (?)
+                flow = flows_forward[:, i - 1, :, :, :]
                 feat_prop = flow_warp(feat_prop, flow.permute(0, 2, 3, 1))
             # mid_ch + 3
             feat_prop = torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1)
