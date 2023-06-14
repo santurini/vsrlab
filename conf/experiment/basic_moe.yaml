@@ -6,6 +6,7 @@ train:
   model:
     cleaning_blocks: 5
     res_blocks: 5
+    moefy: false
 
   data:
     batch_size: 16

@@ -51,9 +51,23 @@ class MoEMLP(FMoE):
         output = super().forward(inp)
         return output.reshape(original_shape)
 
+class MLP(nn.Module):
+    def __init__(self, d_model, d_hidden):
+        super().__init__()
+        self.itoh = nn.Linear(d_model, d_hidden, bias=True)
+        self.htoi = nn.Linear(d_hidden, d_model, bias=True)
+        self.activation = nn.GELU()
+
+    def forward(self, x):
+        x = self.itoh(x)
+        x = self.activation(x)
+        x = self.htoi(x)
+        return x
+
 class BasicVSR(nn.Module):
     def __init__(
             self,
+            moefy=False,
             num_experts=4,
             top_k=2,
             num_gpus=1,
@@ -85,16 +99,22 @@ class BasicVSR(nn.Module):
         self.pa_deform = DCNv2PackFlowGuided(mid_channels, mid_channels, 3, padding=1,
                                              deformable_groups=deformable_groups,
                                              max_residue_magnitude=10, pa_frames=2)
-        self.pa_fuse = MoEMLP(
-            num_expert=num_experts,
-            d_model=mid_channels + 3,
-            d_hidden=mid_channels * 2,
-            expert_rank=os.environ.get("OMPI_COMM_WORLD_RANK", 0),
-            world_size=num_gpus,
-            top_k=top_k,
-            gate=gate,
-            expert_dp_comm="dp" if num_gpus > 1 else "none"
-        )
+        if moefy:
+            self.pa_fuse = MoEMLP(
+                num_expert=num_experts,
+                d_model=mid_channels + 3,
+                d_hidden=mid_channels * 2,
+                expert_rank=os.environ.get("OMPI_COMM_WORLD_RANK", 0),
+                world_size=num_gpus,
+                top_k=top_k,
+                gate=gate,
+                expert_dp_comm="dp" if num_gpus > 1 else "none"
+            )
+        else:
+            self.pa_fuse = MLP(
+                d_model=mid_channels + 3,
+                d_hidden=mid_channels * 2
+            )
 
         if not train_flow:
             print('setting optical flow weights to no_grad')
