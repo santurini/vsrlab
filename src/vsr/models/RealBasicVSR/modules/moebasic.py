@@ -141,14 +141,17 @@ class BasicVSR(nn.Module):
         outputs = []  # backward-propagation
         feat_prop = features[:, t - 1, ...]
         for i in range(t - 1, -1, -1):
+            print('i:', i)
             if i < t - 1:
                 x_i = features[:, i, ...]
                 x_prev = features[:, i + 1, ...]
                 flow = flows_backward[:, i, ...]
                 feat_prop = flow_warp(x_i, flow.permute(0, 2, 3, 1))
                 feat_prop = self.pa_deform(x_i, [feat_prop], x_prev, [flow])
+                print('input shape:', torch.cat([lrs[:, i, ...], feat_prop], dim=1).shape)
                 feat_prop = self.pa_fuse(torch.cat([lrs[:, i, ...], feat_prop], dim=1))
             else:
+                print('input shape:', torch.cat([lrs[:, i, ...], feat_prop], dim=1).shape)
                 feat_prop = torch.cat([lrs[:, i, ...], feat_prop], dim=1)
 
             feat_prop = self.backward_resblocks(feat_prop)
