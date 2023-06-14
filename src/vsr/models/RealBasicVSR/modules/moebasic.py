@@ -59,11 +59,12 @@ class MLP(nn.Module):
         self.activation = nn.GELU()
 
     def forward(self, x):
-        x = x.permute(1, -1)
+        print(x.shape)
+        x = rearrange(x, 'b c h w -> b h w c')
         x = self.itoh(x)
         x = self.activation(x)
         x = self.htoi(x)
-        return x.permute(1, -1)
+        return rearrange(x, 'b h w c -> b c h w')
 
 class BasicVSR(nn.Module):
     def __init__(
