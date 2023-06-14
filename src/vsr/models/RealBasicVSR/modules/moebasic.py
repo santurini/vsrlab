@@ -143,7 +143,6 @@ class BasicVSR(nn.Module):
         outputs = []  # backward-propagation
         feat_prop = features[:, t - 1, ...]
         for i in range(t - 1, -1, -1):
-            print('i:', i)
             if i < t - 1:
                 x_i = features[:, i, ...]
                 x_prev = features[:, i + 1, ...]
