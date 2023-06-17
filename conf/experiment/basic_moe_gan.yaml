@@ -27,11 +27,11 @@ train:
       eta_min: 1e-4
       verbose: False
 
-  perceptual_loss: null
-  #  weight: 1.0
+  perceptual_loss: # null
+    weight: 1e-2
 
   adversarial_loss:
-    weight: 1e-3
+    weight: 5e-2
 
   discriminator:
     _target_: vsr.models.RealBasicVSR.modules.unet-discriminator.UNetDiscriminator
@@ -40,9 +40,9 @@ train:
 
   ddp: true
   num_grad_acc: 4
-  freeze_epochs: 50
+  freeze_epochs: 25
 
-  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/supagass/checkpoint.tar'
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/supagrep/checkpoint.tar'
   restore_opt: true
   finetune: true
 
