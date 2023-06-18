@@ -5,12 +5,12 @@ defaults:
 
 train:
   data:
-    batch_size: 4
+    batch_size: 8
 
   optimizer:
     generator:
       _target_: torch.optim.Adam
-      lr: 1e-4
+      lr: 1e-5
 
     discriminator:
       _target_: torch.optim.Adam
@@ -31,16 +31,16 @@ train:
     weight: 1e-2
 
   adversarial_loss:
-    weight: 5e-2
+    weight: 5e-3
 
   discriminator:
     _target_: vsr.models.RealBasicVSR.modules.unet-discriminator.UNetDiscriminator
     in_ch: 3
-    mid_ch: 32
+    mid_ch: 64
 
-  ddp: true
+  ddp: false
   num_grad_acc: 4
-  freeze_epochs: 25
+  freeze_epochs: 15
 
   restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/supagrep/checkpoint.tar'
   restore_opt: true
