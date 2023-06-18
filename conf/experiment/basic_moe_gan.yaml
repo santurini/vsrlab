@@ -10,7 +10,7 @@ train:
   optimizer:
     generator:
       _target_: torch.optim.Adam
-      lr: 1e-5
+      lr: 1e-4
 
     discriminator:
       _target_: torch.optim.Adam
