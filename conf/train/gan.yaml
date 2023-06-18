@@ -1,5 +1,5 @@
 defaults:
-  - data: default
+  - data: gan
   - logger: default
   - model: baby_realbasic
   - optimizer: gan_adam
