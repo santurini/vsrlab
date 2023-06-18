@@ -2,7 +2,7 @@
 cfg_dir: /home/aghinassi/Desktop/checkpoints/basic_align
 lr_dir: /home/aghinassi/Desktop/compressed
 hr_dir: /home/aghinassi/Desktop/groundtruth
-out_dir: /home/aghinassi/hdd
+out_dir: /home/aghinassi/hdd/frames
 
 window_size: 32
 num_workers: 4
