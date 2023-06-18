@@ -3,6 +3,9 @@ defaults:
   - override /train/model: baby_realbasic_spynet
 
 train:
+  model:
+    train_flow: true
+
   data:
     batch_size: 32
 

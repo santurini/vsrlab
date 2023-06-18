@@ -9,10 +9,9 @@ from vsr.models.RealBasicVSR.modules.spynet import Spynet, flow_warp
 pylogger = logging.getLogger(__name__)
 
 class BasicVSR(nn.Module):
-    def __init__(self, mid_channels=64, res_blocks=30, upscale=4, is_mirror=False,
+    def __init__(self, mid_channels=64, res_blocks=30, upscale=4,
                  pretrained_flow=False, train_flow=False):
         super().__init__()
-        self.is_mirror = is_mirror
         self.mid_channels = mid_channels
         self.backward_resblocks = ResidualBlock(mid_channels + 3, mid_channels, res_blocks)
         self.forward_resblocks = ResidualBlock(mid_channels + 3, mid_channels, res_blocks)

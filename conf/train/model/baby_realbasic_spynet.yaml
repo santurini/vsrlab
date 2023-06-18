@@ -2,7 +2,6 @@ _target_: vsr.models.RealBasicVSR.realbasicvsr_spy.RealBasicVSR
 cleaning_blocks: 5
 mid_channels: 64
 upscale: ${train.data.datasets.train.scale}
-is_mirror: False
 res_blocks: 5
 k: 5
 pretrained_flow: "/home/aghinassi/Desktop/checkpoints/spynet.ckpt"

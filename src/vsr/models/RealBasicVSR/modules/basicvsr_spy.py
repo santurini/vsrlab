@@ -10,10 +10,9 @@ from vsr.models.RealBasicVSR.modules.spynet import flow_warp
 pylogger = logging.getLogger(__name__)
 
 class BasicVSR(nn.Module):
-    def __init__(self, mid_channels=64, res_blocks=30, upscale=4, is_mirror=False, k=5,
+    def __init__(self, mid_channels=64, res_blocks=30, upscale=4, k=5,
                  pretrained_flow=None, train_flow=False):
         super().__init__()
-        self.is_mirror = is_mirror
         self.mid_channels = mid_channels
         self.backward_resblocks = ResidualBlock(mid_channels + 3, mid_channels, res_blocks)
         self.forward_resblocks = ResidualBlock(mid_channels + 3, mid_channels, res_blocks)
@@ -39,11 +38,7 @@ class BasicVSR(nn.Module):
         lrs_2 = (lrs[:, 1:, :, :, :].reshape(-1, c, h, w) - self.mean) / self.std  # remove first frame
 
         flow_backward = self.spynet((lrs_1, lrs_2), train=False)
-
-        if self.is_mirror:
-            flow_forward = None
-        else:
-            flow_forward = self.spynet((lrs_2, lrs_1), train=False)
+        flow_forward = self.spynet((lrs_2, lrs_1), train=False)
 
         return flow_forward, flow_backward
 
@@ -75,11 +70,7 @@ class BasicVSR(nn.Module):
         for i in range(0, t):
             # no warping required for the first timestep
             if i > 0:
-                if self.is_mirror:
-                    flow = flows_backward[:, -i, :, :, :]
-                else:
-                    # flow at previous frame (?)
-                    flow = flows_forward[:, i - 1, :, :, :]
+                flow = flows_forward[:, i - 1, :, :, :]
                 feat_prop = flow_warp(feat_prop, flow.permute(0, 2, 3, 1))
             # mid_ch + 3
             feat_prop = torch.cat([lrs[:, i, :, :, :], feat_prop], dim=1)
