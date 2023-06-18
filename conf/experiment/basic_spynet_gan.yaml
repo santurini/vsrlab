@@ -14,7 +14,7 @@ train:
 
     discriminator:
       _target_: torch.optim.Adam
-      lr: 1e-5
+      lr: 1e-4
 
   scheduler:
     generator:
@@ -24,14 +24,14 @@ train:
 
     discriminator:
       _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-      eta_min: 1e-4
+      eta_min: 1e-5
       verbose: False
 
   perceptual_loss: # null
     weight: 1e-1
 
   adversarial_loss:
-    weight: 1e-3
+    weight: 5e-3
 
   discriminator:
     _target_: vsr.models.RealBasicVSR.modules.unet-discriminator.UNetDiscriminator
