@@ -25,5 +25,6 @@ train:
   ddp: true
   num_grad_acc: 4
 
-  # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/sgaman/checkpoint.tar'
-  # restore_opt: false
+  # restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/alaska/checkpoint.tar'
+  # restore_opt: true
+  # finetune: false
