@@ -10,7 +10,7 @@ train:
   optimizer:
     generator:
       _target_: torch.optim.Adam
-      lr: 1e-5
+      lr: 1e-4
 
     discriminator:
       _target_: torch.optim.Adam
@@ -19,31 +19,31 @@ train:
   scheduler:
     generator:
       _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-      eta_min: 1e-6
+      eta_min: 1e-4
       verbose: False
 
     discriminator:
       _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-      eta_min: 1e-5
+      eta_min: 1e-4
       verbose: False
 
   perceptual_loss: # null
-    weight: 1e-2
+    weight: 1
 
   adversarial_loss:
-    weight: 1e-3
+    weight: 2e-5
 
   discriminator:
     _target_: vsr.models.RealBasicVSR.modules.unet-discriminator.UNetDiscriminator
     in_ch: 3
-    mid_ch: 64
+    mid_ch: 32
 
   ddp: true
   num_grad_acc: 4
-  freeze_epochs: 15
+  freeze_epochs: 10
 
   restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/alaska/checkpoint.tar'
-  restore_opt: true
+  restore_opt: false
   finetune: true
 
 
