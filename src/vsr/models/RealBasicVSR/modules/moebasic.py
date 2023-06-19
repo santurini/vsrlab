@@ -69,7 +69,7 @@ class MLP(nn.Module):
 class BasicVSR(nn.Module):
     def __init__(
             self,
-            moefy=False,
+            moefy=True,
             num_experts=4,
             top_k=2,
             num_gpus=1,
