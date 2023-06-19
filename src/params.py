@@ -4,13 +4,13 @@ import warnings
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-import mmcv
+# import mmcv
+# from mmcv import build_from_cfg
+# from mmcv.runner import load_checkpoint
+# from mmedit.models.registry import MODELS
 import omegaconf
 import pandas as pd
 import torch
-from mmcv import build_from_cfg
-from mmcv.runner import load_checkpoint
-from mmedit.models.registry import MODELS
 
 from core.utils import (
     build_test_model,
@@ -24,46 +24,46 @@ C, H, W, WINDOW_SIZE, FPS, CRF = 3, 480, 640, 28, 6, 30
 def get_params(model):
     return sum(p.numel() for p in model.parameters())
 
-def build(cfg, registry, default_args=None):
-    """Build module function.
-
-    Args:
-        cfg (dict): Configuration for building modules.
-        registry (obj): ``registry`` object.
-        default_args (dict, optional): Default arguments. Defaults to None.
-    """
-    if isinstance(cfg, list):
-        modules = [
-            build_from_cfg(cfg_, registry, default_args) for cfg_ in cfg
-        ]
-        return nn.Sequential(*modules)
-
-    return build_from_cfg(cfg, registry, default_args)
-
-def build_model(cfg, train_cfg=None, test_cfg=None):
-    """Build model.
-
-    Args:
-        cfg (dict): Configuration for building model.
-        train_cfg (dict): Training configuration. Default: None.
-        test_cfg (dict): Testing configuration. Default: None.
-    """
-    return build(cfg, MODELS, dict(train_cfg=train_cfg, test_cfg=test_cfg))
-
-def init_model(config, checkpoint=None):
-    if isinstance(config, str):
-        config = mmcv.Config.fromfile(config)
-    elif not isinstance(config, mmcv.Config):
-        raise TypeError('config must be a filename or Config object, '
-                        f'but got {type(config)}')
-    config.model.pretrained = None
-    config.test_cfg.metrics = None
-    model = build_model(config.model, test_cfg=config.test_cfg)
-    if checkpoint is not None:
-        checkpoint = load_checkpoint(model, checkpoint)
-
-    model.cfg = config  # save the config in the model for convenience
-    return model
+# def build(cfg, registry, default_args=None):
+#     """Build module function.
+#
+#     Args:
+#         cfg (dict): Configuration for building modules.
+#         registry (obj): ``registry`` object.
+#         default_args (dict, optional): Default arguments. Defaults to None.
+#     """
+#     if isinstance(cfg, list):
+#         modules = [
+#             build_from_cfg(cfg_, registry, default_args) for cfg_ in cfg
+#         ]
+#         return nn.Sequential(*modules)
+#
+#     return build_from_cfg(cfg, registry, default_args)
+#
+# def build_model(cfg, train_cfg=None, test_cfg=None):
+#     """Build model.
+#
+#     Args:
+#         cfg (dict): Configuration for building model.
+#         train_cfg (dict): Training configuration. Default: None.
+#         test_cfg (dict): Testing configuration. Default: None.
+#     """
+#     return build(cfg, MODELS, dict(train_cfg=train_cfg, test_cfg=test_cfg))
+#
+# def init_model(config, checkpoint=None):
+#     if isinstance(config, str):
+#         config = mmcv.Config.fromfile(config)
+#     elif not isinstance(config, mmcv.Config):
+#         raise TypeError('config must be a filename or Config object, '
+#                         f'but got {type(config)}')
+#     config.model.pretrained = None
+#     config.test_cfg.metrics = None
+#     model = build_model(config.model, test_cfg=config.test_cfg)
+#     if checkpoint is not None:
+#         checkpoint = load_checkpoint(model, checkpoint)
+#
+#     model.cfg = config  # save the config in the model for convenience
+#     return model
 
 @torch.no_grad()
 def run():
@@ -71,7 +71,8 @@ def run():
     device = torch.device("cuda:{}".format(local_rank))
 
     for cfg_dir in [
-        Path('/home/aghinassi/Desktop/checkpoints/basic_moe')]:  # [x for x in Path('/home/aghinassi/Desktop/checkpoints').glob('*') if x.is_dir()]:
+        Path(
+            '/home/aghinassi/Desktop/checkpoints/basic_moe')]:  # [x for x in Path('/home/aghinassi/Desktop/checkpoints').glob('*') if x.is_dir()]:
 
         # Encapsulate the model on the GPU assigned to the current process
         if osp.basename(cfg_dir) == "basic_og":
