@@ -1,4 +1,5 @@
 _target_: vsr.models.RealBasicVSR.moerealbasic.RealBasicVSR
+moefy: false
 cleaning_blocks: 5
 mid_channels: 64
 upscale: ${train.data.datasets.train.scale}
