@@ -5,16 +5,16 @@ defaults:
 
 train:
   data:
-    batch_size: 8
+    batch_size: 4
 
   optimizer:
     generator:
       _target_: torch.optim.Adam
-      lr: 1e-5
+      lr: 1e-4
 
     discriminator:
       _target_: torch.optim.Adam
-      lr: 1e-4
+      lr: 1e-5
 
   scheduler:
     generator:
@@ -24,23 +24,23 @@ train:
 
     discriminator:
       _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-      eta_min: 1e-4
+      eta_min: 1e-5
       verbose: False
 
   perceptual_loss: # null
-    weight: 1e-2
+    weight: 2e-4
 
   adversarial_loss:
-    weight: 5e-3
+    weight: 2e-4
 
   discriminator:
     _target_: vsr.models.RealBasicVSR.modules.unet-discriminator.UNetDiscriminator
     in_ch: 3
-    mid_ch: 64
+    mid_ch: 32
 
   ddp: false
   num_grad_acc: 4
-  freeze_epochs: 15
+  freeze_epochs: 25
 
   restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/supagrep/checkpoint.tar'
   restore_opt: true
