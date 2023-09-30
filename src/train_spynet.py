@@ -11,16 +11,15 @@ import torch.nn.functional as F
 import wandb
 from kornia.enhance import normalize
 from torch.utils.data import DataLoader
-
-from core import PROJECT_ROOT
-from core.utils import (
+from vsrlab.core import PROJECT_ROOT
+from vsrlab.core.utils import (
     get_resources,
     build_logger,
     save_config,
     cleanup
 )
-from optical_flow.models import spynet
-from optical_flow.models.spynet.utils import (
+from vsrlab.optical_flow.models import spynet
+from vsrlab.optical_flow.models.spynet.utils import (
     clean_frames,
     load_data,
     setup_train,
@@ -159,7 +158,6 @@ def train_one_epoch(
         dt = time.time() - dt
         print(f"Epoch {epoch} Level {k} - Elapsed time --> {dt:2f}")
 
-
 def train_one_level(cfg,
                     k: int,
                     previous: Sequence[spynet.BasicModule],
@@ -209,7 +207,7 @@ def train_one_level(cfg,
             rank,
             world_size
         )
-    
+
     return current_level
 
 def train(cfg):

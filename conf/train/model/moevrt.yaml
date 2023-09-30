@@ -1,4 +1,4 @@
-_target_: vsr.models.MoEVRT.vrt_moe_spy.TinyVRT
+_target_: vsrlab.vsr.models.MoEVRT.moevrt.MoEVRT
 upscale: ${train.data.datasets.train.scale}
 in_chans: 3
 out_chans: 3
@@ -16,12 +16,9 @@ num_gpus: 1
 top_k: 2
 mul_attn_ratio: 0.75
 mlp_ratio: 2.
-qkv_bias: true
+qkv_bias: True
 qk_scale: null
 drop_path_rate: 0.2
-k: 5
-optical_flow_pretrained: "/home/aghinassi/Desktop/checkpoints/spynet.ckpt"
-return_levels: [ 2, 3, 4 ]
-optical_flow_train: False
+optical_flow_pretrained: True
 pa_frames: 2
 deformable_groups: 4

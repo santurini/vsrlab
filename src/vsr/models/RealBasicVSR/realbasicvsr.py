@@ -1,6 +1,6 @@
 import torch.nn as nn
-from core.modules.conv import ResidualBlock
-from vsr.models.RealBasicVSR.modules.basicvsr import BasicVSR
+from vsrlab.core.modules.conv import ResidualBlock
+from vsrlab.vsr.models.RealBasicVSR.modules.basicvsr import BasicVSR
 
 class RealBasicVSR(nn.Module):
     def __init__(self, cleaning_blocks=20, *args, **kwargs):

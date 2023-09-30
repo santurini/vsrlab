@@ -3,13 +3,13 @@ from typing import Sequence
 
 import hydra
 import torch
-from core.utils import build_optimizer
-from optical_flow.dataset import Dataset
-from optical_flow.models import spynet
-from optical_flow.transforms import *
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader, DistributedSampler
 from torchvision.transforms.functional import resize
+from vsrlab.core.utils import build_optimizer
+from vsrlab.optical_flow.dataset import Dataset
+from vsrlab.optical_flow.models import spynet
+from vsrlab.optical_flow.transforms import *
 
 @torch.no_grad()
 def get_frames(lr, cleaner, size):

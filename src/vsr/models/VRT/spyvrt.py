@@ -3,14 +3,16 @@ from distutils.version import LooseVersion
 
 import torch
 import torch.nn as nn
-from core.modules.conv import ResidualBlock
 from einops import rearrange
 from einops.layers.torch import Rearrange
-from fmoe.gates.gshard_gate import GShardGate
-from optical_flow.models.spynet.model import SpyNet
-from vsr.models.MoEVRT.stage import Stage
-from vsr.models.MoEVRT.tmsa import RTMSA
-from vsr.models.VRT.modules.spynet import flow_warp
+from vsrlab.core.losses import CharbonnierLoss
+from vsrlab.core.modules.conv import ResidualBlock
+from vsrlab.optical_flow.models.spynet.model import SpyNet
+from vsrlab.vsr.models.VRT.modules.spynet import flow_warp
+from vsrlab.vsr.models.VRT.modules.stage import Stage
+from vsrlab.vsr.models.VRT.modules.tmsa import RTMSA
+
+loss_fn = CharbonnierLoss()
 
 class Upsample(nn.Sequential):
     def __init__(self, scale, num_feat):
@@ -35,7 +37,7 @@ class Upsample(nn.Sequential):
             m.append(Transpose_Dim12())
             m.append(nn.PixelShuffle(2))
             m.append(Transpose_Dim12())
-            m.append(nn.LeakyReLU(negative_slope=0.1))
+            m.append(nn.LeakyReLU(negative_slope=0.1, inplace=True))
         m.append(nn.Conv3d(num_feat, num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)))
 
         super(Upsample, self).__init__(*m)
@@ -55,7 +57,7 @@ class IterativeRefinement(nn.Module):
             x += residues
         return x.view(n, t, c, h, w)
 
-class TinyVRT(nn.Module):
+class SPyVRT(nn.Module):
     def __init__(
             self,
             upscale=4,
@@ -70,10 +72,6 @@ class TinyVRT(nn.Module):
             indep_reconsts=[-2, -1],
             embed_dims=[64, 64, 64, 64, 64, 80, 80],
             num_heads=[6, 6, 6, 6, 6, 6, 6],
-            num_experts=4,
-            num_gpus=1,
-            top_k=2,
-            gate=GShardGate,
             mul_attn_ratio=0.75,
             mlp_ratio=2.,
             qkv_bias=True,
@@ -123,10 +121,6 @@ class TinyVRT(nn.Module):
                         input_resolution=(img_size[0], img_size[1] // scales[i], img_size[2] // scales[i]),
                         depth=depths[i],
                         num_heads=num_heads[i],
-                        num_experts=num_experts,
-                        num_gpus=num_gpus,
-                        top_k=top_k,
-                        gate=gate,
                         mul_attn_ratio=mul_attn_ratio,
                         window_size=window_size,
                         mlp_ratio=mlp_ratio,
@@ -157,10 +151,6 @@ class TinyVRT(nn.Module):
                       input_resolution=img_size,
                       depth=depths[i],
                       num_heads=num_heads[i],
-                      num_experts=num_experts,
-                      num_gpus=num_gpus,
-                      top_k=top_k,
-                      gate=gate,
                       window_size=[1, window_size[1], window_size[2]] if i in self.indep_reconsts else window_size,
                       mlp_ratio=mlp_ratio,
                       qkv_bias=qkv_bias, qk_scale=qk_scale,
@@ -176,7 +166,7 @@ class TinyVRT(nn.Module):
         num_feat = 64
         self.conv_before_upsample = nn.Sequential(
             nn.Conv3d(embed_dims[0], num_feat, kernel_size=(1, 3, 3), padding=(0, 1, 1)),
-            nn.LeakyReLU())
+            nn.LeakyReLU(inplace=True))
 
         self.upsample = Upsample(upscale, num_feat)
         self.conv_last = nn.Conv3d(num_feat, out_chans, kernel_size=(1, 3, 3), padding=(0, 1, 1))
@@ -269,7 +259,7 @@ class TinyVRT(nn.Module):
         return [torch.stack(x_backward, 1), torch.stack(x_forward, 1)]
 
     def init_flow(self, k, pretrained, return_levels, train):
-        self.optical_flow = SpyNet.from_pretrained(k=k, return_levels=return_levels, path=pretrained)
+        self.optical_flow = SpyNet.from_pretrained(k, return_levels, pretrained)
 
         if not train:
             for p in self.optical_flow.parameters():
@@ -277,29 +267,7 @@ class TinyVRT(nn.Module):
 
 @torch.no_grad()
 def main() -> None:
-    model = TinyVRT(
-        upsample=4,
-        in_chans=3,
-        out_chans=3,
-        refine_steps=3,
-        refine_blocks=5,
-        refine_ch=64,
-        img_size=[6, 64, 64],
-        window_size=[6, 8, 8],
-        depths=[8, 8, 8, 8, 8, 4, 4],
-        indep_reconsts=[-2, -1],
-        embed_dims=[64, 64, 64, 64, 64, 80, 80],
-        num_heads=[6, 6, 6, 6, 6, 6, 6],
-        mul_attn_ratio=0.75,
-        mlp_ratio=2.,
-        qkv_bias=True,
-        qk_scale=None,
-        drop_path_rate=0.2,
-        norm_layer=nn.LayerNorm,
-        optical_flow_pretrained=True,
-        pa_frames=2,
-        deformable_groups=8
-    )
+    model = SPyVRT()
 
     x = torch.rand(2, 6, 3, 64, 64)
     print(model(x).shape)

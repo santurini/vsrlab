@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /train/model: baby_realbasic_spynet
+  - override /train/model: spybasicvsr
   - override /train: gan
 
 train:
@@ -34,7 +34,7 @@ train:
     weight: 5e-2
 
   discriminator:
-    _target_: vsr.models.RealBasicVSR.modules.unet-discriminator.UNetDiscriminator
+    _target_: vsrlab.vsr.models.RealBasicVSR.modules.unet-discriminator.UNetDiscriminator
     in_ch: 3
     mid_ch: 32
 

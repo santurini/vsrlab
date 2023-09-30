@@ -149,7 +149,6 @@ def _no_grad_trunc_normal_(tensor, mean, std, a, b):
         tensor.clamp_(min=a, max=b)
         return tensor
 
-
 def trunc_normal_(tensor, mean=0., std=1., a=-2., b=2.):
     r"""Fills the input Tensor with values drawn from a truncated
     normal distribution.
@@ -175,7 +174,6 @@ def trunc_normal_(tensor, mean=0., std=1., a=-2., b=2.):
     """
     return _no_grad_trunc_normal_(tensor, mean, std, a, b)
 
-
 def drop_path(x, drop_prob: float = 0., training: bool = False):
     """Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
     From: https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/layers/drop.py
@@ -189,7 +187,6 @@ def drop_path(x, drop_prob: float = 0., training: bool = False):
     output = x.div(keep_prob) * random_tensor
     return output
 
-
 class DropPath(nn.Module):
     """Drop paths (Stochastic Depth) per sample  (when applied in main path of residual blocks).
     From: https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/layers/drop.py
@@ -201,7 +198,6 @@ class DropPath(nn.Module):
 
     def forward(self, x):
         return drop_path(x, self.drop_prob, self.training)
-
 
 def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corners=True, use_pad_mask=False):
     """Warp an image or feature map with optical flow.
@@ -262,7 +258,6 @@ def flow_warp(x, flow, interp_mode='bilinear', padding_mode='zeros', align_corne
                                align_corners=align_corners)
 
         return output
-
 
 class DCNv2PackFlowGuided(ModulatedDeformConvPack):
     """Flow-guided deformable alignment module.
@@ -337,7 +332,6 @@ class DCNv2PackFlowGuided(ModulatedDeformConvPack):
         return torchvision.ops.deform_conv2d(x, offset, self.weight, self.bias, self.stride, self.padding,
                                              self.dilation, mask)
 
-
 class BasicModule(nn.Module):
     """Basic Module for SpyNet.
     """
@@ -354,7 +348,6 @@ class BasicModule(nn.Module):
 
     def forward(self, tensor_input):
         return self.basic_module(tensor_input)
-
 
 class SpyNet(nn.Module):
     """SpyNet architecture.
@@ -440,7 +433,6 @@ class SpyNet(nn.Module):
 
         return flow_list[0] if len(flow_list) == 1 else flow_list
 
-
 def window_partition(x, window_size):
     """ Partition the input into windows. Attention will be conducted within the windows.
 
@@ -457,7 +449,6 @@ def window_partition(x, window_size):
     windows = x.permute(0, 1, 3, 5, 2, 4, 6, 7).contiguous().view(-1, reduce(mul, window_size), C)
 
     return windows
-
 
 def window_reverse(windows, window_size, B, D, H, W):
     """ Reverse windows back to the original input. Attention was conducted within the windows.
@@ -477,7 +468,6 @@ def window_reverse(windows, window_size, B, D, H, W):
 
     return x
 
-
 def get_window_size(x_size, window_size, shift_size=None):
     """ Get the window size and the shift size """
 
@@ -494,7 +484,6 @@ def get_window_size(x_size, window_size, shift_size=None):
         return tuple(use_window_size)
     else:
         return tuple(use_window_size), tuple(use_shift_size)
-
 
 @lru_cache()
 def compute_mask(D, H, W, window_size, shift_size, device):

@@ -3,12 +3,12 @@ from distutils.version import LooseVersion
 
 import torch
 import torch.nn as nn
-from core.modules.conv import ResidualBlock
 from einops import rearrange
 from einops.layers.torch import Rearrange
-from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
-from vsr.models.VRT.modules.stage import Stage
-from vsr.models.VRT.modules.tmsa import RTMSA
+from vsrlab.core.modules.conv import ResidualBlock
+from vsrlab.vsr.models.VRT.modules.spynet import SpyNet, flow_warp
+from vsrlab.vsr.models.VRT.modules.stage import Stage
+from vsrlab.vsr.models.VRT.modules.tmsa import RTMSA
 
 class Upsample(nn.Sequential):
     def __init__(self, scale, num_feat):

@@ -11,8 +11,7 @@ from pathlib import Path
 import omegaconf
 import pandas as pd
 import torch
-
-from core.utils import (
+from vsrlab.core.utils import (
     build_test_model,
     get_video
 )

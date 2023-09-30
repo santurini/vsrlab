@@ -6,10 +6,9 @@ import omegaconf
 import torch
 import wandb
 from einops import rearrange
-
-from core import PROJECT_ROOT
-from core.losses import CharbonnierLoss
-from core.utils import (
+from vsrlab.core import PROJECT_ROOT
+from vsrlab.core.losses import CharbonnierLoss
+from vsrlab.core.utils import (
     seed_index_everything,
     get_resources,
     compute_loss,
@@ -26,7 +25,7 @@ from core.utils import (
     update_weights,
     cleanup
 )
-from train import evaluate
+from vsrlab.train import evaluate
 
 warnings.filterwarnings('ignore')
 

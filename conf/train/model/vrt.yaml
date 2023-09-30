@@ -1,9 +1,9 @@
-_target_: vsr.models.VRT.vrt_spy.TinyVRT
+_target_: vsrlab.vsr.models.VRT.vrt.TinyVRT
 upscale: ${train.data.datasets.train.scale}
 in_chans: 3
 out_chans: 3
-refine_steps: 3
-refine_blocks: 5
+refine_steps: 5
+refine_blocks: 3
 refine_ch: 64
 img_size: [ 6, 64, 64 ]
 window_size: [ 6, 8, 8 ]
@@ -16,9 +16,6 @@ mlp_ratio: 2.
 qkv_bias: True
 qk_scale: null
 drop_path_rate: 0.2
-k: 5
-optical_flow_pretrained: "/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/kjhsdvqqqqq/checkpoint/4.ckpt"
-return_levels: [ 2, 3, 4 ]
-optical_flow_train: False
+optical_flow_pretrained: True
 pa_frames: 2
 deformable_groups: 4

@@ -1,5 +1,5 @@
 import torch.nn as nn
-from core.modules.conv import SpectralConv
+from vsrlab.core.modules.conv import SpectralConv
 
 class UNetDiscriminator(nn.Module):
     def __init__(self, in_ch=3, mid_ch=64):

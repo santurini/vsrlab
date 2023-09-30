@@ -13,5 +13,5 @@ class GConf(object):
 
     @property
     def image_size(self):
-        return (self.base_conf.image_size[0] * self.scale, 
+        return (self.base_conf.image_size[0] * self.scale,
                 self.base_conf.image_size[1] * self.scale)

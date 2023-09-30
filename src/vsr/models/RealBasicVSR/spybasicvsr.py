@@ -1,12 +1,12 @@
 import torch.nn as nn
-from core.modules.conv import ResidualBlock
-from vsr.models.RealBasicVSR.modules.basicvsr_spy import BasicVSR
+from vsrlab.core.modules.conv import ResidualBlock
+from vsrlab.vsr.models.RealBasicVSR.modules.spybasicvsr import SPyBasicVSR
 
-class RealBasicVSR(nn.Module):
+class SPyRealBasicVSR(nn.Module):
     def __init__(self, cleaning_blocks=20, *args, **kwargs):
         super().__init__()
         self.cleaner = IterativeRefinement(kwargs["mid_channels"], cleaning_blocks)
-        self.basicvsr = BasicVSR(*args, **kwargs)
+        self.basicvsr = SPyBasicVSR(*args, **kwargs)
 
     def forward(self, lr):
         lr = self.cleaner(lr)

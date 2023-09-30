@@ -1,0 +1,11 @@
+av
+einops
+hydra-core
+kornia
+omegaconf
+pillow
+piqa
+setuptools
+torch
+torchvision
+wandb

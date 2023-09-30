@@ -4,7 +4,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from core import PROJECT_ROOT
+from vsrlab.core import PROJECT_ROOT
 
 pylogger = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ class SpyNet(nn.Module):
         self.basic_module = nn.ModuleList([BasicModule() for _ in range(6)])
         if pretrained:
             pylogger.info('Loading Spynet pretrained weights')
-            load_path = f'{PROJECT_ROOT}/src/vsr/models/VRT/weights/spynet_sintel_final-3d2a1287.pth'
+            load_path = f'{PROJECT_ROOT}/src/vsrlab.vsr/models/VRT/weights/spynet_sintel_final-3d2a1287.pth'
             self.load_state_dict(torch.load(load_path, map_location=lambda storage, loc: storage)['params'])
 
         self.register_buffer('mean', torch.Tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1))

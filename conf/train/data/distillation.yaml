@@ -4,26 +4,26 @@ prefetch_factor: 8
 
 datasets:
   train:
-    _target_: optical_flow.dataset.Dataset
+    _target_: vsrlab.optical_flow.dataset.Dataset
     path: "/home/aghinassi/Desktop/Flow"
     split: "train"
     size: 0.9
     augmentation:
-      - _target_: optical_flow.transforms.Resize
+      - _target_: vsrlab.optical_flow.transforms.Resize
         size: [ 384, 512 ]
 
-      - _target_: optical_flow.transforms.RandomHorizontalFlip
+      - _target_: vsrlab.optical_flow.transforms.RandomHorizontalFlip
         p: 0.5
 
-      - _target_: optical_flow.transforms.RandomVerticalFlip
+      - _target_: vsrlab.optical_flow.transforms.RandomVerticalFlip
         p: 0.5
 
-      - _target_: optical_flow.transforms.RandomRotation
+      - _target_: vsrlab.optical_flow.transforms.RandomRotation
         degrees: 17
         p: 0.5
 
     compression:
-      - _target_: optical_flow.transforms.RandomVideoCompression
+      - _target_: vsrlab.optical_flow.transforms.RandomVideoCompression
         codec: [ 'libx264' ]
         crf: [ 38 ]
         fps: [ 30 ]
@@ -34,11 +34,11 @@ datasets:
     split: "val"
     size: 0.1
     augmentation:
-      - _target_: optical_flow.transforms.Resize
+      - _target_: vsrlab.optical_flow.transforms.Resize
         size: [ 384, 512 ]
 
     compression:
-      - _target_: optical_flow.transforms.RandomVideoCompression
+      - _target_: vsrlab.optical_flow.transforms.RandomVideoCompression
         codec: [ 'libx264' ]
         crf: [ 38 ]
         fps: [ 30 ]

@@ -8,7 +8,7 @@ window_size: 32
 num_workers: 4
 
 metric:
-  _target_: core.metrics.MetricCollection
+  _target_: vsrlab.core.metrics.MetricCollection
   metrics:
     PSNR:
       _target_: piqa.PSNR

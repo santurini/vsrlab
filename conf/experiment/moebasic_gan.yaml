@@ -34,7 +34,7 @@ train:
     weight: 2e-4
 
   discriminator:
-    _target_: vsr.models.RealBasicVSR.modules.unet-discriminator.UNetDiscriminator
+    _target_: vsrlab.vsr.models.RealBasicVSR.modules.unet-discriminator.UNetDiscriminator
     in_ch: 3
     mid_ch: 32
 

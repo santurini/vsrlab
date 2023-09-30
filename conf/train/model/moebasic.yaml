@@ -1,4 +1,4 @@
-_target_: vsr.models.RealBasicVSR.moerealbasic.RealBasicVSR
+_target_: vsrlab.vsr.models.RealBasicVSR.moebasic.MoEBasicVSR
 moefy: false
 cleaning_blocks: 5
 mid_channels: 64

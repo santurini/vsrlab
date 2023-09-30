@@ -4,9 +4,9 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from core import PROJECT_ROOT
-from core.modules.conv import ConvReLU
 from torch.nn.functional import grid_sample
+from vsrlab.core import PROJECT_ROOT
+from vsrlab.core.modules.conv import ConvReLU
 
 pylogger = logging.getLogger(__name__)
 

@@ -3,8 +3,8 @@ from typing import Sequence, Tuple, Type
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from core import PROJECT_ROOT
-from optical_flow.models import spynet
+from vsrlab.core import PROJECT_ROOT
+from vsrlab.optical_flow.models import spynet
 
 class BasicModule(nn.Module):
     def __init__(self, input_channels: int = 8):
@@ -21,8 +21,8 @@ class BasicModule(nn.Module):
             nn.ReLU(),
             nn.Conv2d(16, 2, kernel_size=7, padding=3, stride=1))
 
-    def forward(self, 
-                frames: Tuple[torch.Tensor, torch.Tensor], 
+    def forward(self,
+                frames: Tuple[torch.Tensor, torch.Tensor],
                 optical_flow: torch.Tensor = None,
                 upsample_optical_flow: bool = True) -> torch.Tensor:
         f_frame, s_frame = frames
@@ -40,12 +40,11 @@ class BasicModule(nn.Module):
                 optical_flow, scale_factor=2, align_corners=True,
                 mode='bilinear') * 2
 
-        s_frame = spynet.nn.warp(s_frame, optical_flow, s_frame.device)
-        s_frame = torch.cat([s_frame, optical_flow], dim=1)
-        
+        s_frame = spynet.nn.warp(s_frame, vsrlab.optical_flow, s_frame.device)
+        s_frame = torch.cat([s_frame, vsrlab.optical_flow], dim=1)
+
         inp = torch.cat([f_frame, s_frame], dim=1)
         return self.module(inp)
-
 
 class SpyNet(nn.Module):
 

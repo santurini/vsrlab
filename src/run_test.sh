@@ -3,7 +3,7 @@
 set -e -x
 
 # python test.py +experiment=test cfg_dir=../../checkpoints/basic_moe
-python test.py +experiment=test cfg_dir=../../checkpoints/basic_align
+# python test.py +experiment=test cfg_dir=../../checkpoints/basic_align
 # python test.py +experiment=test cfg_dir=../../checkpoints/basic_gan
 # python test.py +experiment=test cfg_dir=../../checkpoints/basic_cl_gan
 # python test.py +experiment=test cfg_dir=../../checkpoints/basic_cl_gan2

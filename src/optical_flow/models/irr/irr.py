@@ -3,9 +3,9 @@ from collections import OrderedDict
 
 import torch
 import torch.nn as nn
-from core import PROJECT_ROOT
-from optical_flow.models.irr.irr_modules import RefineFlow
-from optical_flow.models.irr.pwc_modules import (
+from vsrlab.core import PROJECT_ROOT
+from vsrlab.optical_flow.models.irr.irr_modules import RefineFlow
+from vsrlab.optical_flow.models.irr.pwc_modules import (
     conv, upsample2d_as, rescale_flow, initialize_msra, compute_cost_volume,
     WarpingLayer, FeatureExtractor, ContextNetwork, FlowEstimatorDense
 )
@@ -45,7 +45,7 @@ class IRRPWCNet(nn.Module):
 
         if pretrained:
             pylogger.info('Loading IRR pretrained weights')
-            load_path = f'{PROJECT_ROOT}/src/optical_flow/weights/irr-sintel.ckpt'
+            load_path = f'{PROJECT_ROOT}/src/vsrlab.optical_flow/weights/irr-sintel.ckpt'
             state_dict = torch.load(load_path, map_location=lambda storage, loc: storage)['state_dict']
             new_dict = OrderedDict([(k.partition('_model.')[-1], v) for k, v in state_dict.items()])
             self.load_state_dict(new_dict, strict=False)

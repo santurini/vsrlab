@@ -6,12 +6,12 @@ import hydra
 import omegaconf
 import torch
 from PIL import Image
-from core import PROJECT_ROOT
-from core.utils import build_transform
 from kornia.geometry.transform import resize
 from omegaconf import ListConfig
 from torch.utils.data import Dataset
 from torchvision.transforms.functional import to_tensor
+from vsrlab.core import PROJECT_ROOT
+from vsrlab.core.utils import build_transform
 
 class DatasetVSR(Dataset):
     def __init__(self,

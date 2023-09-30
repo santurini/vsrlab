@@ -1,4 +1,4 @@
-_target_: core.loggers.WandbLogger
+_target_: vsrlab.core.loggers.WandbLogger
 project: ${core.project_name}
 save_dir: ${oc.env:LOGGING_DIR}
 id: ${core.run_id}

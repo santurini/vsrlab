@@ -3,11 +3,11 @@ from collections import OrderedDict
 
 import torch
 import torch.nn as nn
-from core import PROJECT_ROOT
-from optical_flow.models.raft.corr import correlation
-from optical_flow.models.raft.extractor import BasicEncoder, SmallEncoder
-from optical_flow.models.raft.update import BasicUpdateBlock, SmallUpdateBlock
-from optical_flow.models.raft.utils import coords_grid, upflow
+from vsrlab.core import PROJECT_ROOT
+from vsrlab.optical_flow.models.raft.corr import correlation
+from vsrlab.optical_flow.models.raft.extractor import BasicEncoder, SmallEncoder
+from vsrlab.optical_flow.models.raft.update import BasicUpdateBlock, SmallUpdateBlock
+from vsrlab.optical_flow.models.raft.utils import coords_grid, upflow
 
 pylogger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class RAFT(nn.Module):
 
             if pretrained:
                 pylogger.info('Loading RAFT pretrained weights')
-                state_dict = torch.load(f'{PROJECT_ROOT}/src/optical_flow/weights/raft-small.pth')
+                state_dict = torch.load(f'{PROJECT_ROOT}/src/vsrlab.optical_flow/weights/raft-small.pth')
                 new_dict = OrderedDict([(k.partition('module.')[-1], v) for k, v in state_dict.items()])
                 self.load_state_dict(new_dict, strict=True)
 
@@ -48,7 +48,7 @@ class RAFT(nn.Module):
 
             if pretrained:
                 pylogger.info('Loading <RAFT> pretrained weights')
-                state_dict = torch.load(f'{PROJECT_ROOT}/src/optical_flow/weights/raft-sintel.pth')
+                state_dict = torch.load(f'{PROJECT_ROOT}/src/vsrlab.optical_flow/weights/raft-sintel.pth')
                 new_dict = OrderedDict([(k.partition('module.')[-1], v) for k, v in state_dict.items()])
                 self.load_state_dict(new_dict)
 

@@ -9,9 +9,8 @@ import omegaconf
 import pandas as pd
 import torch
 from torchvision.utils import save_image
-
-from core import PROJECT_ROOT
-from core.utils import (
+from vsrlab.core import PROJECT_ROOT
+from vsrlab.core.utils import (
     build_metric,
     build_test_model,
     get_video,

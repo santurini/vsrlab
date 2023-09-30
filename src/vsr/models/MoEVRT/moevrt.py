@@ -3,13 +3,13 @@ from distutils.version import LooseVersion
 
 import torch
 import torch.nn as nn
-from core.modules.conv import ResidualBlock
 from einops import rearrange
 from einops.layers.torch import Rearrange
 from fmoe.gates.gshard_gate import GShardGate
-from vsr.models.MoEVRT.stage import Stage
-from vsr.models.MoEVRT.tmsa import RTMSA
-from vsr.models.VRT.modules.spynet import SpyNet, flow_warp
+from vsrlab.core.modules.conv import ResidualBlock
+from vsrlab.vsr.models.MoEVRT.stage import Stage
+from vsrlab.vsr.models.MoEVRT.tmsa import RTMSA
+from vsrlab.vsr.models.VRT.modules.spynet import SpyNet, flow_warp
 
 class Upsample(nn.Sequential):
     def __init__(self, scale, num_feat):
@@ -54,7 +54,7 @@ class IterativeRefinement(nn.Module):
             x += residues
         return x.view(n, t, c, h, w)
 
-class TinyVRT(nn.Module):
+class MoEVRT(nn.Module):
     def __init__(
             self,
             upscale=4,
@@ -271,7 +271,7 @@ class TinyVRT(nn.Module):
 
 @torch.no_grad()
 def main() -> None:
-    model = TinyVRT(
+    model = MoEVRT(
         upsample=4,
         in_chans=3,
         out_chans=3,

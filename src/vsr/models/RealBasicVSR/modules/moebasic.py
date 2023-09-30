@@ -3,15 +3,15 @@ import os
 
 import torch
 import torch.nn as nn
-from core.modules.conv import ResidualBlock
-from core.modules.upsampling import PixelShufflePack
 from einops import rearrange
 from einops.layers.torch import Rearrange
 from fmoe.gates.gshard_gate import GShardGate
 from fmoe.layers import FMoE
 from fmoe.linear import FMoELinear
-from vsr.models.RealBasicVSR.modules.spynet import Spynet, flow_warp
-from vsr.models.VRT.modules.deform_conv import DCNv2PackFlowGuided
+from vsrlab.core.modules.conv import ResidualBlock
+from vsrlab.core.modules.upsampling import PixelShufflePack
+from vsrlab.vsr.models.RealBasicVSR.modules.spynet import Spynet, flow_warp
+from vsrlab.vsr.models.VRT.modules.deform_conv import DCNv2PackFlowGuided
 
 pylogger = logging.getLogger(__name__)
 

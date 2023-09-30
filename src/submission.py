@@ -9,9 +9,8 @@ import omegaconf
 import torch
 from kornia.geometry.transform import resize
 from torchvision.utils import save_image
-
-from core import PROJECT_ROOT
-from core.utils import (
+from vsrlab.core import PROJECT_ROOT
+from vsrlab.core.utils import (
     build_test_model,
     get_video
 )

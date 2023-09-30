@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /train/model: baby_vrt
+  - override /train/model: vrt
   - override /train/data: hard_schedule
 
 train:

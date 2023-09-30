@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from optical_flow.models.raft.utils import bilinear_sampler
+from vsrlab.optical_flow.models.raft.utils import bilinear_sampler
 
 def correlation(coords, fmap1, fmap2, num_levels=4, radius=4):
     corr_pyramid = []

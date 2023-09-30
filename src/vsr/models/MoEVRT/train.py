@@ -6,9 +6,9 @@ import omegaconf
 import torch
 import torch.distributed as dist
 import wandb
-from core import PROJECT_ROOT
-from core.losses import CharbonnierLoss
-from core.utils import (
+from vsrlab.core import PROJECT_ROOT
+from vsrlab.core.losses import CharbonnierLoss
+from vsrlab.core.utils import (
     seed_index_everything,
     get_resources,
     compute_loss,
@@ -20,7 +20,7 @@ from core.utils import (
     save_config,
     cleanup
 )
-from vsr.models.MoEVRT.utils import setup_train, update_weights
+from vsrlab.vsr.models.MoEVRT.utils import setup_train, update_weights
 
 warnings.filterwarnings('ignore')
 

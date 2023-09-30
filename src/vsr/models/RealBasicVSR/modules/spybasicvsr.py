@@ -2,14 +2,14 @@ import logging
 
 import torch
 import torch.nn as nn
-from core.modules.conv import ResidualBlock
-from core.modules.upsampling import PixelShufflePack
-from optical_flow.models.spynet.model import SpyNet
-from vsr.models.RealBasicVSR.modules.spynet import flow_warp
+from vsrlab.core.modules.conv import ResidualBlock
+from vsrlab.core.modules.upsampling import PixelShufflePack
+from vsrlab.optical_flow.models.spynet.model import SpyNet
+from vsrlab.vsr.models.RealBasicVSR.modules.spynet import flow_warp
 
 pylogger = logging.getLogger(__name__)
 
-class BasicVSR(nn.Module):
+class SPyBasicVSR(nn.Module):
     def __init__(self, mid_channels=64, res_blocks=30, upscale=4, k=5,
                  pretrained_flow=None, train_flow=False):
         super().__init__()

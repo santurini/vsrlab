@@ -4,7 +4,7 @@ prefetch_factor: 4
 
 datasets:
   train:
-    _target_: vsr.dataset.DatasetVSR
+    _target_: vsrlab.vsr.dataset.DatasetVSR
     path: "/home/aghinassi/Desktop/MergedVSR"
     split: "train"
     seq: 12
@@ -34,7 +34,7 @@ datasets:
         p: 1.0
 
     lr_augmentation:
-      - _target_: core.augmentations.RandomJPEGCompression
+      - _target_: vsrlab.core.augmentations.RandomJPEGCompression
         quality: [ 50, 90 ]
 
       - _target_: kornia.augmentation.RandomGaussianNoise
@@ -44,7 +44,7 @@ datasets:
         keepdim: true
         p: 0.7
 
-      - _target_: core.augmentations.RandomVideoCompression
+      - _target_: vsrlab.core.augmentations.RandomVideoCompression
         codec: [ 'libx264', 'h264', 'mpeg4' ]
         crf: [ 34, 42 ]
         fps: [ 30 ]
@@ -64,7 +64,7 @@ datasets:
         size: 256
 
     lr_augmentation:
-      - _target_: core.augmentations.RandomVideoCompression
+      - _target_: vsrlab.core.augmentations.RandomVideoCompression
         codec: [ 'libx264', 'h264', 'mpeg4' ]
         crf: [ 40 ]
         fps: [ 30 ]

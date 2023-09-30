@@ -6,10 +6,9 @@ import omegaconf
 import torch
 import torch.distributed as dist
 import wandb
-
-from core import PROJECT_ROOT
-from core.losses import CharbonnierLoss
-from core.utils import (
+from vsrlab.core import PROJECT_ROOT
+from vsrlab.core.losses import CharbonnierLoss
+from vsrlab.core.utils import (
     seed_index_everything,
     get_resources,
     compute_loss,

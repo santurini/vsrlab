@@ -7,8 +7,8 @@ import torch.nn.functional as F
 from einops import rearrange
 from fmoe.gates.gshard_gate import GShardGate
 from fmoe.transformer import FMoETransformerMLP
-from vsr.models.VRT.modules.stochastic_depth import DropPath
-from vsr.models.VRT.modules.window_attention import *
+from vsrlab.vsr.models.VRT.modules.stochastic_depth import DropPath
+from vsrlab.vsr.models.VRT.modules.window_attention import *
 
 class TMSA(nn.Module):
     """ Temporal Mutual Self Attention (TMSA).

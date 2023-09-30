@@ -1,8 +1,8 @@
 import torch.nn as nn
-from core.modules.conv import ResidualBlock
-from vsr.models.RealBasicVSR.modules.moebasic import BasicVSR
+from vsrlab.core.modules.conv import ResidualBlock
+from vsrlab.vsr.models.RealBasicVSR.modules.moebasic import BasicVSR
 
-class RealBasicVSR(nn.Module):
+class MoEBasicVSR(nn.Module):
     def __init__(self, cleaning_blocks=20, *args, **kwargs):
         super().__init__()
         self.cleaner = IterativeRefinement(kwargs["mid_channels"], cleaning_blocks)

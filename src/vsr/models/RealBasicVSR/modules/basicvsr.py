@@ -2,9 +2,9 @@ import logging
 
 import torch
 import torch.nn as nn
-from core.modules.conv import ResidualBlock
-from core.modules.upsampling import PixelShufflePack
-from vsr.models.RealBasicVSR.modules.spynet import Spynet, flow_warp
+from vsrlab.core.modules.conv import ResidualBlock
+from vsrlab.core.modules.upsampling import PixelShufflePack
+from vsrlab.vsr.models.RealBasicVSR.modules.spynet import Spynet, flow_warp
 
 pylogger = logging.getLogger(__name__)
 

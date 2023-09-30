@@ -1,12 +1,12 @@
 defaults:
   - data: default
   - logger: default
-  - model: baby_realbasic
+  - model: basicvsr
   - optimizer: adam
   - scheduler: cosine
 
 metric:
-  _target_: core.metrics.MetricCollection
+  _target_: vsrlab.core.metrics.MetricCollection
   metrics:
     PSNR:
       _target_: piqa.PSNR

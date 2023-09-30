@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from kornia.geometry.transform import resize
-from optical_flow.models.raft.raft import RAFT
 from torchvision import models
+from vsrlab.optical_flow.models.raft.raft import RAFT
 
 LAYER_WEIGHTS = {'2': 0.1, '7': 0.1, '16': 0.8, '25': 0.9, '34': 1.0}
 

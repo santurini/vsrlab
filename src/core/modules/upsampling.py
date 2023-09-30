@@ -1,5 +1,5 @@
 import torch.nn as nn
-from core.modules.conv import ConvST
+from vsrlab.core.modules.conv import ConvST
 
 class PixelShufflePack(nn.Module):
     def __init__(self, in_ch, out_ch, upscale_factor):

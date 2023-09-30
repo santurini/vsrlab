@@ -5,9 +5,9 @@ import torch.nn as nn
 from einops.layers.torch import Rearrange
 from fmoe.gates.swipe_gate import SwipeGate
 from fmoe.transformer import FMoETransformerMLP
-from vsr.models.MoEVRT.tmsa import TMSAG
-from vsr.models.VRT.modules.deform_conv import DCNv2PackFlowGuided
-from vsr.models.VRT.modules.spynet import flow_warp
+from vsrlab.vsr.models.MoEVRT.tmsa import TMSAG
+from vsrlab.vsr.models.VRT.modules.deform_conv import DCNv2PackFlowGuided
+from vsrlab.vsr.models.VRT.modules.spynet import flow_warp
 
 class Stage(nn.Module):
     """Residual Temporal Mutual Self Attention Group and Parallel Warping.
