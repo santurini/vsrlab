@@ -2,7 +2,7 @@
 A library to train, test and develop Video Super Resolution architectures.
 The framework is based on [Hydra](https://github.com/facebookresearch/hydra) and offers a variety of SoA architectures ([Real Basic VSR](https://arxiv.org/abs/2111.12704), [VRT](https://arxiv.org/abs/2201.12288), [E-MoEVRT](https://videoprocessing.ai/benchmarks/super-resolution-for-video-compression.html)) already implemented and ready to be trained.
 
-#### Create VE
+### Create venv
 ```
 conda create -n vsrlab python=3.11
 conda activate vsrlab
@@ -10,17 +10,17 @@ conda activate vsrlab
 pip3 install -r requirements.txt
 ```
 
-#### Download FastMoE
+### [Optional] Download FastMoE to use E-MoEVRT
 Go at this [link](https://github.com/laekov/fastmoe/blob/master/doc/installation-guide.md) and follow the instructions.
 
-#### Install the package locally
+##### Install the package locally
 ```
 git clone https://gitlab.com/santurini/vsrlab.git
 
 cd vsrlab && pip3 install .
 ```
 
-#### Quick examples
+### Quick examples
 ```
 python train.py +experiment=moevrt
 # to resume a training -> change 'restore' and 'restore_opt' fields in experiment config file 
