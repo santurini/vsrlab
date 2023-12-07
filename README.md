@@ -1,4 +1,6 @@
-# VSR Playground
+# Video Super Resolution Playground
+A library to train, test and develop Video Super Resolution architectures.
+The framework is based on (Hydra)[https://github.com/facebookresearch/hydra] and offers a variety of SoA architectures already implemented and ready to be trained.
 
 #### Create VE
 ```
@@ -18,7 +20,7 @@ git clone https://gitlab.com/santurini/vsrlab.git
 cd vsrlab && pip3 install .
 ```
 
-#### Quick test example
+#### Quick examples
 ```
 python train.py +experiment=moevrt
 # to resume a training -> change 'restore' and 'restore_opt' fields in experiment config file 
