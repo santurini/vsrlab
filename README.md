@@ -15,7 +15,7 @@ Go at this [link](https://github.com/laekov/fastmoe/blob/master/doc/installation
 
 ##### Install the package locally
 ```
-git clone https://gitlab.com/santurini/vsrlab.git
+git clone https://github.com/santurini/vsrlab.git
 
 cd vsrlab && pip3 install .
 ```
