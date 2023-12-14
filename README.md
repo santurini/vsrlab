@@ -1,6 +1,6 @@
 # Video Super Resolution Playground
 A library to train, test and develop Video Super Resolution architectures.
-The framework is based on [Hydra](https://github.com/facebookresearch/hydra) and offers a variety of SoA architectures ([Real Basic VSR](https://arxiv.org/abs/2111.12704), [VRT](https://arxiv.org/abs/2201.12288), [E-MoEVRT](https://videoprocessing.ai/benchmarks/super-resolution-for-video-compression.html)) already implemented and ready to be trained.
+The framework is based on [Hydra](https://github.com/facebookresearch/hydra) and offers a variety of SoA architectures ([Real Basic VSR](https://arxiv.org/abs/2111.12704), [VRT](https://arxiv.org/abs/2201.12288)) already implemented and ready to be trained.
 
 ### Create venv
 ```
