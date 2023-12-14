@@ -1,0 +1,6 @@
+_target_: vsrlab.core.loggers.WandbLogger
+project: ${core.project_name}
+save_dir: ${oc.env:LOGGING_DIR}
+id: ${core.run_id}
+name: ${core.run_name}
+tags: ${core.tags}

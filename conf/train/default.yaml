@@ -1,0 +1,25 @@
+defaults:
+  - data: default
+  - logger: default
+  - model: basicvsr
+  - optimizer: adam
+  - scheduler: cosine
+
+metric:
+  _target_: vsrlab.core.metrics.MetricCollection
+  metrics:
+    PSNR:
+      _target_: piqa.PSNR
+    SSIM:
+      _target_: piqa.SSIM
+
+seed_index: null
+
+ddp: true
+max_epochs: 500000
+gradient_clip_val: 1
+num_grad_acc: 1
+
+finetune: false
+restore: null
+restore_opt: false

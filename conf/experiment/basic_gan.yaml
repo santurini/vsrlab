@@ -1,0 +1,12 @@
+# @package _global_
+defaults:
+  - override /train: gan
+
+train:
+  num_grad_acc: 4
+  restore: '/home/aghinassi/Desktop/nn-lab/storage/video-super-resolution/realbasic_standard/checkpoint/last.ckpt'
+
+
+
+
+
