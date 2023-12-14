@@ -1,8 +1,0 @@
-_target_: vsrlab.vsr.models.RealBasicVSR.spybasicvsr.SPyRealBasicVSR
-cleaning_blocks: 5
-mid_channels: 64
-upscale: ${train.data.datasets.train.scale}
-res_blocks: 5
-k: 5
-pretrained_flow: "/home/aghinassi/Desktop/checkpoints/spynet.ckpt"
-train_flow: false
