@@ -10,19 +10,16 @@ conda activate vsrlab
 pip3 install -r requirements.txt
 ```
 
-### [Optional] Download FastMoE to use E-MoEVRT
-Go at this [link](https://github.com/laekov/fastmoe/blob/master/doc/installation-guide.md) and follow the instructions.
-
 ##### Install the package locally
 ```
-git clone https://gitlab.com/santurini/vsrlab.git
+git clone https://github.com/santurini/vsrlab.git
 
 cd vsrlab && pip3 install .
 ```
 
 ### Quick examples
 ```
-python train.py +experiment=moevrt
+python train.py +experiment=basic
 # to resume a training -> change 'restore' and 'restore_opt' fields in experiment config file 
 
 python test.py +experiment=test cfg_dir=path/to/checkpoints_dir/experiment_name
